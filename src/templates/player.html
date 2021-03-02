@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>RPiMicroscope - Player</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='main.css') }}">
+    </head>
+    <body>
+        <header>
+            RPiMicroscope - Player
+        </header>
+        <div class="view">
+            <div class="video">
+                <video src="{{ url_for('recordings', filename=file) }}" width="100%" controls autoplay loop>
+                    Your browser does not support video playback!<br/>
+                </video>
+            </div>
+            <div class="right">
+                <p><a href="/recordings/{{ file }}"><img src="{{ url_for('static', filename='icons/download.png') }}"/></a></p>
+            </div>
+        </div>
+        <footer>
+            System Temperature: <span id="temperature"></span> °C
+            Total: <span id="total"></span> MiB
+            Used: <span id="used"></span> MiB
+            Free: <span id="free"></span> MiB
+        </footer>
+        <script type=text/javascript src="{{ url_for('static', filename='main.js') }}"></script>
+    </body>
+</html>

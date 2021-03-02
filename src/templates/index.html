@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+ <head>
+  <title>{{ title }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='main.css') }}">
+ </head>
+ <body>
+  <header>
+    <div class="header">
+      <div class="left-header">
+        {{ title }}<br/>
+        <span id="status" class="status-normal">Loading...</span>
+      </div>
+      <div class="right-header">
+        System Temperature: <span id="temperature"></span> °C <br/>
+        Total: <span id="total"></span> MiB <br/>
+        Used: <span id="used"></span> MiB <br/>
+        Free: <span id="free"></span> MiB
+      </div>
+    </div>
+  </header>
+  <div class="view">
+    <div class="video">
+      <img src="{{ url_for('video_stream') }}" class="stream" alt="Camera Stream"/>
+    </div>
+    <div class="controls">
+      <label class="catlabel">Info:</label>
+      <input type="text" id="record-name" name="name" placeholder="Recording Name (required)"/>
+      <textarea name="description" id="record-description" placeholder="Description text goes here..."></textarea>
+      
+      <label class="catlabel">Detector:</label>
+      <select id="record-detector">
+        <option value="particle">Particle</option>
+      </select>
+
+      <label class="catlabel">Trigger:</label>
+      <input type="radio" class="ratio" id="record-trigger-manual" name="trigger-mode" value="record-trigger-manual" checked>
+      <label for="record-trigger-manual" class="ratiolabel">Manual</label>
+      <input type="radio" class="ratio" id="record-trigger-motion" name="trigger-mode" value="record-trigger-motion">
+      <label for="record-trigger-motion" class="ratiolabel">Motion</label>
+
+      <!--<input type="number" id="record-trigtime" name="trigger-time"/>
+      <input type="number" id="record-trigpostroll" name="trigger-postroll"/>-->
+
+      <label class="catlabel">Mode:</label>
+      <input type="radio" class="ratio" id="record-film-only" name="recording-mode" value="manual" checked>
+      <label for="record-film-only" class="ratiolabel">Record film only</label><br/>
+      <input type="radio" class="ratio" id="record-detect-only" name="recording-mode" value="motion">
+      <label for="record-detect-only" class="ratiolabel">Detect objects only</label><br/>
+      <input type="radio" class="ratio" id="record-film-and-detect" name="recording-mode" value="motion">
+      <label for="record-film-and-detect" class="ratiolabel">Record film and detect objects</label><br/>
+     
+      <button class="redbutton" id="record-button"><img class="buttonicon" src="{{ url_for('static', filename='icons/record-24.png') }}"/>Start</button>
+    </div>
+  </div>
+  <div class="tablearea">
+    <table>
+      <tbody>
+        <tr>
+          <th>Name</th>
+          <th>Play/Download</th>
+          <th>Description</th>
+          <th>Date/Time</th>
+        </tr>
+        {% for item in rectable %}
+        <tr>
+          <td>{{ item.name }}</td>
+          <td>
+            <a href="{{ url_for('player', filename=item.name) }}"><img src="{{ url_for('static', filename='icons/video-24.png') }}" alt="Player"/></a>
+            <a href="{{ url_for('recordings', filename=item.name) }}"><img src="{{ url_for('static', filename='icons/download-24.png') }}"" alt="Download"/></a>
+          </td>
+          <td>{{ item.description }}</td>
+          <td>2020 - 23 - 12 / 12:00:00</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <footer>{{ copyright }}</footer>
+  </body>
+  <script type=text/javascript src="{{ url_for('static', filename='main.js') }}"></script>
+</html>
