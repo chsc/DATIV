@@ -10,7 +10,7 @@
     <div class="header">
       <div class="left-header">
         {{ title }}<br/>
-        <span id="status" class="status-normal">Loading...</span>
+        <span id="status" class="status-normal">(Status)</span>
       </div>
       <div class="right-header">
         System Temperature: <span id="temperature"></span> °C <br/>
@@ -51,7 +51,7 @@
       <input type="radio" class="ratio" id="record-film-and-detect" name="recording-mode" value="motion">
       <label for="record-film-and-detect" class="ratiolabel">Record film and detect objects</label><br/>
      
-      <button class="redbutton" id="record-button"><img class="buttonicon" src="{{ url_for('static', filename='icons/record-24.png') }}"/>Start</button>
+      <button class="redbutton" id="record-button"><img class="buttonicon" src="{{ url_for('static', filename='icons/record-24.png') }}"/>Start/Stop</button>
     </div>
   </div>
   <div class="tablearea">
@@ -63,15 +63,15 @@
           <th>Description</th>
           <th>Date/Time</th>
         </tr>
-        {% for item in rectable %}
+        {% for item in rectable.recordings %}
         <tr>
-          <td>{{ item.name }}</td>
+          <td>{{ rectable.recordings[item].meta['name'] }}</td>
           <td>
-            <a href="{{ url_for('player', filename=item.name) }}"><img src="{{ url_for('static', filename='icons/video-24.png') }}" alt="Player"/></a>
-            <a href="{{ url_for('recordings', filename=item.name) }}"><img src="{{ url_for('static', filename='icons/download-24.png') }}"" alt="Download"/></a>
+            <a href="{{ url_for('player', ident=rectable.recordings[item].meta['id']) }}"><img src="{{ url_for('static', filename='icons/video-24.png') }}" alt="Player"/></a>
+            <a href="{{ url_for('recordings', ident=rectable.recordings[item].meta['id']) }}"><img src="{{ url_for('static', filename='icons/download-24.png') }}"" alt="Download"/></a>
           </td>
-          <td>{{ item.description }}</td>
-          <td>2020 - 23 - 12 / 12:00:00</td>
+          <td>{{ rectable.recordings[item].meta['description'] }}</td>
+          <td>{{ rectable.recordings[item].meta['datetime'] }}</td>
         </tr>
         {% endfor %}
       </tbody>

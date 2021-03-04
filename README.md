@@ -1,21 +1,40 @@
 # Portable RPI Microscope
 
+## Web Interface
 
-## Fluoreszierendes Granulat
-Granulat schreddern und 2-stufig sieben?
+![WebInterface](/doc/web_interface.png)
 
-## Kugeln
+## Install
 
-https://www.ebay.de/itm/INNA-Glas-Deko-Perlen-Sand-SAMMY-schwimmend-glanzend-violett-0-2-0-5mm-605ml/273539301805?_trkparms=aid%3D555021%26algo%3DPL.SIMRVI%26ao%3D1%26asc%3D20201208142511%26meid%3Dca20a71a1d7b413bb4f73c3f100e9b4e%26pid%3D100752%26rk%3D5%26rkt%3D14%26mehot%3Dpf%26sd%3D283240635274%26itm%3D273539301805%26pmt%3D1%26noa%3D0%26pg%3D2047675%26algv%3DSimplRVIAMLv5WebWithPLRVIOnTopCombiner&_trksid=p2047675.c100752.m1982
+You need to install the following software packages:
 
+* **Python** 3.x
+* **Flask**
+* **OpenCV** for Python
 
-https://worf.de/wordpress/en/products/glass-balls/
+Open the command line to install the required software packages:
 
-## Pulver
+    sudo apt-get install python3
+    sudo apt-get install python3-flask
+    sudo apt-get install python3-opencv
 
+Clone the repository:
 
-## Epoxidharz
+    git clone https://gitlab.hzdr.de/hzdri/ext/rpimicro.git
 
+Change to the source directory and start the server with:
 
-  
+    python3 rpimicro.py
 
+Open your browser and enter the following URL:
+
+    http://<rpi-ip-address>:5000
+
+## TODO
+
+* Movement detection
+* Build-in particle/object detection
+
+## Notes
+
+[Additional notes...](doc/NOTES.md)

@@ -1,1 +1,3 @@
-*.pyc
+recordings/*.json
+recordings/*.avi
+

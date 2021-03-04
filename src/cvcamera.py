@@ -4,9 +4,9 @@ import cv2
 class CVVideoCamera:
     def __init__(self):
         self.cap = cv2.VideoCapture(0)
-        print('size', self.cap.get(cv2.CAP_PROP_FRAME_WIDTH), self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720) # 720p
+        print('camera resolution:', self.cap.get(cv2.CAP_PROP_FRAME_WIDTH), self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        #self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+        #self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720) # 720p
         self.running = False
         ret, self.frame = self.cap.read()
 
@@ -14,7 +14,7 @@ class CVVideoCamera:
         self.cap.release()
 
     def size(self):
-        return (self.cap.get(cv2.CAP_PROP_FRAME_WIDTH), self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        return (int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
 
     def fps(self):
         return self.cap.get(cv2.CAP_PROP_FPS)

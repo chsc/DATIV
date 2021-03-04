@@ -67,11 +67,14 @@ function setupStartRecordingButtonHandler()
       console.log(data);
       resp = requestFromServer("record", data);
 
-      if(resp == null) {
+     /* if(resp == null) {
          setStatusError("Recording failed!");
       } else {
          setStatusNormal(resp.status);
-      }      
+      }   */
+      
+      location.reload(); 
+      return false;
    });
 }
 
