@@ -1,21 +1,20 @@
 
 // does a json request and awaits a json response
-function requestFromServer(endPoint, data)
+async function requestFromServer(endPoint, data)
 {
-   fetch (endPoint, {
-      method: 'post',
-      headers: {'Content-Type' : 'application/json'},
-      body: JSON.stringify(data)
-   })
-   .then (response => response.json())
-   .then(json => {
-      console.log(json)
-      return json;
-   })
-   .catch (error => {
-      console.log("Error: ", error)
-      return null;
-   })
+   console.log(data);
+   try {
+      const response = await fetch(endPoint, {
+         method: 'post',
+         headers: {'Content-Type' : 'application/json'},
+         body: JSON.stringify(data)
+      })
+      const json = await response.json();
+      console.log(json);
+      return json
+    } catch (error) {
+      console.log(error);
+    }
 }
 
 function setStatusNormal(status)
@@ -34,7 +33,7 @@ function setStatusError(status)
 
 function setupStartRecordingButtonHandler()
 {
-   document.querySelector("#record-button").addEventListener ("click", function () {
+   document.querySelector("#record-button").addEventListener ("click", async function () {
       rname = document.querySelector("#record-name").value;
       rdescription = document.querySelector("#record-description").value;
       rdetector = document.querySelector("#record-detector").value
@@ -63,17 +62,21 @@ function setupStartRecordingButtonHandler()
          "mode" : rmode
       };
       
-      console.log("clicked: sending:");
-      console.log(data);
-      resp = requestFromServer("record", data);
+      resp = await requestFromServer("record", data);
+      console.log("response:");
+      console.log(resp)
 
-     /* if(resp == null) {
+      if(resp == null) {
          setStatusError("Recording failed!");
       } else {
-         setStatusNormal(resp.status);
-      }   */
+         if(resp.result) {
+            setStatusNormal(resp.text);
+            //location.reload(); 
+         } else {
+            setStatusError(resp.text);
+         }
+      }
       
-      location.reload(); 
       return false;
    });
 }
@@ -106,11 +109,64 @@ function updateDiskFree()
       .catch( error => alert(error) ) ;
 }
 
-document.addEventListener("DOMContentLoaded", function() { 
-   console.log("console  556 ");
-   setupStartRecordingButtonHandler();
-});
+const isoSlider   = document.querySelector("#setting-iso");
+const isoOutput   = document.querySelector("#setting-iso-output");
+const brighSlider = document.querySelector("#setting-brightness");
+const brighOutput = document.querySelector("#setting-brightness-output");
+const contrSlider = document.querySelector("#setting-contrast");
+const contrOutput = document.querySelector("#setting-contrast-output");
 
+function setupCameraSettings() {
+   isoSlider.addEventListener ("input", async function () {
+      resp = await requestFromServer("set_iso", {'iso': this.value});
+      if(resp == null) {
+         setStatusError("Request failed");
+         return;
+      }
+      if(resp.result) {
+         isoOutput.value = this.value;
+      } else {
+         setStatusError(resp.stext);
+      }     
+   });
+   brighSlider.addEventListener ("input", async function () {
+      resp = await requestFromServer("set_brightness", {'brightness': this.value});
+      if(resp == null) {
+         setStatusError("Request failed");
+         return;
+      }
+      if(resp.result) {
+         brighOutput.value = this.value;
+      } else {
+         setStatusError(resp.stext);
+      }     
+   });
+   contrSlider.addEventListener ("input", async function () {
+      resp = await requestFromServer("set_contrast", {'contrast': this.value});
+      if(resp == null) {
+         setStatusError("Request failed");
+         return;
+      }
+      if(resp.result) {
+         contrOutput.value = this.value;
+      } else {
+         setStatusError(resp.stext);
+      }     
+   });
+}
+
+function initCameraSettings() {
+   isoOutput.value   = isoSlider.value;
+   brighOutput.value = brighSlider.value;
+   contrOutput.value = contrSlider.value;
+}
+
+document.addEventListener("DOMContentLoaded", function() { 
+   console.log("console");
+   setupStartRecordingButtonHandler();
+   setupCameraSettings();
+   initCameraSettings();
+});
 
 updateDiskFree();
 updateTemperature();

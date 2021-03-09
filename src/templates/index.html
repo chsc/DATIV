@@ -25,16 +25,24 @@
       <img src="{{ url_for('video_stream') }}" class="stream" alt="Camera Stream"/>
     </div>
     <div class="controls">
-      <label class="catlabel">Info:</label>
+      <label class="catlabel">Info</label>
       <input type="text" id="record-name" name="name" placeholder="Recording Name (required)"/>
       <textarea name="description" id="record-description" placeholder="Description text goes here..."></textarea>
       
-      <label class="catlabel">Detector:</label>
+      <label class="catlabel">Camera Settings</label>
+      <label class="subcatlabel">ISO <output id="setting-iso-output" for="setting-iso">-</output></label>
+      <input id="setting-iso" name="setting-iso" type="range" min="0" max="1600" step="100" value="100">
+      <label class="subcatlabel">Brightness <output id="setting-brightness-output" for="setting-brightness">-</output></label>
+      <input id="setting-brightness" name="setting-brightness" type="range" min="0" max="100" step="1" value="50">
+      <label class="subcatlabel">Contrast <output id="setting-contrast-output" for="setting-contrast">-</output></label>
+      <input id="setting-contrast" name="setting-contrast" type="range" min="-100" max="100" step="1" value="0">
+
+      <label class="catlabel">Detector</label>
       <select id="record-detector">
         <option value="particle">Particle</option>
       </select>
 
-      <label class="catlabel">Trigger:</label>
+      <label class="catlabel">Trigger</label>
       <input type="radio" class="ratio" id="record-trigger-manual" name="trigger-mode" value="record-trigger-manual" checked>
       <label for="record-trigger-manual" class="ratiolabel">Manual</label>
       <input type="radio" class="ratio" id="record-trigger-motion" name="trigger-mode" value="record-trigger-motion">
@@ -43,7 +51,7 @@
       <!--<input type="number" id="record-trigtime" name="trigger-time"/>
       <input type="number" id="record-trigpostroll" name="trigger-postroll"/>-->
 
-      <label class="catlabel">Mode:</label>
+      <label class="catlabel">Mode</label>
       <input type="radio" class="ratio" id="record-film-only" name="recording-mode" value="manual" checked>
       <label for="record-film-only" class="ratiolabel">Record film only</label><br/>
       <input type="radio" class="ratio" id="record-detect-only" name="recording-mode" value="motion">

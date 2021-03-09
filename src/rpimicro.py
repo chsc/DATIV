@@ -1,6 +1,7 @@
 from flask import Flask, Response, render_template, request, redirect, url_for, jsonify, send_from_directory
 from cvcamera import CVVideoCamera
 from cvrecorder import CVVideoRecorder
+from motiondetect import MotionDetector
 from recordings import Recordings
 from sysinfo import get_temperature, get_disk_free
 from threading import Lock
@@ -17,14 +18,20 @@ app = Flask(__name__)
 
 # TODO: remove in the future
 app.config['RECORDING_FOLDER'] = '../recordings'
-app.config['STREAM_SIZE']      = (640, 480)
+app.config['STREAM_SIZE']      = (320, 200)
+app.config['MOTION_THRESHOLD'] = 120
 
+motion_detector = MotionDetector(app.config['MOTION_THRESHOLD'])
 recorded_files  = Recordings(app.config['RECORDING_FOLDER'])
 recording       = None
 vid             = CVVideoCamera()
 video_recorder  = None
 
 def process_frame(frame):
+    is_moving = motion_detector.detect_motion(frame)
+    if is_moving:
+        print("movement detected")
+
     global video_recorder
     if video_recorder is not None:
         print("recording frame")
@@ -99,6 +106,27 @@ def temperature():
 def diskfree():
     total, used, free = get_disk_free()
     return jsonify({"total": total, "used": used, "free": free })
+
+@app.route('/set_iso', methods=['POST'])
+def set_iso():
+    json = request.get_json()
+    print(json)
+    vid.set_iso(json['iso'])
+    return jsonify({"result": True, "stext": "Setting new ISO", "value": json['iso']})
+
+@app.route('/set_brightness', methods=['POST'])
+def set_brightness():
+    json = request.get_json()
+    print(json)
+    vid.set_brightness(json['brightness'])
+    return jsonify({"result": True, "stext": "Setting new brightness", "value": json['brightness']})
+
+@app.route('/set_contrast', methods=['POST'])
+def set_contrast():
+    json = request.get_json()
+    print(json)
+    vid.set_contrast(json['contrast'])
+    return jsonify({"result": True, "stext": "Setting new contrast", "value": json['contrast']})
 
 @app.route('/')
 def index():

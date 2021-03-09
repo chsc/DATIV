@@ -43,6 +43,11 @@ label.catlabel {
   font-weight: bold;
 }
 
+label.subcatlabel {
+  width: 100%; 
+  display:inline-block;
+}
+
 button {
   font-size: 1.2em;
   border: none;
@@ -138,6 +143,12 @@ th {
 .tablearea {
   padding: 0.25em;
 }
+/*
+output.sliderlabel {
+  font-size: 1.0em;
+  color: blue;
+  display: inline-block;
+}*/
 
 span.status-normal {
   font-size: 0.75em;

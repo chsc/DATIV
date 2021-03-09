@@ -5,8 +5,8 @@ class CVVideoCamera:
     def __init__(self):
         self.cap = cv2.VideoCapture(0)
         print('camera resolution:', self.cap.get(cv2.CAP_PROP_FRAME_WIDTH), self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        #self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-        #self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720) # 720p
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720) # 720p
         self.running = False
         ret, self.frame = self.cap.read()
 
@@ -37,6 +37,15 @@ class CVVideoCamera:
 
     def stop(self):
         self.running = False
+
+    def set_iso(self, iso):
+        print("ISO not supported", iso)
+
+    def set_brightness(self, bright):
+        print("Brightness not supported", bright)
+
+    def set_contrast(self, contr):
+        print("Contrast not supported", contr)
 
 if __name__ == "__main__":
     vid = CVVideoCamera()
