@@ -1,6 +1,6 @@
 
 // does a json request and awaits a json response
-async function requestFromServer(endPoint, data)
+async function postServer(endPoint, data)
 {
    console.log(data);
    try {
@@ -9,6 +9,19 @@ async function requestFromServer(endPoint, data)
          headers: {'Content-Type' : 'application/json'},
          body: JSON.stringify(data)
       })
+      const json = await response.json();
+      console.log(json);
+      return json
+    } catch (error) {
+      console.log(error);
+    }
+}
+
+// does not post anything and request a json response
+async function getServer(endPoint)
+{
+   try {
+      const response = await fetch(endPoint)
       const json = await response.json();
       console.log(json);
       return json
@@ -31,9 +44,44 @@ function setStatusError(status)
    span.className = "status-error";
 }
 
+function setButtonTextRecording()
+{
+   span = document.querySelector("#record-button-text");
+   span.textContent = "Stop";
+}
+
+function setButtonTextNotRecording()
+{
+   span = document.querySelector("#record-button-text");
+   span.textContent = "Start";
+}
+
+function isRecording()
+{
+   span = document.querySelector("#record-button-text");
+   return span.textContent == "Stop";
+}
+
 function setupStartRecordingButtonHandler()
 {
    document.querySelector("#record-button").addEventListener ("click", async function () {
+      if(isRecording()) {
+         resp = await getServer("stop");
+         console.log("response:");
+         console.log(resp);
+         if(resp == null) {
+            setStatusError("Stop request failed!");
+         } else {
+            if(resp.result) {
+               setStatusNormal(resp.stext);
+               setButtonTextNotRecording();
+            } else {
+               setStatusError(resp.stext);
+            }
+         }        
+         return;
+      }
+
       rname = document.querySelector("#record-name").value;
       rdescription = document.querySelector("#record-description").value;
       rdetector = document.querySelector("#record-detector").value
@@ -62,18 +110,19 @@ function setupStartRecordingButtonHandler()
          "mode" : rmode
       };
       
-      resp = await requestFromServer("record", data);
+      resp = await postServer("record", data);
       console.log("response:");
       console.log(resp)
 
       if(resp == null) {
-         setStatusError("Recording failed!");
+         setStatusError("Recording request failed!");
       } else {
          if(resp.result) {
-            setStatusNormal(resp.text);
+            setStatusNormal(resp.stext);
+            setButtonTextRecording();
             //location.reload(); 
          } else {
-            setStatusError(resp.text);
+            setStatusError(resp.stext);
          }
       }
       
@@ -118,7 +167,7 @@ const contrOutput = document.querySelector("#setting-contrast-output");
 
 function setupCameraSettings() {
    isoSlider.addEventListener ("input", async function () {
-      resp = await requestFromServer("set_iso", {'iso': this.value});
+      resp = await postServer("set_iso", {'iso': this.value});
       if(resp == null) {
          setStatusError("Request failed");
          return;
@@ -130,7 +179,7 @@ function setupCameraSettings() {
       }     
    });
    brighSlider.addEventListener ("input", async function () {
-      resp = await requestFromServer("set_brightness", {'brightness': this.value});
+      resp = await postServer("set_brightness", {'brightness': this.value});
       if(resp == null) {
          setStatusError("Request failed");
          return;
@@ -142,7 +191,7 @@ function setupCameraSettings() {
       }     
    });
    contrSlider.addEventListener ("input", async function () {
-      resp = await requestFromServer("set_contrast", {'contrast': this.value});
+      resp = await postServer("set_contrast", {'contrast': this.value});
       if(resp == null) {
          setStatusError("Request failed");
          return;

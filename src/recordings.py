@@ -1,6 +1,7 @@
 
 import datetime
 import os.path
+import os
 import json
 import glob
 
@@ -15,17 +16,22 @@ def write_meta(filename, meta):
     with open(filename, 'w') as f:
         json.dump(meta, f, indent = 4)
 
-def new_meta(recdir, name, description, trigger):
+def new_meta(recdir, name, description, trigger, iso=100, brightness=50, contrast=0):
     dt = datetime.datetime.now()
     basename = build_base_name(name, dt)
+    metafile = basename + ".json"
     videofile = basename + ".avi"
     meta = {
         'id': basename,
+        'metafile': metafile,
         'videofile': videofile,
         'name': name,
         'description': description,
         'datetime': str(dt),
-        'trigger': trigger
+        'trigger': trigger,
+        'ISO': iso,
+        "brightness": brightness,
+        "contrast": contrast
         }
     return meta
 
@@ -36,6 +42,10 @@ class Recording:
     def make_video_path(self, recdir):
         videofile = self.meta['videofile']
         return os.path.join(recdir, videofile)
+
+    def make_json_path(self, recdir):
+        basename = self.meta['id']
+        return os.path.join(recdir, basename + ".json")
 
 class Recordings:
     def __init__(self, recdir):
@@ -56,10 +66,21 @@ class Recordings:
 
     def end_recording(self, recording):
         basename = recording.meta['id']
-        jsonfile = os.path.join(self.recdir, basename + ".json")
+        jsonfile = recording.make_json_path(self.recdir)
         write_meta(jsonfile, recording.meta)
         self.recordings[basename] = recording
         return basename
+
+    def delete_recording(self, ident):
+        try:
+            recording = self.recordings[ident]
+            os.remove(recording.make_json_path(self.recdir))
+            os.remove(recording.make_video_path(self.recdir))
+            del self.recordings[ident]
+            return True
+        except Exception as inst:
+            print(inst)
+            return False
 
     def get_video_file(self, ident):
         recording = self.recordings[ident]

@@ -59,7 +59,10 @@
       <input type="radio" class="ratio" id="record-film-and-detect" name="recording-mode" value="motion">
       <label for="record-film-and-detect" class="ratiolabel">Record film and detect objects</label><br/>
      
-      <button class="redbutton" id="record-button"><img class="buttonicon" src="{{ url_for('static', filename='icons/record-24.png') }}"/>Start/Stop</button>
+      <button class="redbutton" id="record-button">
+        <img class="buttonicon" src="{{ url_for('static', filename='icons/record-24.png') }}"/>
+        <span id="record-button-text">Start</span>
+      </button>
     </div>
   </div>
   <div class="tablearea">
@@ -67,7 +70,7 @@
       <tbody>
         <tr>
           <th>Name</th>
-          <th>Play/Download</th>
+          <th></th>
           <th>Description</th>
           <th>Date/Time</th>
         </tr>
@@ -77,6 +80,7 @@
           <td>
             <a href="{{ url_for('player', ident=rectable.recordings[item].meta['id']) }}"><img src="{{ url_for('static', filename='icons/video-24.png') }}" alt="Player"/></a>
             <a href="{{ url_for('recordings', ident=rectable.recordings[item].meta['id']) }}"><img src="{{ url_for('static', filename='icons/download-24.png') }}"" alt="Download"/></a>
+            <a href="{{ url_for('delete_recording', ident=rectable.recordings[item].meta['id']) }}"><img src="{{ url_for('static', filename='icons/delete-24.png') }}"" alt="Delete"/></a>
           </td>
           <td>{{ rectable.recordings[item].meta['description'] }}</td>
           <td>{{ rectable.recordings[item].meta['datetime'] }}</td>

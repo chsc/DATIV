@@ -65,6 +65,14 @@ def player(ident):
     rec = recorded_files.get_recording(ident)
     return render_template('player.html', recording=rec)
 
+@app.route('/delete_recording/<ident>')
+def delete_recording(ident):
+    ok = recorded_files.delete_recording(ident)
+    if ok:
+        return jsonify(result=True, stext=f"Recording '{ident}' deleted")
+    else:
+        return jsonify(result=False, stext=f"Unable to delete recording: '{ident}'")
+
 @app.route('/record', methods=['POST'])
 def record():
     global video_recorder
@@ -77,13 +85,14 @@ def record():
     t = json['trigger']
     if not n:
         n = "Movie"
+    if not d:
+        d = "(no description provided)"
     if video_recorder is None:
         recording = recorded_files.start_recording(n, d, t)
         video_recorder = CVVideoRecorder(recording.make_video_path(recorded_files.recdir), vid.size(), int(vid.fps()))
-        return jsonify(result=True, text="Recording video...")
+        return jsonify(result=True, stext="Recording video...")
     else:
-        stop() # TODO: remove
-        return jsonify(result=False, text="Already recording")
+        return jsonify(result=False, stext="Already recording")
 
 @app.route('/stop')
 def stop():
@@ -94,9 +103,9 @@ def stop():
         del video_recorder
         video_recorder = None
         recorded_files.end_recording(recording)
-        return jsonify(result=True)
+        return jsonify(result=True, stext="Recording stopped!")
     else:
-        return jsonify(result=False)
+        return jsonify(result=False, stext="Not recording")
 
 @app.route('/temperature')
 def temperature():
