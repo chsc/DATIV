@@ -1,4 +1,13 @@
 
+const isoSlider   = document.querySelector("#setting-iso");
+const isoOutput   = document.querySelector("#setting-iso-output");
+const brighSlider = document.querySelector("#setting-brightness");
+const brighOutput = document.querySelector("#setting-brightness-output");
+const contrSlider = document.querySelector("#setting-contrast");
+const contrOutput = document.querySelector("#setting-contrast-output");
+
+const deleteRecordingImage = document.querySelector("#delete-recording-image");
+
 // does a json request and awaits a json response
 async function postServer(endPoint, data)
 {
@@ -158,12 +167,6 @@ function updateDiskFree()
       .catch( error => alert(error) ) ;
 }
 
-const isoSlider   = document.querySelector("#setting-iso");
-const isoOutput   = document.querySelector("#setting-iso-output");
-const brighSlider = document.querySelector("#setting-brightness");
-const brighOutput = document.querySelector("#setting-brightness-output");
-const contrSlider = document.querySelector("#setting-contrast");
-const contrOutput = document.querySelector("#setting-contrast-output");
 
 function setupCameraSettings() {
    isoSlider.addEventListener ("input", async function () {
@@ -210,11 +213,30 @@ function initCameraSettings() {
    contrOutput.value = contrSlider.value;
 }
 
+function setupDeleteRecordingButtonHandler() {
+   deleteRecordingImage.addEventListener ("click", async function () {
+      var id = this.getAttribute("data-recording")
+      console.log("delete recording")
+      console.log(id)
+      resp = await getServer("delete_recording/" + id, {'contrast': this.value});
+      if(resp == null) {
+         setStatusError("Request failed");
+         return;
+      }
+      if(resp.result) {
+         location.reload();
+      } else {
+         setStatusError(resp.stext);
+      }     
+   });
+}
+
 document.addEventListener("DOMContentLoaded", function() { 
    console.log("console");
    setupStartRecordingButtonHandler();
-   setupCameraSettings();
+   setupDeleteRecordingButtonHandler();
    initCameraSettings();
+   setupCameraSettings();
 });
 
 updateDiskFree();

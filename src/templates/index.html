@@ -80,7 +80,7 @@
           <td>
             <a href="{{ url_for('player', ident=rectable.recordings[item].meta['id']) }}"><img src="{{ url_for('static', filename='icons/video-24.png') }}" alt="Player"/></a>
             <a href="{{ url_for('recordings', ident=rectable.recordings[item].meta['id']) }}"><img src="{{ url_for('static', filename='icons/download-24.png') }}"" alt="Download"/></a>
-            <a href="{{ url_for('delete_recording', ident=rectable.recordings[item].meta['id']) }}"><img src="{{ url_for('static', filename='icons/delete-24.png') }}"" alt="Delete"/></a>
+            <img class="delete-recording-image" id="delete-recording-image" data-recording="{{rectable.recordings[item].meta['id']}}" src="{{ url_for('static', filename='icons/delete-24.png') }}"" alt="Delete"/>
           </td>
           <td>{{ rectable.recordings[item].meta['description'] }}</td>
           <td>{{ rectable.recordings[item].meta['datetime'] }}</td>

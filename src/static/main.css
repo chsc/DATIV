@@ -83,6 +83,10 @@ img.stream {
   width: 100%;
 }
 
+img.delete-recording-image {
+  cursor: pointer;
+}
+
 table {
   width: 100%;
   border-radius: 4px;
