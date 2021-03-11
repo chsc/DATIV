@@ -3,8 +3,9 @@ import cv2
 class CVVideoRecorder:
     def __init__(self, filename, size, fps):
         print("---- size: ", size)
-        fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
+        #fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
         #fourcc = cv2.VideoWriter_fourcc('X','V','I','D')
+        fourcc = cv2.VideoWriter_fourcc('H','2','6','4')
         self.out = cv2.VideoWriter(filename, fourcc, fps, size)
 
     def __del__(self):

@@ -1,4 +1,12 @@
 
+const statusSpan           = document.querySelector("#status");
+const recordButtonTextSpan = document.querySelector("#record-button-text");
+
+const stateTemp      = document.querySelector("#temperature");
+const stateDiskTotal = document.querySelector("#total");
+const stateDiskUsed = document.querySelector("#used");
+const stateDisk = document.querySelector("#free");
+
 const isoSlider   = document.querySelector("#setting-iso");
 const isoOutput   = document.querySelector("#setting-iso-output");
 const brighSlider = document.querySelector("#setting-brightness");
@@ -27,10 +35,14 @@ async function postServer(endPoint, data)
 }
 
 // does not post anything and request a json response
-async function getServer(endPoint)
+async function getServer(endPoint, params)
 {
    try {
-      const response = await fetch(endPoint)
+      var query = endPoint
+      if(params != null) {
+         query = endPoint + "?" + new URLSearchParams(params).toString();
+      }
+      const response = await fetch(query)
       const json = await response.json();
       console.log(json);
       return json
@@ -41,140 +53,97 @@ async function getServer(endPoint)
 
 function setStatusNormal(status)
 {
-   span = document.querySelector("#status");
-   span.textContent = status;
-   span.className = "status-normal";
+   statusSpan.textContent = status;
+   statusSpan.className = "status-normal";
 }
 
 function setStatusError(status)
 {
-   span = document.querySelector("#status");
-   span.textContent = status;
-   span.className = "status-error";
+   statusSpan.textContent = status;
+   statusSpan.className = "status-error";
 }
 
 function setButtonTextRecording()
 {
-   span = document.querySelector("#record-button-text");
-   span.textContent = "Stop";
+   recordButtonTextSpan.textContent = "Stop";
 }
 
 function setButtonTextNotRecording()
 {
-   span = document.querySelector("#record-button-text");
-   span.textContent = "Start";
+   recordButtonTextSpan.textContent = "Start";
 }
 
-function isRecording()
+async function setupStartRecordingButtonHandler()
 {
-   span = document.querySelector("#record-button-text");
-   return span.textContent == "Stop";
-}
-
-function setupStartRecordingButtonHandler()
-{
+   resp = await getServer("recording_state");
+   if(resp.mode == "playback") {
+      setButtonTextNotRecording();
+   } if(resp.mode == "recording") {
+      setButtonTextRecording();
+   }
    document.querySelector("#record-button").addEventListener ("click", async function () {
-      if(isRecording()) {
-         resp = await getServer("stop");
-         console.log("response:");
-         console.log(resp);
-         if(resp == null) {
-            setStatusError("Stop request failed!");
-         } else {
-            if(resp.result) {
-               setStatusNormal(resp.stext);
-               setButtonTextNotRecording();
-            } else {
-               setStatusError(resp.stext);
-            }
-         }        
-         return;
-      }
+      resp = await getServer("recording_state");
+      if(resp.mode == "playback") {
 
-      rname = document.querySelector("#record-name").value;
-      rdescription = document.querySelector("#record-description").value;
-      rdetector = document.querySelector("#record-detector").value
-
-      rtrigger = "manual"
-      if(document.querySelector("#record-trigger-manual").checked) {
-         rtrigger = "manual";
-      } else if(document.querySelector("#record-trigger-motion").checked) {
-         rtrigger = "motion";
-      }
-
-      rmode = "film-only"
-      if(document.querySelector("#record-film-only").checked) {
-         rmode = "film-only";
-      } else if(document.querySelector("#record-detect-only").checked) {
-         rmode = "detect-only";
-      } else if(document.querySelector("#record-film-and-detect").checked) {
-         rmode = "film-and-detect";
-      }
-
-      data = {
-         "name" : rname,
-         "description" : rdescription,
-         "detector" : rdetector,
-         "trigger" : rtrigger,
-         "mode" : rmode
-      };
-      
-      resp = await postServer("record", data);
-      console.log("response:");
-      console.log(resp)
-
-      if(resp == null) {
-         setStatusError("Recording request failed!");
-      } else {
+         rname = document.querySelector("#record-name").value;
+         rdescription = document.querySelector("#record-description").value;
+         rdetector = document.querySelector("#record-detector").value
+   
+         rtrigger = "manual"
+         if(document.querySelector("#record-trigger-manual").checked) {
+            rtrigger = "manual";
+         } else if(document.querySelector("#record-trigger-motion").checked) {
+            rtrigger = "motion";
+         }
+   
+         rmode = "film-only"
+         if(document.querySelector("#record-film-only").checked) {
+            rmode = "film-only";
+         } else if(document.querySelector("#record-detect-only").checked) {
+            rmode = "detect-only";
+         } else if(document.querySelector("#record-film-and-detect").checked) {
+            rmode = "film-and-detect";
+         }
+   
+         data = {
+            "name" : rname,
+            "description" : rdescription,
+            "detector" : rdetector,
+            "trigger" : rtrigger,
+            "mode" : rmode
+         };
+         
+         resp = await postServer("record", data);
          if(resp.result) {
-            setStatusNormal(resp.stext);
             setButtonTextRecording();
-            //location.reload(); 
+         } else {
+            setStatusError(resp.stext);
+         }
+      } if(resp.mode == "recording") {
+         resp = await getServer("stop");
+         if(resp.result) {
+            location.reload(); 
          } else {
             setStatusError(resp.stext);
          }
       }
-      
+
       return false;
    });
 }
 
-function updateTemperature()
+async function updateSystemState()
 {
-   fetch( "/temperature" )
-      .then( response => {
-         if( !response.ok )
-            throw new Error( "fetch failed" ) ;
-         return response.json() ;
-      } )
-      .then( json => document.querySelector("#temperature").textContent = json.temperature )
-      .catch( error => alert(error) ) ;
+   resp = await getServer("/system_state", null);
+   document.querySelector("#temperature").textContent = resp.temperature;
+   document.querySelector("#total").textContent = resp.disk.total;
+   document.querySelector("#used").textContent = resp.disk.used;
+   document.querySelector("#free").textContent = resp.disk.free;
 }
 
-function updateDiskFree()
-{
-   fetch( "/diskfree" )
-      .then( response => {
-         if( !response.ok )
-            throw new Error( "fetch failed" ) ;
-         return response.json() ;
-      } )
-      .then( json => {
-          document.querySelector("#total").textContent = json.total;
-          document.querySelector("#used").textContent = json.used;
-          document.querySelector("#free").textContent = json.free;
-      })
-      .catch( error => alert(error) ) ;
-}
-
-
-function setupCameraSettings() {
+function setupCameraSettingControlHandler() {
    isoSlider.addEventListener ("input", async function () {
-      resp = await postServer("set_iso", {'iso': this.value});
-      if(resp == null) {
-         setStatusError("Request failed");
-         return;
-      }
+      resp = await getServer("set_param/iso", {'value': this.value});
       if(resp.result) {
          isoOutput.value = this.value;
       } else {
@@ -182,32 +151,30 @@ function setupCameraSettings() {
       }     
    });
    brighSlider.addEventListener ("input", async function () {
-      resp = await postServer("set_brightness", {'brightness': this.value});
-      if(resp == null) {
-         setStatusError("Request failed");
-         return;
-      }
+      resp = await getServer("set_param/brightness", {'value': this.value});
       if(resp.result) {
          brighOutput.value = this.value;
       } else {
          setStatusError(resp.stext);
-      }     
+      }
    });
    contrSlider.addEventListener ("input", async function () {
-      resp = await postServer("set_contrast", {'contrast': this.value});
-      if(resp == null) {
-         setStatusError("Request failed");
-         return;
-      }
+      resp = await getServer("set_param/contrast", {'value': this.value});
       if(resp.result) {
          contrOutput.value = this.value;
       } else {
          setStatusError(resp.stext);
-      }     
+      }
    });
 }
 
-function initCameraSettings() {
+async function initCameraSettings() {
+   resp = await getServer("get_params", {});
+
+   isoSlider.value   = resp.iso;
+   brighSlider.value = resp.brightness;
+   contrSlider.value = resp.contrast;
+
    isoOutput.value   = isoSlider.value;
    brighOutput.value = brighSlider.value;
    contrOutput.value = contrSlider.value;
@@ -219,10 +186,6 @@ function setupDeleteRecordingButtonHandler() {
       console.log("delete recording")
       console.log(id)
       resp = await getServer("delete_recording/" + id, {'contrast': this.value});
-      if(resp == null) {
-         setStatusError("Request failed");
-         return;
-      }
       if(resp.result) {
          location.reload();
       } else {
@@ -232,14 +195,10 @@ function setupDeleteRecordingButtonHandler() {
 }
 
 document.addEventListener("DOMContentLoaded", function() { 
-   console.log("console");
    setupStartRecordingButtonHandler();
    setupDeleteRecordingButtonHandler();
+   setupCameraSettingControlHandler();
    initCameraSettings();
-   setupCameraSettings();
+   updateSystemState();
+   setInterval(updateSystemState, 5000);
 });
-
-updateDiskFree();
-updateTemperature();
-
-setInterval(updateTemperature, 5000);

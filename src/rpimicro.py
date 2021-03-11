@@ -31,7 +31,6 @@ def process_frame(frame):
     is_moving = motion_detector.detect_motion(frame)
     if is_moving:
         print("movement detected")
-
     global video_recorder
     if video_recorder is not None:
         print("recording frame")
@@ -55,10 +54,10 @@ def generate_video(camera):
 def video_stream():
     return Response(generate_video(vid), mimetype='multipart/x-mixed-replace; boundary=frame')
 
-@app.route('/recordings/<ident>')
-def recordings(ident):
+@app.route('/recording/<ident>')
+def recording(ident):
     filename = recorded_files.get_video_file(ident)
-    return send_from_directory(app.config['RECORDING_FOLDER'], filename, mimetype='video/mjpeg')
+    return send_from_directory(app.config['RECORDING_FOLDER'], filename)
 
 @app.route('/player/<ident>')
 def player(ident):
@@ -78,17 +77,21 @@ def record():
     global video_recorder
     global recorded_files
     global recording
+    global vid
     json = request.get_json()
     print(json)
     n = json['name']
     d = json['description']
     t = json['trigger']
+    iso = vid.get_iso()
+    brightness = vid.get_brightness()
+    contrast = vid.get_contrast()
     if not n:
         n = "Movie"
     if not d:
         d = "(no description provided)"
     if video_recorder is None:
-        recording = recorded_files.start_recording(n, d, t)
+        recording = recorded_files.start_recording(n, d, t, iso, brightness, contrast)
         video_recorder = CVVideoRecorder(recording.make_video_path(recorded_files.recdir), vid.size(), int(vid.fps()))
         return jsonify(result=True, stext="Recording video...")
     else:
@@ -100,42 +103,60 @@ def stop():
     global recorded_files
     global recording
     if video_recorder is not None:
-        del video_recorder
+        #del video_recorder
         video_recorder = None
         recorded_files.end_recording(recording)
         return jsonify(result=True, stext="Recording stopped!")
     else:
         return jsonify(result=False, stext="Not recording")
 
-@app.route('/temperature')
-def temperature():
-    return jsonify({"temperature": get_temperature() })
+@app.route('/recording_state')
+def recording_state():
+    global video_recorder
+    isrec = video_recorder is not None
+    mode = "playback"
+    if isrec:
+        mode = "recording"
+    data = {
+        "mode": mode,
+    }
+    return jsonify(data)
 
-@app.route('/diskfree')
-def diskfree():
+@app.route('/system_state')
+def system_state():
     total, used, free = get_disk_free()
-    return jsonify({"total": total, "used": used, "free": free })
+    temp = get_temperature()
+    data = {
+        "temperature": temp,
+        "disk": {
+            "total": total,
+            "used": used,
+            "free": free
+        }
+    }
+    return jsonify(data)
 
-@app.route('/set_iso', methods=['POST'])
-def set_iso():
-    json = request.get_json()
-    print(json)
-    vid.set_iso(json['iso'])
-    return jsonify({"result": True, "stext": "Setting new ISO", "value": json['iso']})
+@app.route('/set_param/<param>')
+def set_param(param):
+    value = request.args.get('value')
+    if param == "iso":
+        vid.set_iso(value)
+    elif param == "brightness":
+        vid.set_brightness(value)
+    elif param == "contrast":
+        vid.set_contrast(value)
+    else:
+        return jsonify({"result": False, "stext": f"Unknown parameter {param}"})
+    return jsonify({"result": True, "stext": f"Parameter {param} set"})    
 
-@app.route('/set_brightness', methods=['POST'])
-def set_brightness():
-    json = request.get_json()
-    print(json)
-    vid.set_brightness(json['brightness'])
-    return jsonify({"result": True, "stext": "Setting new brightness", "value": json['brightness']})
-
-@app.route('/set_contrast', methods=['POST'])
-def set_contrast():
-    json = request.get_json()
-    print(json)
-    vid.set_contrast(json['contrast'])
-    return jsonify({"result": True, "stext": "Setting new contrast", "value": json['contrast']})
+@app.route('/get_params')
+def get_params():
+    data = {
+        "iso": vid.get_iso(),
+        "brightness": vid.get_brightness(),
+        "contrast": vid.get_contrast(),
+    }
+    return jsonify(data)
 
 @app.route('/')
 def index():

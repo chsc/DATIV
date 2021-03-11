@@ -20,7 +20,7 @@ def new_meta(recdir, name, description, trigger, iso=100, brightness=50, contras
     dt = datetime.datetime.now()
     basename = build_base_name(name, dt)
     metafile = basename + ".json"
-    videofile = basename + ".avi"
+    videofile = basename + ".mp4"
     meta = {
         'id': basename,
         'metafile': metafile,
@@ -29,10 +29,10 @@ def new_meta(recdir, name, description, trigger, iso=100, brightness=50, contras
         'description': description,
         'datetime': str(dt),
         'trigger': trigger,
-        'ISO': iso,
+        'iso': iso,
         "brightness": brightness,
         "contrast": contrast
-        }
+    }
     return meta
 
 class Recording:
@@ -44,8 +44,8 @@ class Recording:
         return os.path.join(recdir, videofile)
 
     def make_json_path(self, recdir):
-        basename = self.meta['id']
-        return os.path.join(recdir, basename + ".json")
+        metafile = self.meta['metafile']
+        return os.path.join(recdir, metafile)
 
 class Recordings:
     def __init__(self, recdir):
@@ -61,8 +61,8 @@ class Recordings:
             print(meta)
             self.recordings[meta['id']] = Recording(meta)
 
-    def start_recording(self, name, description, trigger):
-        return Recording(new_meta(self.recdir, name, description, trigger))
+    def start_recording(self, name, description, trigger, iso, brightness, contrast):
+        return Recording(new_meta(self.recdir, name, description, trigger, iso, brightness, contrast))
 
     def end_recording(self, recording):
         basename = recording.meta['id']

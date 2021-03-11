@@ -1,33 +1,81 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>RPiMicroscope - Player</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='main.css') }}">
-    </head>
-    <body>
-        <header>
-            RPiMicroscope - Player
-        </header>
-        <div class="view">
-            <div class="video">
-                <video src="{{ url_for('recordings', ident=recording.meta['id']) }}" width="100%" controls autoplay loop>
-                    Your browser does not support video playback!<br/>
-                </video>
+
+<head>
+    <title>RPiMicroscope - Player</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='main.css') }}">
+</head>
+
+<body>
+    <header>
+        <div class="header">
+            <div class="left-header">
+                RPiMicroscope - Player
             </div>
-            <div class="right">
-                <p><a href="{{ url_for('recordings', ident=recording.meta['id']) }}"><img src="{{ url_for('static', filename='icons/download-24.png') }}"/></a></p>
+            <div class="right-header">
+                <a href="{{ url_for('recording', ident=recording.meta['id']) }}">
+                    <img src="{{ url_for('static', filename='icons/download-24.png') }}" />
+                </a>
             </div>
         </div>
-        <footer>
-            System Temperature: <span id="temperature"></span> °C
-            Total: <span id="total"></span> MiB
-            Used: <span id="used"></span> MiB
-            Free: <span id="free"></span> MiB
-        </footer>
-        <!--<video src="../recordings/Movie_2021-03-04_19-54-02_130493.avi" width="100%" controls autoplay loop>
-            Your browser does not support video playback!<br/>
-        </video>-->
-        <!--<script type=text/javascript src="{{ url_for('static', filename='main.js') }}"></script>-->
-    </body>
+    </header>
+    <div class="view">
+        <div class="video">
+            <video src="{{ url_for('recording', ident=recording.meta['id']) }}" width="100%" controls autoplay loop>
+                Your browser does not support video playback!<br />
+            </video>
+        </div>
+    </div>
+    <div class="tablearea">
+        <table id="recording-table">
+            <tbody>
+                <tr>
+                    <th>Name</th>
+                    <th>Value</th>
+                </tr>
+                <tr>
+                    <td>Video File</td>
+                    <td>{{ recording.meta['videofile'] }}</td>
+                </tr>
+                <tr>
+                    <td>Meta File</td>
+                    <td>{{ recording.meta['metafile'] }}</td>
+                </tr>
+                <tr>
+                    <td>Name</td>
+                    <td>{{ recording.meta['name'] }}</td>
+                </tr>
+                <tr>
+                    <td>Description</td>
+                    <td>{{ recording.meta['description'] }}</td>
+                </tr>
+                <tr>
+                    <td>Date Time</td>
+                    <td>{{ recording.meta['datetime'] }}</td>
+                </tr>
+                <tr>
+                    <td>Trigger</td>
+                    <td>{{ recording.meta['trigger'] }}</td>
+                </tr>
+                <tr>
+                    <td>ISO</td>
+                    <td>{{ recording.meta['iso'] }}</td>
+                </tr>
+                <tr>
+                    <td>Brightness</td>
+                    <td>{{ recording.meta['brightness'] }}</td>
+                </tr>
+                <tr>
+                    <td>Contrast</td>
+                    <td>{{ recording.meta['contrast'] }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <footer>
+        {{ copyright }}
+    </footer>
+</body>
+
 </html>

@@ -3,6 +3,9 @@ import cv2
 
 class CVVideoCamera:
     def __init__(self):
+        self.iso = 100
+        self.brightness = 50
+        self.contrast = 0
         self.cap = cv2.VideoCapture(0)
         print('camera resolution:', self.cap.get(cv2.CAP_PROP_FRAME_WIDTH), self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
@@ -38,14 +41,31 @@ class CVVideoCamera:
     def stop(self):
         self.running = False
 
+
     def set_iso(self, iso):
         print("ISO not supported", iso)
+        self.iso = iso
+
+    def get_iso(self):
+        print("ISO not supported", self.iso)
+        return self.iso
 
     def set_brightness(self, bright):
         print("Brightness not supported", bright)
+        self.brightness = bright
+    
+    def get_brightness(self):
+        print("Brightness not supported", self.brightness)
+        return self.brightness
 
-    def set_contrast(self, contr):
-        print("Contrast not supported", contr)
+    def set_contrast(self, contrast):
+        print("Contrast not supported", contrast)
+        self.contrast = contrast
+
+    def get_contrast(self):
+        print("Contrast not supported", self.contrast)
+        return self.contrast
+
 
 if __name__ == "__main__":
     vid = CVVideoCamera()
