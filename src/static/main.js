@@ -4,8 +4,8 @@ const recordButtonTextSpan = document.querySelector("#record-button-text");
 
 const stateTemp      = document.querySelector("#temperature");
 const stateDiskTotal = document.querySelector("#total");
-const stateDiskUsed = document.querySelector("#used");
-const stateDisk = document.querySelector("#free");
+const stateDiskUsed  = document.querySelector("#used");
+const stateDisk      = document.querySelector("#free");
 
 const isoSlider   = document.querySelector("#setting-iso");
 const isoOutput   = document.querySelector("#setting-iso-output");
@@ -181,11 +181,14 @@ async function initCameraSettings() {
 }
 
 function setupDeleteRecordingButtonHandler() {
+   if(deleteRecordingImage == null) {
+      return;
+   }
    deleteRecordingImage.addEventListener ("click", async function () {
       var id = this.getAttribute("data-recording")
       console.log("delete recording")
       console.log(id)
-      resp = await getServer("delete_recording/" + id, {'contrast': this.value});
+      resp = await getServer("delete_recording/" + id, null);
       if(resp.result) {
          location.reload();
       } else {

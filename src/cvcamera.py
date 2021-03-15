@@ -1,46 +1,103 @@
-from threading import Thread
 import cv2
+import time
+from threading import Thread
+from threading import Lock
+from motiondetect import MotionDetector
+
+fourcc = cv2.VideoWriter_fourcc('H','2','6','4')
+#fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
+#fourcc = cv2.VideoWriter_fourcc('X','V','I','D')
 
 class CVVideoCamera:
-    def __init__(self):
+    def __init__(self, motiondet, size, thumbsize):
+        self.lock = Lock()
+        self.thread = None
+        self.running = False
+        # Motion detector
+        self.motiondet = motiondet
+        # Parameters
         self.iso = 100
         self.brightness = 50
         self.contrast = 0
-        self.cap = cv2.VideoCapture(0)
-        print('camera resolution:', self.cap.get(cv2.CAP_PROP_FRAME_WIDTH), self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720) # 720p
-        self.running = False
-        ret, self.frame = self.cap.read()
+        # OpenCV Camera
+        self.recorder = None
+        self.capture = cv2.VideoCapture(0)
+        print('default camera resolution:', self.size())
+        if type(size) == tuple:
+            print('new camera resolution:', size)
+            #self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, size[0])
+            #self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, size[1]) # 720p
+            self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+            self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, 720) # 720p
+            print('new camera resolution:', self.size())
+        ret, self.frame = self.capture.read()
 
     def __del__(self):
-        self.cap.release()
+        self.capture.release()
+        if self.recorder:
+            self.recorder.release()
 
     def size(self):
-        return (int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+        return (int(self.capture.get(cv2.CAP_PROP_FRAME_WIDTH)), int(self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT)))
 
     def fps(self):
-        return self.cap.get(cv2.CAP_PROP_FPS)
+        return self.capture.get(cv2.CAP_PROP_FPS)
 
     def read(self):
-        ret, frame = self.cap.read()
+        ret, frame = self.capture.read()
         return frame
 
     def camera_thread(self, callback):
         while self.running:
-            ret, self.frame = self.cap.read()
+            #print("frame:")
+            ret = False
+            #with self.lock:
+            ret, self.frame = self.capture.read()
             if ret and callback is not None:
                 callback(self.frame)
                 
     def run(self, callback):
         self.running = True
-        t = Thread(target=self.camera_thread, args=(callback,))
-        t.daemon = True
-        t.start()
+        self.thread = Thread(target=self.camera_thread, args=(callback,))
+        self.thread.start()
 
     def stop(self):
         self.running = False
+        if self.thread is not None:
+            self.thread.join()
+            self.thread = None
 
+    def frame_callback(self, frame):
+        if self.recorder is not None:
+            print("recording frame")
+            self.recorder.write(frame)
+
+    def playback(self):
+        self.stop()
+        self.run(self.frame_callback)
+
+    def record(self, filename):
+        global fourcc
+        self.recorder = cv2.VideoWriter(filename, fourcc, self.fps(), self.size())
+
+    def stop_recording(self):
+        if self.recorder is not None:
+            self.recorder = None
+
+    def record_motion_callback(frame):
+        is_moving = motion_detector.detect_motion(frame)
+        if is_moving:
+            print("movement detected")
+            global fourcc
+            self.recorder = cv2.VideoWriter(filename, fourcc, self.fps(), self.size())
+
+        if video_recorder is not None:
+            print("recording frame")
+            video_recorder.write(frame)
+
+    def record_motion(self, filenamegen):
+        self.stop()
+        self.run(self.record_motion_callback)
 
     def set_iso(self, iso):
         print("ISO not supported", iso)

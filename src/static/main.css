@@ -45,7 +45,14 @@ label.catlabel {
 
 label.subcatlabel {
   width: 100%; 
+  margin-top: 0.25em;
+  margin-bottom: 0.0em;
   display:inline-block;
+}
+
+input {
+  margin: 0px;
+  padding: 0.125em;
 }
 
 button {
@@ -109,18 +116,18 @@ th {
 
 .view {
   display: flex;
-  padding: 0.25em;
+  padding: 0.0em;
 }
 
 .controls {
-  padding-left: 0.25em;
-  flex: 40%;
+  padding: 0.25em;
+  flex: 30%;
 }
 
 .video {
   flex: 60%;
-  background-color: lightgray;
-  padding: 1px;
+  background-color: black;
+  padding: 0.25em;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -147,12 +154,6 @@ th {
 .tablearea {
   padding: 0.25em;
 }
-/*
-output.sliderlabel {
-  font-size: 1.0em;
-  color: blue;
-  display: inline-block;
-}*/
 
 span.status-normal {
   font-size: 0.75em;

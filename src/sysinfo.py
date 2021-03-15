@@ -1,8 +1,5 @@
 import shutil
 
-# CPU Temp!
-# https://blog.heimetli.ch/sysfs-ajax-flask.html
-
 def get_temperature():
     with open( "/sys/class/thermal/thermal_zone0/temp", "r" ) as input:
         temperature = float( input.readline() ) / 1000.0
