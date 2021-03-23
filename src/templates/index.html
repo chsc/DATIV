@@ -14,9 +14,7 @@
       </div>
       <div class="right-header">
         System Temperature: <span id="temperature"></span> °C <br/>
-        Total: <span id="total"></span> MiB <br/>
-        Used: <span id="used"></span> MiB <br/>
-        Free: <span id="free"></span> MiB
+        Total: <span id="total"></span> MiB Used: <span id="used"></span> MiB Free: <span id="free"></span> MiB (<span id="percent_used"></span> % full)<br/>
       </div>
     </div>
   </header>
@@ -87,8 +85,8 @@
         <tr>
           <td>{{ rectable.recordings[item].meta['name'] }}</td>
           <td>
-            <a href="{{ url_for('player', ident=rectable.recordings[item].meta['id']) }}"><img src="{{ url_for('static', filename='icons/video-24.png') }}" alt="Player"/></a>
-            <a href="{{ url_for('recording', ident=rectable.recordings[item].meta['id']) }}"><img src="{{ url_for('static', filename='icons/download-24.png') }}"" alt="Download"/></a>
+            <a href="{{ url_for('player', ident=rectable.recordings[item].meta['id']) }}"><img src="{{ url_for('static', filename='icons/video-24.png') }}" alt="Player"/></a> 
+            <a href="{{ url_for('recording', ident=rectable.recordings[item].meta['id']) }}" download><img src="{{ url_for('static', filename='icons/download-24.png') }}"" alt="Download"/></a>
             <img class="delete-recording-image" id="delete-recording-image" data-recording="{{rectable.recordings[item].meta['id']}}" src="{{ url_for('static', filename='icons/delete-24.png') }}"" alt="Delete"/>
           </td>
           <td>{{ rectable.recordings[item].meta['description'] }}</td>

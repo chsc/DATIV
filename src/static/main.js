@@ -144,6 +144,7 @@ async function updateSystemState()
    document.querySelector("#total").textContent = resp.disk.total;
    document.querySelector("#used").textContent = resp.disk.used;
    document.querySelector("#free").textContent = resp.disk.free;
+   document.querySelector("#percent_used").textContent = Math.round((resp.disk.used / resp.disk.total) * 100);
 }
 
 function setupCameraSettingControlHandler() {

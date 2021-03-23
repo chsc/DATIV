@@ -142,12 +142,12 @@ th {
 
 .left-header {
   font-size: 1.5em;
-  flex: 80%;
+  flex: 40%;
 }
 
 .right-header {
   font-size: 0.75em;
-  flex: 20%;
+  flex: 60%;
   text-align: right;
 }
 

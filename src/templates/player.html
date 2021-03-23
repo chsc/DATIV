@@ -14,9 +14,6 @@
                 RPiMicroscope - Player
             </div>
             <div class="right-header">
-                <a href="{{ url_for('recording', ident=recording.meta['id']) }}">
-                    <img src="{{ url_for('static', filename='icons/download-24.png') }}" />
-                </a>
             </div>
         </div>
     </header>
@@ -77,6 +74,9 @@
             </tbody>
         </table>
     </div>
+    <a href="{{ url_for('recording', ident=recording.meta['id']) }}" download>
+        <img src="{{ url_for('static', filename='icons/download-24.png') }}" />
+    </a>
     <footer>
         {{ copyright }}
     </footer>
