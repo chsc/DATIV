@@ -84,6 +84,9 @@ async function setupStartRecordingButtonHandler()
    document.querySelector("#record-button").addEventListener ("click", async function () {
       resp = await getServer("recording_state");
       if(resp.mode == "playback") {
+         
+         ruler_xres = document.querySelector("#ruler-xres").value;
+         ruler_yres = document.querySelector("#ruler-yres").value;
 
          rname = document.querySelector("#record-name").value;
          rdescription = document.querySelector("#record-description").value;
@@ -110,7 +113,9 @@ async function setupStartRecordingButtonHandler()
             "description" : rdescription,
             "detector" : rdetector,
             "trigger" : rtrigger,
-            "mode" : rmode
+            "mode" : rmode,
+            "ruler_xres": ruler_xres,
+            "ruler_yres": ruler_yres
          };
          
          resp = await postServer("record", data);

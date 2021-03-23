@@ -16,7 +16,7 @@ def write_meta(filename, meta):
     with open(filename, 'w') as f:
         json.dump(meta, f, indent = 4)
 
-def new_meta(recdir, name, description, trigger, iso=100, brightness=50, contrast=0):
+def new_meta(recdir, name, description, trigger, iso=100, brightness=50, contrast=0, ruler_xres = 1.0, ruler_yres = 1.0):
     dt = datetime.datetime.now()
     basename = build_base_name(name, dt)
     metafile = basename + ".json"
@@ -31,7 +31,9 @@ def new_meta(recdir, name, description, trigger, iso=100, brightness=50, contras
         'trigger': trigger,
         'iso': iso,
         "brightness": brightness,
-        "contrast": contrast
+        "contrast": contrast,
+        "ruler_xres": ruler_xres,
+        "ruler_yres": ruler_yres,
     }
     return meta
 
@@ -61,8 +63,8 @@ class Recordings:
             print(meta)
             self.recordings[meta['id']] = Recording(meta)
 
-    def start_recording(self, name, description, trigger, iso, brightness, contrast):
-        return Recording(new_meta(self.recdir, name, description, trigger, iso, brightness, contrast))
+    def start_recording(self, name, description, trigger, iso, brightness, contrast, ruler_xres, ruler_yres):
+        return Recording(new_meta(self.recdir, name, description, trigger, iso, brightness, contrast, ruler_xres, ruler_yres))
 
     def end_recording(self, recording):
         basename = recording.meta['id']

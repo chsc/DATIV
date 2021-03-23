@@ -57,18 +57,20 @@ def record():
     global camera
     json = request.get_json()
     print(json)
-    n = json['name']
-    d = json['description']
-    t = json['trigger']
-    iso = camera.get_iso()
-    brightness = camera.get_brightness()
-    contrast = camera.get_contrast()
-    if not n:
-        n = "Movie"
+    name         = json['name']
+    d            = json['description']
+    t            = json['trigger']
+    ruler_xres   = json['ruler_xres']
+    ruler_yres   = json['ruler_yres']
+    iso          = camera.get_iso()
+    brightness   = camera.get_brightness()
+    contrast    = camera.get_contrast()
+    if not name:
+        name = "Movie"
     if not d:
         d = "(no description provided)"
     if camera.recorder is None:
-        recording = recorded_files.start_recording(n, d, t, iso, brightness, contrast)
+        recording = recorded_files.start_recording(name, d, t, iso, brightness, contrast, ruler_xres, ruler_yres)
         camera.record(recording.make_video_path(recorded_files.recdir))
         return jsonify(result=True, stext="Recording video...")
     else:
