@@ -174,31 +174,6 @@ function setupCameraSettingControlHandler() {
    setSliderHandler(isoSlider, isoOutput, "iso");
    setSliderHandler(brighSlider, brighOutput, "brightness");
    setSliderHandler(contrSlider, contrOutput, "contrast");
-
-  /* isoSlider.addEventListener ("input", async function () {
-      resp = await getServer("set_param/iso", {'value': this.value});
-      if(resp.result) {
-         isoOutput.value = this.value;
-      } else {
-         setStatusError(resp.stext);
-      }
-   });
-   brighSlider.addEventListener ("input", async function () {
-      resp = await getServer("set_param/brightness", {'value': this.value});
-      if(resp.result) {
-         brighOutput.value = this.value;
-      } else {
-         setStatusError(resp.stext);
-      }
-   });
-   contrSlider.addEventListener ("input", async function () {
-      resp = await getServer("set_param/contrast", {'value': this.value});
-      if(resp.result) {
-         contrOutput.value = this.value;
-      } else {
-         setStatusError(resp.stext);
-      }
-   });*/
 }
 
 async function initCameraSettings() {
