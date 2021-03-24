@@ -60,11 +60,11 @@ def record():
     name         = json['name']
     d            = json['description']
     t            = json['trigger']
-    ruler_xres   = json['ruler_xres']
-    ruler_yres   = json['ruler_yres']
+    ruler_xres   = camera.get_ruler_xres()
+    ruler_yres   = camera.get_ruler_yres()
     iso          = camera.get_iso()
     brightness   = camera.get_brightness()
-    contrast    = camera.get_contrast()
+    contrast     = camera.get_contrast()
     if not name:
         name = "Movie"
     if not d:
@@ -121,6 +121,12 @@ def set_param(param):
         camera.set_brightness(value)
     elif param == "contrast":
         camera.set_contrast(value)
+    elif param == "ruler_xres":
+        camera.set_ruler_xres(value)
+    elif param == "ruler_yres":
+        camera.set_ruler_yres(value)
+    elif param == "ruler_length":
+        camera.set_ruler_length(value)
     else:
         return jsonify({"result": False, "stext": f"Unknown parameter {param}"})
     return jsonify({"result": True, "stext": f"Parameter {param} set"})    
@@ -131,6 +137,9 @@ def get_params():
         "iso": camera.get_iso(),
         "brightness": camera.get_brightness(),
         "contrast": camera.get_contrast(),
+        "ruler_xres": camera.get_ruler_xres(),
+        "ruler_yres": camera.get_ruler_yres(),
+        "ruler_length": camera.get_ruler_length()
     }
     return jsonify(data)
 

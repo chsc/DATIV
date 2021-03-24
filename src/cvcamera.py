@@ -19,6 +19,9 @@ class CVVideoCamera:
         self.iso = 100
         self.brightness = 50
         self.contrast = 0
+        self.ruler_length = 200
+        self.ruler_xres = 5
+        self.ruler_yres = 5
         # OpenCV Camera
         self.recorder = None
         self.capture = cv2.VideoCapture(0)
@@ -122,6 +125,24 @@ class CVVideoCamera:
     def get_contrast(self):
         print("Contrast not supported", self.contrast)
         return self.contrast
+
+    def set_ruler_xres(self, xres):
+        self.ruler_xres = xres
+
+    def get_ruler_xres(self):
+        return self.ruler_xres
+
+    def set_ruler_yres(self, yres):
+        self.ruler_yres = yres
+
+    def get_ruler_yres(self):
+        return self.ruler_yres
+
+    def set_ruler_length(self, length):
+        self.ruler_length = length
+
+    def get_ruler_length(self):
+        return self.ruler_length
 
 
 if __name__ == "__main__":
