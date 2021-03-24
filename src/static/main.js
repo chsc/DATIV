@@ -149,7 +149,6 @@ async function updateSystemState()
 function setSpinHandler(input, paramname) {
    input.addEventListener("input", async function() {
       resp = await getServer("set_param/" + paramname, {'value': this.value});
-      console.log("fsdfsd")
       if(!resp.result) {
          setStatusError(resp.stext);
       }
@@ -193,22 +192,24 @@ async function initCameraSettings() {
 }
 
 function setupDeleteRecordingButtonHandler() {
-   const deleteRecordingImage = document.querySelector("#delete-recording-image");
-   if(deleteRecordingImage == null) {
+   const deleteRecordingImageList = document.getElementsByClassName("delete-recording-image");
+   if(deleteRecordingImageList == null) {
       return;
    }
-   deleteRecordingImage.addEventListener ("click", async function () {
-      var answer = window.confirm("Do you really want to delete the file?");
-      if(!answer) return;
-      var id = this.getAttribute("data-recording")
-      console.log("delete recording")
-      console.log(id)
-      resp = await getServer("delete_recording/" + id, null);
-      if(resp.result) {
-         location.reload();
-      } else {
-         setStatusError(resp.stext);
-      }     
+   Array.from(deleteRecordingImageList).forEach(function(deleteRecordingImage) {
+      deleteRecordingImage.addEventListener ("click", async function () {
+         var answer = window.confirm("Do you really want to delete the file?");
+         if(!answer) return;
+         var id = this.getAttribute("data-recording")
+         console.log("delete recording")
+         console.log(id)
+         resp = await getServer("delete_recording/" + id, null);
+         if(resp.result) {
+            location.reload();
+         } else {
+            setStatusError(resp.stext);
+         }     
+      });
    });
 }
 
