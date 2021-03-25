@@ -87,6 +87,23 @@ def stop():
     else:
         return jsonify(result=False, stext="Not recording")
 
+@app.route('/capture_still_image')
+def capstill():
+    global recorded_files
+
+    name         = request.args.get('name')
+    description  = request.args.get('description')
+
+    iso          = camera.get_iso()
+    brightness   = camera.get_brightness()
+    contrast     = camera.get_contrast()
+    ruler_xres   = camera.get_ruler_xres()
+    ruler_yres   = camera.get_ruler_yres()
+
+    recorded_files.capture_still_image(name, description, iso, brightness, contrast, ruler_xres, ruler_yres)
+
+    return jsonify(result=True, stext="Still imeage captured!")
+
 @app.route('/recording_state')
 def recording_state():
     isrec = camera.recorder is not None
@@ -155,3 +172,4 @@ if __name__ == "__main__":
     camera.playback()
     app.run(host= '0.0.0.0') #debug=True)
     camera.stop()
+
