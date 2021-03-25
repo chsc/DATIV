@@ -38,3 +38,7 @@ Open your browser and enter the following URL:
 ## Notes
 
 [Additional notes...](doc/NOTES.md)
+
+## API
+
+The camera can be remote controlled with a set of [HTTP requests](doc/API.md).
