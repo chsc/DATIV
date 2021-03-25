@@ -12,7 +12,7 @@ body {
 }
 
 input, textarea, button, select {
-  font-size: 16px;
+  font-size: 1.0em;
   font-size: max(16px, 1em);
   font-family: inherit;
   padding: 0.25em;
@@ -37,6 +37,7 @@ select {
 }
 
 label.catlabel {
+  font-size: 1.0em;
   width: 100%; 
   display:inline-block;
   margin-top: 0.5em;
@@ -44,6 +45,7 @@ label.catlabel {
 }
 
 label.subcatlabel {
+  font-size: 1.0em;
   width: 100%; 
   margin-top: 0.25em;
   margin-bottom: 0.0em;
@@ -56,7 +58,6 @@ input {
 }
 
 button {
-  font-size: 1.2em;
   border: none;
 }
 
@@ -156,13 +157,13 @@ th {
 }
 
 span.status-normal {
-  font-size: 0.75em;
+  font-size: 1.0em;
   font-style: oblique;
   color: inherit;
 }
 
 span.status-error {
-  font-size: 0.75em;
+  font-size: 1.0em;
   font-style: oblique;
   color: coral;
 }
