@@ -1,6 +1,7 @@
 
 const statusSpan           = document.querySelector("#status");
 const recordButtonTextSpan = document.querySelector("#record-button-text");
+const recordButtonOrigText = recordButtonTextSpan.textContent;
 
 const stateTemp      = document.querySelector("#temperature");
 const stateDiskTotal = document.querySelector("#total");
@@ -72,7 +73,7 @@ function setButtonTextRecording()
 
 function setButtonTextNotRecording()
 {
-   recordButtonTextSpan.textContent = "Start";
+   recordButtonTextSpan.textContent = recordButtonOrigText;
 }
 
 async function setupStartRecordingButtonHandler()
