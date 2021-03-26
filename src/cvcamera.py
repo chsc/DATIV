@@ -102,6 +102,11 @@ class CVVideoCamera:
         self.stop()
         self.run(self.record_motion_callback)
 
+    def capture_still_image(self, filename):
+        with self.lock:
+            if self.frame is not None:
+                cv2.imwrite(filename, self.frame);
+
     def set_iso(self, iso):
         print("ISO not supported", iso)
         self.iso = iso

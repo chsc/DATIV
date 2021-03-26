@@ -18,11 +18,15 @@
         </div>
     </header>
     <div class="view">
-        <div class="video">
-            <video src="{{ url_for('recording', ident=recording.meta['id']) }}" width="100%" controls autoplay loop>
+        {% if recording.is_video() %}
+        <video src="{{ url_for('download', ident=recording.meta['id']) }}" width="100%" controls autoplay loop>
                 Your browser does not support video playback!<br />
-            </video>
-        </div>
+        </video>
+        {% elif recording.is_still_image() %}
+        <img src="{{ url_for('download', ident=recording.id()) }}" alt="Captured Image"/>
+        {% else %}
+        <p>Unsupported Format!</p>
+        {% endif %}
     </div>
     <div class="tablearea">
         <table id="recording-table">
@@ -34,6 +38,10 @@
                 <tr>
                     <td>Video File</td>
                     <td>{{ recording.meta['videofile'] }}</td>
+                </tr>
+                <tr>
+                    <td>Image File</td>
+                    <td>{{ recording.meta['imagefile'] }}</td>
                 </tr>
                 <tr>
                     <td>Meta File</td>
@@ -74,9 +82,6 @@
             </tbody>
         </table>
     </div>
-    <a href="{{ url_for('recording', ident=recording.meta['id']) }}" download>
-        <img src="{{ url_for('static', filename='icons/download-24.png') }}" />
-    </a>
     <footer>
         {{ copyright }}
     </footer>

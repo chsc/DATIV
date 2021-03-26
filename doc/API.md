@@ -10,9 +10,9 @@ Where *request* can one of the following strings:
 
 Returns the current camera view as a motion jpeg stream.
 
-## recording/< ident >
+## download/< ident >
 
-Returns a recorded video file, identified by *ident*.
+Downloads a recorded video or still image file, identified by *ident*.
 
 ## delete_recording/< ident >
 

@@ -49,9 +49,9 @@ def generate_video(camera):
 def video_stream():
     return Response(generate_video(camera), mimetype='multipart/x-mixed-replace; boundary=frame')
 
-@app.route('/recording/<ident>')
-def recording(ident):
-    filename = recorded_files.get_video_file(ident)
+@app.route('/download/<ident>')
+def download(ident):
+    filename = recorded_files.get_file(ident)
     return send_from_directory(app.config['RECORDING_FOLDER'], filename)
 
 @app.route('/player/<ident>')
@@ -111,13 +111,20 @@ def capstill():
     name         = request.args.get('name')
     description  = request.args.get('description')
 
+    if not name:
+        name = "Image"
+    if not description:
+        description = "(no description provided)"
+
     iso          = camera.get_iso()
     brightness   = camera.get_brightness()
     contrast     = camera.get_contrast()
     ruler_xres   = camera.get_ruler_xres()
     ruler_yres   = camera.get_ruler_yres()
 
-    recorded_files.capture_still_image(name, description, iso, brightness, contrast, ruler_xres, ruler_yres)
+    capture = recorded_files.start_capture_still_image(name, description, iso, brightness, contrast, ruler_xres, ruler_yres)
+    camera.capture_still_image(capture.make_image_path(recorded_files.recdir))
+    recorded_files.end_capture_still_image(capture)
 
     return jsonify(result=True, stext="Still imeage captured!")
 

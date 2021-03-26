@@ -76,6 +76,18 @@ function setButtonTextNotRecording()
    recordButtonTextSpan.textContent = recordButtonOrigText;
 }
 
+async function setupCaptureStillImageButtonHandler()
+{
+   document.querySelector("#capture-button").addEventListener ("click", async function () {
+      resp = await getServer("capture_still_image");
+      if(!resp.result) {
+         setStatusError(resp.stext);
+      } else {
+         location.reload();
+      }
+   });
+}
+
 async function setupStartRecordingButtonHandler()
 {
    resp = await getServer("recording_state");
@@ -216,6 +228,7 @@ function setupDeleteRecordingButtonHandler() {
 
 document.addEventListener("DOMContentLoaded", function() { 
    setupStartRecordingButtonHandler();
+   setupCaptureStillImageButtonHandler();
    setupDeleteRecordingButtonHandler();
    setupCameraSettingControlHandler();
    initCameraSettings();
