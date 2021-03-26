@@ -1,5 +1,6 @@
 import time
 import cv2
+import numpy as np
 from flask import Flask, Response, render_template, request, redirect, url_for, jsonify, send_from_directory
 from cvcamera import CVVideoCamera
 from recordings import Recordings
@@ -15,6 +16,7 @@ recording       = None
 
 def generate_video(camera):
     stream_size = app.config['STREAM_SIZE']
+    video_size = app.config['VIDEO_SIZE']
     while True:
         output = None
         with camera.lock:
@@ -22,6 +24,21 @@ def generate_video(camera):
             if frame is None:
                 continue
             output = cv2.resize(frame, stream_size, interpolation = cv2.INTER_AREA)
+        sx = stream_size[0]
+        sy = stream_size[1]
+        vx = video_size[0]
+        vy = video_size[1]
+        px = sx / 2 * 0.25
+        py = sy / 2 * 0.25
+        pts = np.array([[px, py], [sx-px, py], [sx-px, sy-py], [px, sy-py]], np.int32)
+        pts = pts.reshape((-1, 1, 2))
+        output = cv2.polylines(output, [pts], True, (0, 0, 128), 1)
+        xscale = sx / vx
+        ruler_len = int(camera.get_ruler_length() / camera.get_ruler_xres() * xscale)
+        #print(camera.get_ruler_xres(), camera.get_ruler_length(), xscale, ruler_len)
+        output = cv2.line(output, (10, sy-10), (10+ruler_len, sy-10), (0, 255, 0), 1)
+        output = cv2.line(output, (10, sy-11), (10, sy-9), (0, 255, 0), 1)
+        output = cv2.line(output, (10+ruler_len, sy-11), (10+ruler_len, sy-9), (0, 255, 0), 1)
         ret, buffer = cv2.imencode(".jpeg", output)
         if not ret:
             continue
@@ -131,7 +148,7 @@ def system_state():
 
 @app.route('/set_param/<param>')
 def set_param(param):
-    value = request.args.get('value')
+    value = float(request.args.get('value'))
     if param == "iso":
         camera.set_iso(value)
     elif param == "brightness":
