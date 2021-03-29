@@ -95,6 +95,10 @@ img.delete-recording-image {
   cursor: pointer;
 }
 
+a {
+  text-decoration: none;
+}
+
 table {
   width: 100%;
   border-radius: 4px;
