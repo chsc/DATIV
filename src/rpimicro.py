@@ -88,7 +88,7 @@ def record():
         d = "(no description provided)"
     if camera.recorder is None:
         recording = recorded_files.start_recording(name, d, t, iso, brightness, contrast, ruler_xres, ruler_yres)
-        camera.record(recording.make_video_path(recorded_files.recdir))
+        camera.record(recording.make_file_path(recorded_files.recdir))
         return jsonify(result=True, stext="Recording video...")
     else:
         return jsonify(result=False, stext="Already recording")
@@ -123,7 +123,7 @@ def capstill():
     ruler_yres   = camera.get_ruler_yres()
 
     capture = recorded_files.start_capture_still_image(name, description, iso, brightness, contrast, ruler_xres, ruler_yres)
-    camera.capture_still_image(capture.make_image_path(recorded_files.recdir))
+    camera.capture_still_image(capture.make_file_path(recorded_files.recdir))
     recorded_files.end_capture_still_image(capture)
 
     return jsonify(result=True, stext="Still imeage captured!")

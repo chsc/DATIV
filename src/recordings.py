@@ -70,13 +70,13 @@ class Recording:
     def is_still_image(self):
         return 'imagefile' in self.meta
     
-    def make_video_path(self, recdir):
-        videofile = self.meta['videofile']
-        return os.path.join(recdir, videofile)
-
-    def make_image_path(self, recdir):
-        imagefile = self.meta['imagefile']
-        return os.path.join(recdir, imagefile)
+    def make_file_path(self, recdir):
+        file = ""
+        if self.is_video():
+            file = self.meta['videofile']
+        elif self.is_still_image():
+            file = self.meta['imagefile']
+        return os.path.join(recdir, file)
 
     def make_json_path(self, recdir):
         metafile = self.meta['metafile']
@@ -116,7 +116,7 @@ class Recordings:
         try:
             recording = self.recordings[ident]
             os.remove(recording.make_json_path(self.recdir))
-            os.remove(recording.make_video_path(self.recdir))
+            os.remove(recording.make_file_path(self.recdir))
             del self.recordings[ident]
             return True
         except Exception as inst:
