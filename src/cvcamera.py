@@ -22,6 +22,8 @@ class CVVideoCamera:
         self.ruler_length = 200
         self.ruler_xres = 5
         self.ruler_yres = 5
+        self.passe_partout_x = 25
+        self.passe_partout_y = 25
         # OpenCV Camera
         self.recorder = None
         self.capture = cv2.VideoCapture(0)
@@ -107,6 +109,7 @@ class CVVideoCamera:
             if self.frame is not None:
                 cv2.imwrite(filename, self.frame);
 
+
     def set_iso(self, iso):
         print("ISO not supported", iso)
         self.iso = iso
@@ -148,6 +151,18 @@ class CVVideoCamera:
 
     def get_ruler_length(self):
         return self.ruler_length
+
+    def set_passe_partout_x(self, px):
+        self.passe_partout_x = px
+
+    def get_passe_partout_x(self):
+        return self.passe_partout_x
+
+    def set_passe_partout_y(self, py):
+        self.passe_partout_y = py
+
+    def get_passe_partout_y(self):
+        return self.passe_partout_y
 
 
 if __name__ == "__main__":

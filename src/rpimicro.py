@@ -5,6 +5,7 @@ from flask import Flask, Response, render_template, request, redirect, url_for, 
 from cvcamera import CVVideoCamera
 from recordings import Recordings
 from motiondetect import MotionDetector
+from util import draw_passe_partout, load_camera_state, save_camera_state
 from sysinfo import get_temperature, get_disk_free
 
 app = Flask(__name__)
@@ -24,21 +25,7 @@ def generate_video(camera):
             if frame is None:
                 continue
             output = cv2.resize(frame, stream_size, interpolation = cv2.INTER_AREA)
-        sx = stream_size[0]
-        sy = stream_size[1]
-        vx = video_size[0]
-        vy = video_size[1]
-        px = sx / 2 * 0.25
-        py = sy / 2 * 0.25
-        pts = np.array([[px, py], [sx-px, py], [sx-px, sy-py], [px, sy-py]], np.int32)
-        pts = pts.reshape((-1, 1, 2))
-        output = cv2.polylines(output, [pts], True, (0, 0, 128), 1)
-        xscale = sx / vx
-        ruler_len = int(camera.get_ruler_length() / camera.get_ruler_xres() * xscale)
-        #print(camera.get_ruler_xres(), camera.get_ruler_length(), xscale, ruler_len)
-        output = cv2.line(output, (10, sy-10), (10+ruler_len, sy-10), (0, 255, 0), 1)
-        output = cv2.line(output, (10, sy-11), (10, sy-9), (0, 255, 0), 1)
-        output = cv2.line(output, (10+ruler_len, sy-11), (10+ruler_len, sy-9), (0, 255, 0), 1)
+        output = draw_passe_partout(output, video_size, camera.get_ruler_length(), camera.get_ruler_xres(), 25, 25)
         ret, buffer = cv2.imencode(".jpeg", output)
         if not ret:
             continue
@@ -168,6 +155,10 @@ def set_param(param):
         camera.set_ruler_yres(value)
     elif param == "ruler_length":
         camera.set_ruler_length(value)
+    elif param == "passe_partout_x":
+        camera.set_passe_partout_x(value)
+    elif param == "passe_partout_y":
+        camera.set_passe_partout_y(value)
     else:
         return jsonify({"result": False, "stext": f"Unknown parameter {param}"})
     return jsonify({"result": True, "stext": f"Parameter {param} set"})    
@@ -180,7 +171,9 @@ def get_params():
         "contrast": camera.get_contrast(),
         "ruler_xres": camera.get_ruler_xres(),
         "ruler_yres": camera.get_ruler_yres(),
-        "ruler_length": camera.get_ruler_length()
+        "ruler_length": camera.get_ruler_length(),
+        'passe_partout_x': camera.get_passe_partout_x(),
+        'passe_partout_y': camera.get_passe_partout_y(),
     }
     return jsonify(data)
 
@@ -194,6 +187,8 @@ def favicon():
 
 if __name__ == "__main__":
     camera.playback()
-    app.run(host= '0.0.0.0') #debug=True)
+    load_camera_state(camera, app.config['CAMERA_SETTINGS'])
+    app.run(host='0.0.0.0') #debug=True)
+    save_camera_state(camera, app.config['CAMERA_SETTINGS'])
     camera.stop()
 
