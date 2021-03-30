@@ -2,5 +2,6 @@ recordings/*.json
 recordings/*.avi
 recordings/*.mp4
 recordings/*.png
+src/camera_settings.json
 src/__pycache__
-
+
