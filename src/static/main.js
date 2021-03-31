@@ -12,6 +12,11 @@ const rulerXResInput   = document.querySelector("#ruler-xres");
 const rulerYResInput   = document.querySelector("#ruler-yres");
 const rulerLengthInput = document.querySelector("#ruler-length");
 
+const passePartoutHSlider  = document.querySelector("#passe-partout-h");
+const passePartoutHOutput  = document.querySelector("#passe-partout-h-output");
+const passePartoutVSlider  = document.querySelector("#passe-partout-v");
+const passePartoutVOutput  = document.querySelector("#passe-partout-v-output");
+
 const isoSlider   = document.querySelector("#setting-iso");
 const isoOutput   = document.querySelector("#setting-iso-output");
 const brighSlider = document.querySelector("#setting-brightness");
@@ -183,6 +188,10 @@ function setupCameraSettingControlHandler() {
    setSpinHandler(rulerXResInput, "ruler_xres");
    setSpinHandler(rulerYResInput, "ruler_yres");
    setSpinHandler(rulerLengthInput, "ruler_length");
+
+   setSliderHandler(passePartoutHSlider, passePartoutHOutput, "passe_partout_h");
+   setSliderHandler(passePartoutVSlider, passePartoutVOutput, "passe_partout_v");
+
    setSliderHandler(isoSlider, isoOutput, "iso");
    setSliderHandler(brighSlider, brighOutput, "brightness");
    setSliderHandler(contrSlider, contrOutput, "contrast");
@@ -195,10 +204,14 @@ async function initCameraSettings() {
    rulerXResInput.value    = resp.ruler_xres;
    rulerYResInput.value    = resp.ruler_yres;
 
+   passePartoutHSlider.value = resp.passe_partout_h;
+   passePartoutVSlider.value = resp.passe_partout_v;
+   passePartoutHOutput.value = passePartoutHSlider.value;
+   passePartoutVOutput.value = passePartoutVSlider.value;
+
    isoSlider.value   = resp.iso;
    brighSlider.value = resp.brightness;
    contrSlider.value = resp.contrast;
-
    isoOutput.value   = isoSlider.value;
    brighOutput.value = brighSlider.value;
    contrOutput.value = contrSlider.value;

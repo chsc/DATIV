@@ -25,7 +25,7 @@ def generate_video(camera):
             if frame is None:
                 continue
             output = cv2.resize(frame, stream_size, interpolation = cv2.INTER_AREA)
-        output = draw_passe_partout(output, video_size, camera.get_ruler_length(), camera.get_ruler_xres(), 25, 25)
+        output = draw_passe_partout(output, video_size, camera.get_ruler_length(), camera.get_ruler_xres(), camera.get_passe_partout_h(), camera.get_passe_partout_v())
         ret, buffer = cv2.imencode(".jpeg", output)
         if not ret:
             continue
@@ -155,10 +155,10 @@ def set_param(param):
         camera.set_ruler_yres(value)
     elif param == "ruler_length":
         camera.set_ruler_length(value)
-    elif param == "passe_partout_x":
-        camera.set_passe_partout_x(value)
-    elif param == "passe_partout_y":
-        camera.set_passe_partout_y(value)
+    elif param == "passe_partout_h":
+        camera.set_passe_partout_h(value)
+    elif param == "passe_partout_v":
+        camera.set_passe_partout_v(value)
     else:
         return jsonify({"result": False, "stext": f"Unknown parameter {param}"})
     return jsonify({"result": True, "stext": f"Parameter {param} set"})    
@@ -172,8 +172,8 @@ def get_params():
         "ruler_xres": camera.get_ruler_xres(),
         "ruler_yres": camera.get_ruler_yres(),
         "ruler_length": camera.get_ruler_length(),
-        'passe_partout_x': camera.get_passe_partout_x(),
-        'passe_partout_y': camera.get_passe_partout_y(),
+        'passe_partout_h': camera.get_passe_partout_h(),
+        'passe_partout_v': camera.get_passe_partout_v(),
     }
     return jsonify(data)
 

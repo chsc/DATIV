@@ -28,8 +28,8 @@ def save_camera_state(c, filename):
         'ruler_length': c.get_ruler_length(),
         'ruler_xres': c.get_ruler_xres(),
         'ruler_yres': c.get_ruler_yres(),
-        'passe_partout_x': c.get_passe_partout_x(),
-        'passe_partout_y': c.get_passe_partout_y(),
+        'passe_partout_h': c.get_passe_partout_h(),
+        'passe_partout_v': c.get_passe_partout_v(),
     }
     with open(filename, 'w') as f:
         json.dump(data, f, indent = 4)
@@ -45,5 +45,5 @@ def load_camera_state(c, filename):
         c.set_ruler_length(data['ruler_length']),
         c.set_ruler_xres(data['ruler_xres']),
         c.set_ruler_yres(data['ruler_yres']),
-        c.set_passe_partout_x(data['passe_partout_x']),
-        c.set_passe_partout_y(data['passe_partout_y']),
+        c.set_passe_partout_h(data['passe_partout_h']),
+        c.set_passe_partout_v(data['passe_partout_v']),
