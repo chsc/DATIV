@@ -10,7 +10,7 @@
     <div class="header">
       <div class="left-header">
         {{ title }}<br/>
-        <span id="status" class="status-normal">(Status)</span>
+        <span id="status" class="status-normal"></span>
       </div>
       <div class="right-header">
         System Temperature: <span id="temperature"></span> °C <br/>
@@ -27,6 +27,12 @@
       <input type="number" id="ruler-yres" name="name" min="0" max="100" step="0.01" value="10.0"/>
       <label class="subcatlabel">Ruler Length (µm)</label>
       <input type="number" id="ruler-length" name="name" min="0" max="5000" step="10" value="200"/>
+
+      <label class="catlabel">Passe-Partout</label>
+      <label class="subcatlabel">Horizontal <output id="setting-passe-partout-h-output" for="setting-passe-partout-h">-</output> %</label>
+      <input id="setting-passe-partout-h" name="setting-passe-partout-h" type="range" min="0" max="100" step="1" value="25">
+      <label class="subcatlabel">Vertical <output id="setting-passe-partout-v-output" for="setting-passe-partout-v">-</output> %</label>
+      <input id="setting-passe-partout-v" name="setting-passe-partout-v" type="range" min="0" max="100" step="1" value="25">
 
       <label class="catlabel">Camera Settings</label>
       <label class="subcatlabel">ISO <output id="setting-iso-output" for="setting-iso">-</output></label>
