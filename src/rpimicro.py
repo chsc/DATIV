@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 from flask import Flask, Response, render_template, request, redirect, url_for, jsonify, send_from_directory
 from cvcamera import CVVideoCamera
+from camera import CameraEvents
 from recordings import Recordings
 from motiondetect import MotionDetector
 from util import draw_passe_partout, load_camera_state, save_camera_state
@@ -11,20 +12,39 @@ from sysinfo import get_temperature, get_disk_free
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
 
-camera          = CVVideoCamera(MotionDetector(app.config['MOTION_THRESHOLD']), app.config['VIDEO_SIZE'], app.config['STREAM_SIZE'])
+class CamEvents(CameraEvents):
+    def __init__(self, recordings):
+        self.recordings = recordings
+
+    def set_name_desc_trigger_info(self, name, description, trigger):
+        self.name        = name
+        self.description = description
+        self.trigger     = trigger
+
+    def video_start_recording(self, camera):
+        self.recording = self.recordings.start_recording(self.name, self.description, self.trigger, camera)
+        return self.recording.make_file_path()
+
+    def video_end_recording(self, camera):
+        self.recordings.end_recording(self.recording)
+
+    def image_start_capture(self, camera):
+        self.capture = self.recordings.start_capture_still_image(self.name, self.description, self.trigger, camera)
+        return self.capture.make_file_path()
+
+    def image_end_capture(self, camera):
+        self.recordings.end_capture_still_image(self.capture)
+
 recorded_files  = Recordings(app.config['RECORDING_FOLDER'])
-recording       = None
+camevents       = CamEvents(recorded_files)
+mdetector       = MotionDetector(app.config['MOTION_THRESHOLD'])
+camera          = CVVideoCamera(camevents, mdetector, app.config['VIDEO_SIZE'], app.config['STREAM_SIZE'])
 
 def generate_video(camera):
     stream_size = app.config['STREAM_SIZE']
     video_size = app.config['VIDEO_SIZE']
     while True:
-        output = None
-        with camera.lock:
-            frame = camera.frame
-            if frame is None:
-                continue
-            output = cv2.resize(frame, stream_size, interpolation = cv2.INTER_AREA)
+        output = camera.get_stream_image()
         output = draw_passe_partout(output, video_size, camera.get_ruler_length(), camera.get_ruler_xres(), camera.get_passe_partout_h(), camera.get_passe_partout_v())
         ret, buffer = cv2.imencode(".jpeg", output)
         if not ret:
@@ -56,70 +76,67 @@ def delete_recording(ident):
 
 @app.route('/record', methods=['POST'])
 def record():
-    global recorded_files
-    global recording
     global camera
+    global camevents
     json = request.get_json()
     print(json)
     name         = json['name']
-    d            = json['description']
-    t            = json['trigger']
-    ruler_xres   = camera.get_ruler_xres()
-    ruler_yres   = camera.get_ruler_yres()
-    iso          = camera.get_iso()
-    brightness   = camera.get_brightness()
-    contrast     = camera.get_contrast()
+    description  = json['description']
+    trigger      = json['trigger']
     if not name:
         name = "Movie"
-    if not d:
-        d = "(no description provided)"
-    if camera.recorder is None:
-        recording = recorded_files.start_recording(name, d, t, iso, brightness, contrast, ruler_xres, ruler_yres)
-        camera.record(recording.make_file_path(recorded_files.recdir))
+    if not description:
+        description = "(no description provided)"
+    camevents.set_name_desc_trigger_info(name, description, trigger)
+    if not camera.is_recording():
+        camera.record_video_manual()
         return jsonify(result=True, stext="Recording video...")
     else:
         return jsonify(result=False, stext="Already recording")
 
+@app.route('/record_video')
+def record_video():
+    global camera
+    global camevents
+    name        = request.args.get('name')
+    description = request.args.get('description')
+    trigger     = request.args.get('trigger')
+    if not name:
+        name = "Movie"
+    if not description:
+        description = "(no description provided)"
+    camevents.set_name_desc_trigger_info(name, description, trigger)
+    camera.capture_still_image()
+    return jsonify(result=True, stext="Still image captured!")
+
 @app.route('/stop')
 def stop():
-    global recorded_files
-    global recording
-    if camera.recorder is not None:
+    global camera
+    if camera.is_recording():
         camera.stop_recording()
-        recorded_files.end_recording(recording)
         return jsonify(result=True, stext="Recording stopped!")
     else:
         return jsonify(result=False, stext="Not recording")
 
 @app.route('/capture_still_image')
-def capstill():
-    global recorded_files
-
+def capture_still_image():
+    global camera
+    global camevents
     name         = request.args.get('name')
     description  = request.args.get('description')
-
+    trigger      = request.args.get('trigger')
     if not name:
         name = "Image"
     if not description:
         description = "(no description provided)"
-
-    iso          = camera.get_iso()
-    brightness   = camera.get_brightness()
-    contrast     = camera.get_contrast()
-    ruler_xres   = camera.get_ruler_xres()
-    ruler_yres   = camera.get_ruler_yres()
-
-    capture = recorded_files.start_capture_still_image(name, description, iso, brightness, contrast, ruler_xres, ruler_yres)
-    camera.capture_still_image(capture.make_file_path(recorded_files.recdir))
-    recorded_files.end_capture_still_image(capture)
-
+    camevents.set_name_desc_trigger_info(name, description, trigger)
+    camera.capture_still_image()
     return jsonify(result=True, stext="Still imeage captured!")
 
 @app.route('/recording_state')
 def recording_state():
-    isrec = camera.recorder is not None
     mode = "playback"
-    if isrec:
+    if camera.is_recording():
         mode = "recording"
     data = {
         "mode": mode,
@@ -186,7 +203,7 @@ def favicon():
     return send_from_directory('static', 'icons/favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 if __name__ == "__main__":
-    camera.playback()
+    camera.start()
     load_camera_state(camera, app.config['CAMERA_SETTINGS'])
     app.run(host='0.0.0.0') #debug=True)
     save_camera_state(camera, app.config['CAMERA_SETTINGS'])

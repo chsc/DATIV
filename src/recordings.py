@@ -5,6 +5,10 @@ import os
 import json
 import glob
 
+META_FILE_EXT  = ".json"
+IMAGE_FILE_EXT = ".png"
+VIDEO_FILE_EXT = ".mp4"
+
 def build_base_name(name, now):
     return name + "_" + now.strftime("%Y-%m-%d_%H-%M-%S_%f")
 
@@ -16,11 +20,11 @@ def write_meta(filename, meta):
     with open(filename, 'w') as f:
         json.dump(meta, f, indent = 4)
 
-def new_meta_video(name, description, trigger, iso, brightness, contrast, ruler_xres, ruler_yres):
+def new_meta_video(name, description, trigger, camera):
     dt = datetime.datetime.now()
     basename = build_base_name(name, dt)
-    metafile = basename + ".json"
-    videofile = basename + ".mp4"
+    metafile = basename + META_FILE_EXT
+    videofile = basename + VIDEO_FILE_EXT
     meta = {
         'id': basename,
         'metafile': metafile,
@@ -29,19 +33,19 @@ def new_meta_video(name, description, trigger, iso, brightness, contrast, ruler_
         'description': description,
         'datetime': str(dt),
         'trigger': trigger,
-        'iso': iso,
-        'brightness': brightness,
-        'contrast': contrast,
-        'ruler_xres': ruler_xres,
-        'ruler_yres': ruler_yres,
+        'iso': camera.get_iso(),
+        'brightness': camera.get_brightness(),
+        'contrast': camera.get_contrast(),
+        'ruler_xres': camera.get_ruler_xres(),
+        'ruler_yres': camera.get_ruler_yres(),
     }
     return meta
 
-def new_meta_image(name, description, iso, brightness, contrast, ruler_xres, ruler_yres):
+def new_meta_image(name, description, trigger, camera):
     dt = datetime.datetime.now()
     basename = build_base_name(name, dt)
-    metafile = basename + ".json"
-    imagefile = basename + ".png"
+    metafile = basename + META_FILE_EXT
+    imagefile = basename + IMAGE_FILE_EXT
     meta = {
         'id': basename,
         'metafile': metafile,
@@ -49,16 +53,18 @@ def new_meta_image(name, description, iso, brightness, contrast, ruler_xres, rul
         'name': name,
         'description': description,
         'datetime': str(dt),
-        'iso': iso,
-        'brightness': brightness,
-        'contrast': contrast,
-        'ruler_xres': ruler_xres,
-        'ruler_yres': ruler_yres,
+        'trigger': trigger,
+        'iso': camera.get_iso(),
+        'brightness': camera.get_brightness(),
+        'contrast': camera.get_contrast(),
+        'ruler_xres': camera.get_ruler_xres(),
+        'ruler_yres': camera.get_ruler_yres(),
     }
     return meta
 
 class Recording:
-    def __init__(self, meta):
+    def __init__(self, recdb, meta):
+        self.recdb = recdb
         self.meta = meta
 
     def id(self):
@@ -69,18 +75,22 @@ class Recording:
 
     def is_still_image(self):
         return 'imagefile' in self.meta
-    
-    def make_file_path(self, recdir):
-        file = ""
-        if self.is_video():
-            file = self.meta['videofile']
-        elif self.is_still_image():
-            file = self.meta['imagefile']
-        return os.path.join(recdir, file)
 
-    def make_json_path(self, recdir):
+    def get_file_name(self):
+        if self.is_video():
+            return self.meta['videofile']
+        elif self.is_still_image():
+            return self.meta['imagefile']
+        else:
+            return None
+    
+    def make_file_path(self):
+        file = self.get_file_name()
+        return os.path.join(self.recdb.recdir, file)
+
+    def make_json_path(self):
         metafile = self.meta['metafile']
-        return os.path.join(recdir, metafile)
+        return os.path.join(self.recdb.recdir, metafile)
 
 class Recordings:
     def __init__(self, recdir):
@@ -89,25 +99,24 @@ class Recordings:
         self.scan_directory()
 
     def scan_directory(self):
-        meta_files = glob.glob(os.path.join(self.recdir, "*.json"))
+        meta_files = glob.glob(os.path.join(self.recdir, '*' + META_FILE_EXT))
         for mf in meta_files:
-            print("recording: ", mf)
+            print("read recording: ", mf)
             meta = read_meta(mf)
-            print(meta)
-            self.recordings[meta['id']] = Recording(meta)
+            self.recordings[meta['id']] = Recording(self, meta)
 
-    def start_recording(self, name, description, trigger, iso, brightness, contrast, ruler_xres, ruler_yres):
-        return Recording(new_meta_video(name, description, trigger, iso, brightness, contrast, ruler_xres, ruler_yres))
+    def start_recording(self, name, description, trigger, camera):
+        return Recording(self, new_meta_video(name, description, trigger, camera))
 
     def end_recording(self, recording):
         basename = recording.meta['id']
-        jsonfile = recording.make_json_path(self.recdir)
+        jsonfile = recording.make_json_path()
         write_meta(jsonfile, recording.meta)
         self.recordings[basename] = recording
         return basename
 
-    def start_capture_still_image(self, name, description, iso, brightness, contrast, ruler_xres, ruler_yres):
-        return Recording(new_meta_image(name, description, iso, brightness, contrast, ruler_xres, ruler_yres))
+    def start_capture_still_image(self, name, description, trigger, camera):
+        return Recording(self, new_meta_image(name, description, trigger, camera))
 
     def end_capture_still_image(self, capture):
         return self.end_recording(capture)
@@ -115,8 +124,8 @@ class Recordings:
     def delete_recording(self, ident):
         try:
             recording = self.recordings[ident]
-            os.remove(recording.make_json_path(self.recdir))
-            os.remove(recording.make_file_path(self.recdir))
+            os.remove(recording.make_json_path())
+            os.remove(recording.make_file_path())
             del self.recordings[ident]
             return True
         except Exception as inst:
@@ -124,24 +133,24 @@ class Recordings:
             return False
 
     def get_file(self, ident):
-        recording = self.recordings[ident]
-        if recording.is_still_image():
-            imagefile = recording.meta['imagefile']
-            return imagefile
-        elif recording.is_video():
-            videofile = recording.meta['videofile']
-            return videofile
-        else:
+        try:
+            recording = self.recordings[ident]
+            return recording.get_file_name()
+        except Exception as inst:
+            print(inst)
             return None
 
     def get_recording(self, ident):
-        recording = self.recordings[ident]
-        return recording
-
+        try:
+            return self.recordings[ident]
+        except Exception as inst:
+            print(inst)
+            return None
+        
 
 if __name__ == "__main__":
     recs = Recordings('../recordings')
-    r = recs.start_recording('test', 'desc', 'trigger')
+    r = recs.start_recording('test', 'desc', 'trigger', None)
     ide = recs.end_recording(r)
-    print(recs.get_video_path(ide))
+    print(r.make_file_path())
     

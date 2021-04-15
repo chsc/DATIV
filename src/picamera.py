@@ -8,6 +8,7 @@ class RPiVideoCamera:
     def __init__(self):
         self.frame = None
         self.running = False
+        
          # Parameters
         self.iso = 100
         self.brightness = 50
@@ -15,8 +16,8 @@ class RPiVideoCamera:
         self.ruler_length = 200
         self.ruler_xres = 5
         self.ruler_yres = 5
-        self.passe_partout_x = 25
-        self.passe_partout_y = 25
+        self.passe_partout_h = 25
+        self.passe_partout_v = 25
         
         self.camera = picamera.PiCamera()
 
@@ -92,17 +93,17 @@ class RPiVideoCamera:
     def get_ruler_length(self):
         return self.ruler_length
 
-    def set_passe_partout_x(self, px):
-        self.passe_partout_x = px
+    def set_passe_partout_h(self, ph):
+        self.passe_partout_h = ph
 
-    def get_passe_partout_x(self):
-        return self.passe_partout_x
+    def get_passe_partout_h(self):
+        return self.passe_partout_h
 
-    def set_passe_partout_y(self, py):
-        self.passe_partout_y = py
+    def set_passe_partout_v(self, pv):
+        self.passe_partout_v = pv
 
-    def get_passe_partout_y(self):
-        return self.passe_partout_y
+    def get_passe_partout_v(self):
+        return self.passe_partout_v
 
 if __name__ == "__main__":
     vid = RPiVideoCamera()

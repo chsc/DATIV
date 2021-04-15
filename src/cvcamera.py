@@ -3,18 +3,23 @@ import time
 from threading import Thread
 from threading import Lock
 from motiondetect import MotionDetector
+from camera import Camera, Mode
 
 fourcc = cv2.VideoWriter_fourcc('H','2','6','4')
 #fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
 #fourcc = cv2.VideoWriter_fourcc('X','V','I','D')
 
-class CVVideoCamera:
-    def __init__(self, motiondet, size, thumbsize):
+class CVVideoCamera(Camera):
+    def __init__(self, camevents, motiondet, camera_size, stream_size):
         self.lock = Lock()
         self.thread = None
         self.running = False
-        # Motion detector
+        self.mode = Mode.RECORD_OFF
+        # Events & Motion detector
+        self.camevents = camevents
         self.motiondet = motiondet
+        # sizes
+        self.stream_size = stream_size
         # Parameters
         self.iso = 100
         self.brightness = 50
@@ -27,14 +32,12 @@ class CVVideoCamera:
         # OpenCV Camera
         self.recorder = None
         self.capture = cv2.VideoCapture(0)
-        print('default camera resolution:', self.size())
-        if type(size) == tuple:
-            print('new camera resolution:', size)
-            #self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, size[0])
-            #self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, size[1]) # 720p
-            self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-            self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, 720) # 720p
-            print('new camera resolution:', self.size())
+        print('default camera resolution:', self.camera_size())
+        if type(camera_size) == tuple:
+            print('new camera resolution:', camera_size)
+            self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, camera_size[0])
+            self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, camera_size[1])
+            print('new camera resolution:', self.camera_size())
         ret, self.frame = self.capture.read()
 
     def __del__(self):
@@ -42,28 +45,34 @@ class CVVideoCamera:
         if self.recorder:
             self.recorder.release()
 
-    def size(self):
+    def camera_size(self):
         return (int(self.capture.get(cv2.CAP_PROP_FRAME_WIDTH)), int(self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT)))
 
     def fps(self):
         return self.capture.get(cv2.CAP_PROP_FPS)
 
-    def read(self):
-        ret, frame = self.capture.read()
-        return frame
-
-    def camera_thread(self, callback):
+    def camera_thread(self):
         while self.running:
-            #print("frame:")
             ret = False
-            #with self.lock:
             ret, self.frame = self.capture.read()
-            if ret and callback is not None:
-                callback(self.frame)
-                
-    def run(self, callback):
+            if not ret:
+                continue
+            if self.mode == Mode.RECORD_MANUAL:
+                if self.recorder is not None:
+                    print("manual recording frame")
+                    self.recorder.write(self.frame)
+            elif self.mode == Mode.RECORD_MOTION:
+                is_moving = motion_detector.detect_motion(self.frame)
+                if is_moving and self.recorder is not None:
+                    print("movement recording frame")
+                    global fourcc
+                    filename = camevents.get_video_file_name()
+                    self.recorder = cv2.VideoWriter(filename, fourcc, self.fps(), self.size())
+                    self.camevents.video_start_recording(filename)
+    
+    def start(self):
         self.running = True
-        self.thread = Thread(target=self.camera_thread, args=(callback,))
+        self.thread = Thread(target=self.camera_thread)
         self.thread.start()
 
     def stop(self):
@@ -72,42 +81,32 @@ class CVVideoCamera:
             self.thread.join()
             self.thread = None
 
-    def frame_callback(self, frame):
-        if self.recorder is not None:
-            print("recording frame")
-            self.recorder.write(frame)
-
-    def playback(self):
-        self.stop()
-        self.run(self.frame_callback)
-
-    def record(self, filename):
+    def record_video_manual(self):
         global fourcc
-        self.recorder = cv2.VideoWriter(filename, fourcc, self.fps(), self.size())
+        filename = self.camevents.video_start_recording(self)
+        self.recorder = cv2.VideoWriter(filename, fourcc, self.fps(), self.camera_size())
+        self.mode = Mode.RECORD_MANUAL
 
     def stop_recording(self):
         if self.recorder is not None:
             self.recorder = None
+            self.camevents.video_end_recording(self)
 
-    def record_motion_callback(frame):
-        is_moving = motion_detector.detect_motion(frame)
-        if is_moving:
-            print("movement detected")
-            global fourcc
-            self.recorder = cv2.VideoWriter(filename, fourcc, self.fps(), self.size())
+    def is_recording(self):
+        return self.recorder is not None
 
-        if video_recorder is not None:
-            print("recording frame")
-            video_recorder.write(frame)
-
-    def record_motion(self, filenamegen):
-        self.stop()
-        self.run(self.record_motion_callback)
-
-    def capture_still_image(self, filename):
+    def capture_still_image(self):
         with self.lock:
             if self.frame is not None:
+                filename = self.camevents.image_start_capture(self)
                 cv2.imwrite(filename, self.frame);
+                self.camevents.image_end_capture(self)
+
+    def get_stream_image(self):
+        with self.lock:
+            if self.frame is None:
+                return None
+            return cv2.resize(self.frame, self.stream_size, interpolation=cv2.INTER_AREA)
 
 
     def set_iso(self, iso):

@@ -18,7 +18,11 @@ Downloads a recorded video or still image file, identified by *ident*.
 
 Returns a recorded video file, identified by *ident*.
 
-## record
+## record (POST)
+
+Starts a recording.
+
+## record_video
 
 Starts a recording.
 
