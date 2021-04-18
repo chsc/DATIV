@@ -100,8 +100,9 @@ class Recordings:
 
     def scan_directory(self):
         meta_files = glob.glob(os.path.join(self.recdir, '*' + META_FILE_EXT))
+        print("scanning directory for recordings:", self.recdir)
         for mf in meta_files:
-            print("read recording: ", mf)
+            print(" read recording:", mf)
             meta = read_meta(mf)
             self.recordings[meta['id']] = Recording(self, meta)
 

@@ -3,14 +3,15 @@ import cv2
 import numpy as np
 from flask import Flask, Response, render_template, request, redirect, url_for, jsonify, send_from_directory
 from cvcamera import CVVideoCamera
-from camera import CameraEvents
+from camera import CameraEvents, draw_passe_partout, get_camera_parameters
 from recordings import Recordings
 from motiondetect import MotionDetector
-from util import draw_passe_partout, load_camera_state, save_camera_state
 from sysinfo import get_temperature, get_disk_free
 
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
+
+status_text = "Ready"
 
 class CamEvents(CameraEvents):
     def __init__(self, recordings):
@@ -22,10 +23,14 @@ class CamEvents(CameraEvents):
         self.trigger     = trigger
 
     def video_start_recording(self, camera):
+        global status_text
         self.recording = self.recordings.start_recording(self.name, self.description, self.trigger, camera)
+        status_text = "Start video recording ..."
         return self.recording.make_file_path()
 
     def video_end_recording(self, camera):
+        global status_text
+        status_text = "Video recording ended"
         self.recordings.end_recording(self.recording)
 
     def image_start_capture(self, camera):
@@ -33,6 +38,8 @@ class CamEvents(CameraEvents):
         return self.capture.make_file_path()
 
     def image_end_capture(self, camera):
+        global status_text
+        status_text = "Image captured"
         self.recordings.end_capture_still_image(self.capture)
 
 recorded_files  = Recordings(app.config['RECORDING_FOLDER'])
@@ -41,15 +48,14 @@ mdetector       = MotionDetector(app.config['MOTION_THRESHOLD'])
 camera          = CVVideoCamera(camevents, mdetector, app.config['VIDEO_SIZE'], app.config['STREAM_SIZE'])
 
 def generate_video(camera):
-    stream_size = app.config['STREAM_SIZE']
     video_size = app.config['VIDEO_SIZE']
     while True:
+        time.sleep(0.05)
         output = camera.get_stream_image()
         output = draw_passe_partout(output, video_size, camera.get_ruler_length(), camera.get_ruler_xres(), camera.get_passe_partout_h(), camera.get_passe_partout_v())
         ret, buffer = cv2.imencode(".jpeg", output)
         if not ret:
             continue
-        time.sleep(0.05)
         yield (b'--frame\r\n'b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
 
 @app.route('/video_stream')
@@ -89,7 +95,12 @@ def record():
         description = "(no description provided)"
     camevents.set_name_desc_trigger_info(name, description, trigger)
     if not camera.is_recording():
-        camera.record_video_manual()
+        if trigger == 'manual':
+            camera.record_video_manual()
+        elif trigger == 'motion':
+            camera.record_video_motion()
+        else:
+            return jsonify(result=False, stext="Invalid trigger")
         return jsonify(result=True, stext="Recording video...")
     else:
         return jsonify(result=False, stext="Already recording")
@@ -139,12 +150,14 @@ def recording_state():
     if camera.is_recording():
         mode = "recording"
     data = {
-        "mode": mode,
+        'mode': mode,
+        'stext': status_text
     }
     return jsonify(data)
 
 @app.route('/system_state')
 def system_state():
+    global status_text
     total, used, free = get_disk_free()
     temp = get_temperature()
     data = {
@@ -153,6 +166,9 @@ def system_state():
             "total": total,
             "used": used,
             "free": free
+        },
+        'recording': {
+            'stext': status_text
         }
     }
     return jsonify(data)
@@ -182,20 +198,14 @@ def set_param(param):
 
 @app.route('/get_params')
 def get_params():
-    data = {
-        "iso": camera.get_iso(),
-        "brightness": camera.get_brightness(),
-        "contrast": camera.get_contrast(),
-        "ruler_xres": camera.get_ruler_xres(),
-        "ruler_yres": camera.get_ruler_yres(),
-        "ruler_length": camera.get_ruler_length(),
-        'passe_partout_h': camera.get_passe_partout_h(),
-        'passe_partout_v': camera.get_passe_partout_v(),
-    }
+    global camera
+    data = {}
+    get_camera_parameters(data, camera)
     return jsonify(data)
 
 @app.route('/')
 def index():
+    global recorded_files
     return render_template('index.html', title='RPiMicroscope', rectable=recorded_files)
 
 @app.route('/favicon.ico')
@@ -204,8 +214,7 @@ def favicon():
 
 if __name__ == "__main__":
     camera.start()
-    load_camera_state(camera, app.config['CAMERA_SETTINGS'])
+    camera.load_state(app.config['CAMERA_SETTINGS'])
     app.run(host='0.0.0.0') #debug=True)
-    save_camera_state(camera, app.config['CAMERA_SETTINGS'])
+    camera.save_state(app.config['CAMERA_SETTINGS'])
     camera.stop()
-

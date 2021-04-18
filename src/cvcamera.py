@@ -1,7 +1,6 @@
 import cv2
-import time
-from threading import Thread
-from threading import Lock
+import datetime
+from threading import Thread, Lock
 from motiondetect import MotionDetector
 from camera import Camera, Mode
 
@@ -52,24 +51,43 @@ class CVVideoCamera(Camera):
         return self.capture.get(cv2.CAP_PROP_FPS)
 
     def camera_thread(self):
+        global fourcc
         while self.running:
             ret = False
             ret, self.frame = self.capture.read()
             if not ret:
                 continue
             if self.mode == Mode.RECORD_MANUAL:
+                if self.recorder is None:
+                    filename = self.camevents.video_start_recording(self)
+                    self.recorder = cv2.VideoWriter(filename, fourcc, self.fps(), self.camera_size())
                 if self.recorder is not None:
                     print("manual recording frame")
                     self.recorder.write(self.frame)
             elif self.mode == Mode.RECORD_MOTION:
-                is_moving = motion_detector.detect_motion(self.frame)
-                if is_moving and self.recorder is not None:
+                is_moving = self.motiondet.detect_motion(self.frame)
+                if is_moving:
+                    print("movement detected")
+                    self.lastmotiontime = datetime.datetime.now()
+                    if self.recorder is None:
+                        print("start recording")
+                        filename = self.camevents.video_start_recording(self)
+                        self.recorder = cv2.VideoWriter(filename, fourcc, self.fps(), self.camera_size())
+                else:
+                    if self.recorder is not None:
+                        now = datetime.datetime.now()
+                        if now > self.lastmotiontime + datetime.timedelta(seconds = 5):
+                            print("no movement for 5 seconds.. closing stream")
+                            self.recorder = None
+                            self.camevents.video_end_recording(self)
+                if self.recorder is not None:
                     print("movement recording frame")
-                    global fourcc
-                    filename = camevents.get_video_file_name()
-                    self.recorder = cv2.VideoWriter(filename, fourcc, self.fps(), self.size())
-                    self.camevents.video_start_recording(filename)
-    
+                    self.recorder.write(self.frame)
+            elif self.mode == Mode.RECORD_OFF:
+                if self.recorder is not None:
+                    self.recorder = None
+                    self.camevents.video_end_recording(self)
+
     def start(self):
         self.running = True
         self.thread = Thread(target=self.camera_thread)
@@ -82,18 +100,23 @@ class CVVideoCamera(Camera):
             self.thread = None
 
     def record_video_manual(self):
-        global fourcc
-        filename = self.camevents.video_start_recording(self)
-        self.recorder = cv2.VideoWriter(filename, fourcc, self.fps(), self.camera_size())
+        if self.mode != Mode.RECORD_OFF:
+            return
         self.mode = Mode.RECORD_MANUAL
 
+    def record_video_motion(self):
+        if self.mode != Mode.RECORD_OFF:
+            return
+        self.mode = Mode.RECORD_MOTION
+
     def stop_recording(self):
-        if self.recorder is not None:
-            self.recorder = None
-            self.camevents.video_end_recording(self)
+        self.mode = Mode.RECORD_OFF
+        # wait unit closed...
+        while self.recorder is not None:
+            None
 
     def is_recording(self):
-        return self.recorder is not None
+        return self.mode != Mode.RECORD_OFF
 
     def capture_still_image(self):
         with self.lock:

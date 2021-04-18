@@ -161,13 +161,11 @@ th {
 }
 
 span.status-normal {
-  font-size: 1.0em;
-  font-style: oblique;
+  font-size: 0.75em;
   color: inherit;
 }
 
 span.status-error {
-  font-size: 1.0em;
-  font-style: oblique;
+  font-size: 0.75em;
   color: coral;
 }

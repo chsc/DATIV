@@ -6,7 +6,7 @@ const recordButtonOrigText = recordButtonTextSpan.textContent;
 const stateTemp      = document.querySelector("#temperature");
 const stateDiskTotal = document.querySelector("#total");
 const stateDiskUsed  = document.querySelector("#used");
-const stateDisk      = document.querySelector("#free");
+const stateDiskFree  = document.querySelector("#free");
 
 const rulerXResInput   = document.querySelector("#ruler-xres");
 const rulerYResInput   = document.querySelector("#ruler-yres");
@@ -69,6 +69,7 @@ function setStatusError(status)
 {
    statusSpan.textContent = status;
    statusSpan.className = "status-error";
+   console.log(status);
 }
 
 function setButtonTextRecording()
@@ -158,10 +159,12 @@ async function updateSystemState()
 
    document.querySelector("#temperature").textContent = resp.temperature;
 
-   document.querySelector("#total").textContent = resp.disk.total;
-   document.querySelector("#used").textContent = resp.disk.used;
-   document.querySelector("#free").textContent = resp.disk.free;
+   stateDiskTotal.textContent = resp.disk.total;
+   stateDiskUsed.textContent  = resp.disk.used;
+   stateDiskFree.textContent  = resp.disk.free;
    document.querySelector("#percent_used").textContent = Math.round((resp.disk.used / resp.disk.total) * 100);
+
+   statusSpan.textContent = resp.recording.stext
 }
 
 function setSpinHandler(input, paramname) {
@@ -246,5 +249,5 @@ document.addEventListener("DOMContentLoaded", function() {
    setupCameraSettingControlHandler();
    initCameraSettings();
    updateSystemState();
-   setInterval(updateSystemState, 5000);
+   setInterval(updateSystemState, 1000);
 });
