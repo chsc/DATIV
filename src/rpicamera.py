@@ -19,6 +19,8 @@ class MCamera(Camera):
         self.motiondet = motiondet
         # sizes
         self.stream_size = stream_size
+        self.stream_image = None
+        self.cached_image = False
         # Parameters
         self.ruler_length = 200
         self.ruler_xres = 5
@@ -28,6 +30,7 @@ class MCamera(Camera):
         # Pi Camera
         self.camera = PiCamera()
         print('default camera resolution:', self.camera_size())
+        print('framerate:', self.fps())
         if type(camera_size) == tuple:
             print('new camera resolution:', camera_size)
             self.camera.resolution = camera_size
@@ -36,10 +39,11 @@ class MCamera(Camera):
     def __del__(self):
         self.camera.close()
 
-    def camera_thread(self, callback):
+    def camera_thread(self):
         while self.running:
             if self.mode != Mode.RECORD_OFF:
-                self.camera.wait_recording()
+                self.camera.wait_recording(1)
+                print('wait recording')
                 
     def start(self):
         self.running = True
@@ -53,21 +57,24 @@ class MCamera(Camera):
     def record_video_manual(self):
         if self.mode != Mode.RECORD_OFF:
             return
+        self.cached_image = True
         filename = self.camevents.video_start_recording(self)
-        self.camera.start_recording(filename)
+        self.camera.start_recording(filename, format='h264')
         self.mode = Mode.RECORD_MANUAL
 
     def record_video_motion(self):
         if self.mode != Mode.RECORD_OFF:
             return
+        self.cached_image = True
         filename = self.camevents.video_start_recording(self)
-        self.camera.start_recording(filename)
+        self.camera.start_recording(filename, format='h264')
         self.mode = Mode.RECORD_MOTION        
 
     def stop_recording(self):
         self.mode = Mode.RECORD_OFF
         self.camera.stop_recording()
         self.camevents.video_end_recording(self)
+        self.cached_image = False
 
     def is_recording(self):
         return self.mode != Mode.RECORD_OFF
@@ -75,16 +82,20 @@ class MCamera(Camera):
     def capture_still_image(self):
         if self.mode != Mode.RECORD_OFF:
             return
+        self.cached_image = True
         filename = self.camevents.image_start_capture(self)
         self.camera.capture(filename);
         self.camevents.image_end_capture(self)
+        self.cached_image = False
 
     def get_stream_image(self):
+        if self.cached_image:
+            return self.stream_image
         (w, h) = self.stream_size
         image = np.empty((w * h * 3,), dtype=np.uint8)
-        self.camera.capture(image, 'bgr', resize=self.stream_size)
-        image = image.reshape((h, w, 3))
-        return image
+        self.camera.capture(image, 'bgr', resize=self.stream_size, use_video_port=True)
+        self.stream_image = image.reshape((h, w, 3))
+        return self.stream_image
 
 
     def camera_size(self):
@@ -164,7 +175,10 @@ if __name__ == "__main__":
     c.capture_still_image()
     img = c.get_stream_image()
     cv2.imshow('Camera - Press q for quit', img)
-    cv2.waitKey(-1)
+    c.record_video_manual()
+    c.camera.wait_recording(4)
+    c.stop_recording()
+    #cv2.waitKey(-1)
     #c.camera.start_preview()
     #
     

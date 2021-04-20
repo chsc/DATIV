@@ -7,7 +7,7 @@ import glob
 
 META_FILE_EXT  = ".json"
 IMAGE_FILE_EXT = ".png"
-VIDEO_FILE_EXT = ".mp4"
+VIDEO_FILE_EXT = ".h264"
 
 def build_base_name(name, now):
     return name + "_" + now.strftime("%Y-%m-%d_%H-%M-%S_%f")

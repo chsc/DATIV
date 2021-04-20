@@ -64,7 +64,7 @@ def video_stream():
 @app.route('/download/<ident>')
 def download(ident):
     filename = recorded_files.get_file(ident)
-    return send_from_directory(app.config['RECORDING_FOLDER'], filename)
+    return send_from_directory(app.config['RECORDING_FOLDER'], filename, as_attachment=True, mimetype='video/h264')
 
 @app.route('/player/<ident>')
 def player(ident):
@@ -176,11 +176,11 @@ def system_state():
 def set_param(param):
     value = float(request.args.get('value'))
     if param == "iso":
-        camera.set_iso(value)
+        camera.set_iso(int(value))
     elif param == "brightness":
-        camera.set_brightness(value)
+        camera.set_brightness(int(value))
     elif param == "contrast":
-        camera.set_contrast(value)
+        camera.set_contrast(int(value))
     elif param == "ruler_xres":
         camera.set_ruler_xres(value)
     elif param == "ruler_yres":
