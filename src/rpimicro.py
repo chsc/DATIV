@@ -2,8 +2,7 @@ import time
 import cv2
 import numpy as np
 from flask import Flask, Response, render_template, request, redirect, url_for, jsonify, send_from_directory
-from cvcamera import CVVideoCamera
-from camera import CameraEvents, draw_passe_partout, get_camera_parameters
+from camera import CameraEvents, draw_passe_partout, get_camera_parameters, create_camera
 from recordings import Recordings
 from motiondetect import MotionDetector
 from sysinfo import get_temperature, get_disk_free
@@ -45,7 +44,7 @@ class CamEvents(CameraEvents):
 recorded_files  = Recordings(app.config['RECORDING_FOLDER'])
 camevents       = CamEvents(recorded_files)
 mdetector       = MotionDetector(app.config['MOTION_THRESHOLD'])
-camera          = CVVideoCamera(camevents, mdetector, app.config['VIDEO_SIZE'], app.config['STREAM_SIZE'])
+camera          = create_camera(app.config['CAMERA_MODULE'], camevents, mdetector, app.config['VIDEO_SIZE'], app.config['STREAM_SIZE'])
 
 def generate_video(camera):
     video_size = app.config['VIDEO_SIZE']

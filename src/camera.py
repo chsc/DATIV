@@ -2,10 +2,10 @@
 import os
 import json
 import cv2
+import enum
 import numpy as np
-from enum import Enum
 
-class Mode(Enum):
+class Mode(enum.Enum):
     RECORD_OFF    = 0
     RECORD_MANUAL = 1
     RECORD_MOTION = 2
@@ -60,7 +60,6 @@ class CameraEvents:
         None
 
 class Camera:
-    
     def save_state(self, filename):
         data = {}
         get_camera_parameters(data, self)
@@ -73,4 +72,8 @@ class Camera:
         with open(filename, 'r') as f:
             data = json.load(f)
             set_camera_parameters(data, self)
-
+            
+def create_camera(modname, camevents, motiondet, camera_size, stream_size):
+    module = __import__(modname)
+    camera = module.MCamera(camevents, motiondet, camera_size, stream_size)
+    return camera

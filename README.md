@@ -26,12 +26,12 @@ Open the command line to install the required software packages:
     sudo apt-get install python3-flask
     sudo apt-get install python3-opencv
 
-Clone the repository:
+and clone the repository:
 
     git clone https://gitlab.hzdr.de/hzdri/ext/rpimicro.git
 
-Before you run the server, make shure you have enabled the camera.
-You can use the *raspi-config* tool to doo this (Interface Options).
+**Before you run the server, make shure you have enabled the camera.
+You can use the *raspi-config* tool to do this (*Interface Options*).**
 
 Now, change to the source directory (src) and start the server with:
 

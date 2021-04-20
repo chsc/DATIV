@@ -8,7 +8,7 @@ fourcc = cv2.VideoWriter_fourcc('H','2','6','4')
 #fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
 #fourcc = cv2.VideoWriter_fourcc('X','V','I','D')
 
-class CVVideoCamera(Camera):
+class MCamera(Camera):
     def __init__(self, camevents, motiondet, camera_size, stream_size):
         self.lock = Lock()
         self.thread = None
@@ -188,7 +188,7 @@ class CVVideoCamera(Camera):
 
 
 if __name__ == "__main__":
-    vid = CVVideoCamera()
+    vid = MCamera()
     while True:
         frame = vid.read()
         #output = cv2.resize(frame, (800, 600), interpolation = cv2.INTER_AREA)
