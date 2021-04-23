@@ -3,9 +3,9 @@ Description=RPi Microscope Web Service
 After=network.target
 
 [Service]
-User=<username>
-WorkingDirectory=<path to your app>
-ExecStart=<app start command>
+User=pi
+WorkingDirectory=/home/pi/rpimicro/src
+ExecStart=python3 rpimicro.py
 Restart=always
 
 [Install]
