@@ -21,8 +21,9 @@ to do this.
 You also need to install the following additional software packages:
 
 * **Python** 3.x
-* **Flask**
+* **Flask** Web Framework
 * **OpenCV** for Python
+* **Pi Camera** Python Modules
 
 Open the command line to install the required software packages:
 
