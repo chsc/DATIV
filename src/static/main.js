@@ -1,7 +1,7 @@
 
 const statusSpan           = document.querySelector("#status");
 const recordButtonTextSpan = document.querySelector("#record-button-text");
-const recordButtonOrigText = recordButtonTextSpan.textContent;
+const recordButtonOrigText = "Start Video Recording"
 
 const stateTemp      = document.querySelector("#temperature");
 const stateDiskTotal = document.querySelector("#total");
@@ -23,6 +23,8 @@ const brighSlider = document.querySelector("#setting-brightness");
 const brighOutput = document.querySelector("#setting-brightness-output");
 const contrSlider = document.querySelector("#setting-contrast");
 const contrOutput = document.querySelector("#setting-contrast-output");
+
+const recordingTable = document.querySelector("#recording-table")
 
 // does a json request and awaits a json response
 async function postServer(endPoint, data)
@@ -82,6 +84,32 @@ function setButtonTextNotRecording()
    recordButtonTextSpan.textContent = recordButtonOrigText;
 }
 
+function addTableEntry(name, id, isVideo, description, dateTime)
+{
+   var rowCount = recordingTable.rows.length;
+   var row      = recordingTable.insertRow(rowCount);
+
+   var cellName     = row.insertCell(0);
+   var cellIcons    = row.insertCell(1);
+   var cellDesc     = row.insertCell(2);
+   var cellDateTime = row.insertCell(3);
+   
+   cellName.innerHTML = name;
+   
+   if(isVideo) {
+      cellIcons.innerHTML = "<a href=\"/player/" + id +  "\"><img src=\"/static/icons/video-24.png\" alt=\"Video Player\"/></a> ";
+   } else {
+      cellIcons.innerHTML = "<a href=\"/player/" + id +  "\"><img src=\"/static/icons/image-24.png\" alt=\"Image View\"/></a> ";
+   }
+   cellIcons.innerHTML += "<a href=\"/download/" + id + "\" download><img src=\"/static/icons/download-24.png\" alt=\"Download\"/></a> "
+   cellIcons.innerHTML += "<img class=\"delete-recording-image\" id=\"delete-image-" + id + "\" data-recording=\"" + id + "\" src=\"/static/icons/delete-24.png\" alt=\"Delete\"/>"
+   
+   installDeleteHandler(document.querySelector("#delete-image-" + id));
+   
+   cellDesc.innerHTML = description;
+   cellDateTime.innerHTML = dateTime;
+}
+
 async function setupCaptureStillImageButtonHandler()
 {
    document.querySelector("#capture-button").addEventListener ("click", async function () {
@@ -89,7 +117,7 @@ async function setupCaptureStillImageButtonHandler()
       if(!resp.result) {
          setStatusError(resp.stext);
       } else {
-         location.reload();
+         addTableEntry(resp.name, resp.id, false, resp.description, resp.datetime);
       }
    });
 }
@@ -143,12 +171,12 @@ async function setupStartRecordingButtonHandler()
       } if(resp.mode == "recording") {
          resp = await getServer("stop");
          if(resp.result) {
-            location.reload(); 
+            addTableEntry(resp.name, resp.id, true, resp.description, resp.datetime);
+            setButtonTextNotRecording();
          } else {
             setStatusError(resp.stext);
          }
       }
-
       return false;
    });
 }
@@ -220,26 +248,29 @@ async function initCameraSettings() {
    contrOutput.value = contrSlider.value;
 }
 
+function installDeleteHandler(deleteRecordingImage)
+{
+   deleteRecordingImage.addEventListener ("click", async function () {
+      var answer = window.confirm("Do you really want to delete the file?");
+      if(!answer) return;
+      var id = this.getAttribute("data-recording")
+      console.log("delete recording")
+      console.log(id)
+      resp = await getServer("delete_recording/" + id, null);
+      if(resp.result) {
+         location.reload();
+      } else {
+         setStatusError(resp.stext);
+      }     
+   });
+}
+
 function setupDeleteRecordingButtonHandler() {
    const deleteRecordingImageList = document.getElementsByClassName("delete-recording-image");
    if(deleteRecordingImageList == null) {
       return;
    }
-   Array.from(deleteRecordingImageList).forEach(function(deleteRecordingImage) {
-      deleteRecordingImage.addEventListener ("click", async function () {
-         var answer = window.confirm("Do you really want to delete the file?");
-         if(!answer) return;
-         var id = this.getAttribute("data-recording")
-         console.log("delete recording")
-         console.log(id)
-         resp = await getServer("delete_recording/" + id, null);
-         if(resp.result) {
-            location.reload();
-         } else {
-            setStatusError(resp.stext);
-         }     
-      });
-   });
+   Array.from(deleteRecordingImageList).forEach(installDeleteHandler);
 }
 
 document.addEventListener("DOMContentLoaded", function() { 

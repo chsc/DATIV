@@ -9,8 +9,7 @@
   <header>
     <div class="header">
       <div class="left-header">
-        {{ title }}<br/>
-        <span id="status" class="status-normal">...</span>
+        {{ title }}
       </div>
       <div class="right-header">
         System Temperature: <span id="temperature"></span> °C <br/>
@@ -80,6 +79,8 @@
         <img class="buttonicon" src="{{ url_for('static', filename='icons/record-24.png') }}"/>
         <span id="record-button-text">Capture Still Image</span>
       </button>
+      
+      <span id="status" class="status-normal">Loading...</span>
     </div>
   </div>
   <div class="tablearea">
@@ -107,7 +108,7 @@
             <a href="{{ url_for('download', ident=rectable.recordings[item].meta['id']) }}" download>
               <img src="{{ url_for('static', filename='icons/download-24.png') }}"" alt="Download"/>
             </a>
-            <img class="delete-recording-image" id="delete-recording-image" data-recording="{{rectable.recordings[item].meta['id']}}" src="{{ url_for('static', filename='icons/delete-24.png') }}"" alt="Delete"/>
+            <img class="delete-recording-image" id="delete-image-{{rectable.recordings[item].meta['id']}}" data-recording="{{rectable.recordings[item].meta['id']}}" src="{{ url_for('static', filename='icons/delete-24.png') }}"" alt="Delete"/>
           </td>
           <td>{{ rectable.recordings[item].meta['description'] }}</td>
           <td>{{ rectable.recordings[item].meta['datetime'] }}</td>

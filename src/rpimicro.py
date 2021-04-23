@@ -99,8 +99,8 @@ def record():
         elif trigger == 'motion':
             camera.record_video_motion()
         else:
-            return jsonify(result=False, stext="Invalid trigger")
-        return jsonify(result=True, stext="Recording video...")
+            return jsonify(result=False, stext="Invalid trigger!")
+        return jsonify(result=True, stext="Recording video...", id=camevents.recording.id())
     else:
         return jsonify(result=False, stext="Already recording")
 
@@ -116,17 +116,27 @@ def record_video():
     if not description:
         description = "(no description provided)"
     camevents.set_name_desc_trigger_info(name, description, trigger)
-    camera.capture_still_image()
-    return jsonify(result=True, stext="Still image captured!")
+    if camera.is_recording():
+        return jsonify(result=False, stext="Already recording!")
+    if trigger == 'manual':
+        camera.record_video_manual()
+    elif trigger == 'motion':
+        camera.record_video_motion()
+    else:
+        return jsonify(result=False, stext="Invalid trigger!")
+    return jsonify(result=True, stext="Recording video...", id=camevents.recording.id())
 
 @app.route('/stop')
 def stop():
     global camera
+    global camevents
     if camera.is_recording():
         camera.stop_recording()
-        return jsonify(result=True, stext="Recording stopped!")
+        return jsonify(result=True, stext="Recording stopped!",
+            id=camevents.recording.id(),
+            name=camevents.recording.meta['name'], description=camevents.recording.meta['description'], datetime=camevents.recording.meta['datetime'])
     else:
-        return jsonify(result=False, stext="Not recording")
+        return jsonify(result=False, stext="Not recording!")
 
 @app.route('/capture_still_image')
 def capture_still_image():
@@ -141,7 +151,9 @@ def capture_still_image():
         description = "(no description provided)"
     camevents.set_name_desc_trigger_info(name, description, trigger)
     camera.capture_still_image()
-    return jsonify(result=True, stext="Still imeage captured!")
+    return jsonify(result=True, stext="Still image captured!",
+            id=camevents.capture.id(),
+            name=camevents.capture.meta['name'], description=camevents.capture.meta['description'], datetime=camevents.capture.meta['datetime'])
 
 @app.route('/recording_state')
 def recording_state():

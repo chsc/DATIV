@@ -1,11 +1,11 @@
 import cv2
 import numpy as np
 import datetime
-from time import sleep
+import time
+import picamera
 from threading import Thread, Lock
 from motiondetect import MotionDetector
 from camera import Camera, CameraEvents, Mode
-from picamera import PiCamera
 
 # https://picamera.readthedocs.io/en/release-1.10/index.html
 
@@ -28,7 +28,7 @@ class MCamera(Camera):
         self.passe_partout_h = 25
         self.passe_partout_v = 25
         # Pi Camera
-        self.camera = PiCamera()
+        self.camera = picamera.PiCamera()
         print('default camera resolution:', self.camera_size())
         print('framerate:', self.fps())
         if type(camera_size) == tuple:
@@ -83,20 +83,24 @@ class MCamera(Camera):
         if self.mode != Mode.RECORD_OFF:
             return
         self.cached_image = True
+        time.sleep(1)
         filename = self.camevents.image_start_capture(self)
         self.camera.capture(filename);
         self.camevents.image_end_capture(self)
+        time.sleep(1)
         self.cached_image = False
 
     def get_stream_image(self):
         if self.cached_image:
             return self.stream_image
-        (w, h) = self.stream_size
-        image = np.empty((w * h * 3,), dtype=np.uint8)
-        self.camera.capture(image, 'bgr', resize=self.stream_size, use_video_port=True)
-        self.stream_image = image.reshape((h, w, 3))
-        return self.stream_image
-
+        try:
+            (w, h) = self.stream_size
+            image = np.empty((w * h * 3,), dtype=np.uint8)
+            self.camera.capture(image, 'bgr', resize=self.stream_size, use_video_port=True)
+            self.stream_image = image.reshape((h, w, 3))
+            return self.stream_image
+        except picamera.PiCameraError:
+            return self.stream_image
 
     def camera_size(self):
         return self.camera.resolution
@@ -171,7 +175,7 @@ if __name__ == "__main__":
         
     cev = CamEvents()
     c = MCamera(cev, None, (1920, 1088), (960, 544))
-    sleep(2)
+    time.sleep(2)
     c.capture_still_image()
     img = c.get_stream_image()
     cv2.imshow('Camera - Press q for quit', img)

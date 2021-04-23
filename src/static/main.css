@@ -161,11 +161,19 @@ th {
 }
 
 span.status-normal {
-  font-size: 0.75em;
-  color: inherit;
+  padding: 0.25em;
+  font-size: 1.0em;
+  color: gray;
+  text-align: center;
+  width: 100%;
+  display:inline-block;
 }
 
 span.status-error {
-  font-size: 0.75em;
+  padding: 0.25em;
+  font-size: 1.0em;
   color: coral;
+  text-align: center;
+  width: 100%;
+  display:inline-block;
 }
