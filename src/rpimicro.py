@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 import partdetect
 import detector
-from detector import detect_image
+from detector import detect_image, detect_video, transcode
 import os.path
 from flask import Flask, Response, render_template, request, redirect, url_for, jsonify, send_from_directory
 from camera import CameraEvents, draw_passe_partout, get_camera_parameters, create_camera
@@ -71,20 +71,34 @@ def video_stream():
 @app.route('/download/<ident>')
 def download(ident):
     filename = recorded_files.get_file(ident)
-    return send_from_directory(app.config['RECORDING_FOLDER'], filename, as_attachment=True, mimetype='video/h264')
+    print("download ", filename)
+    if recorded_files.get_recording(ident).is_video():
+        rf = app.config['RECORDING_FOLDER']
+        outfile = filename + ".mp4"
+        print("download ", outfile)
+        if not os.path.exists(os.path.join(rf, outfile)):
+            transcode(os.path.join(rf, filename), os.path.join(rf, outfile))
+        return send_from_directory(app.config['RECORDING_FOLDER'], outfile, as_attachment=True)
+    else:
+        return send_from_directory(app.config['RECORDING_FOLDER'], filename, as_attachment=True)
 
 @app.route('/download_detect/<ident>')
 def download_detect(ident):
     rf = app.config['RECORDING_FOLDER']
     outfile = recorded_files.get_detect_file(ident)
-    #if os.path.exists(os.path.join(rf, outfile)):
-    #    print("already exists: ", outfile)
-    #    return send_from_directory(app.config['RECORDING_FOLDER'], outfile, as_attachment=True)
-    print("running detection: ", outfile)
     filename = recorded_files.get_file(ident)
     csvfile = recorded_files.get_detect_csv_file(ident)
-    detect_image(pdetector, os.path.join(rf, filename), os.path.join(rf, outfile), os.path.join(rf, csvfile))
-    return send_from_directory(app.config['RECORDING_FOLDER'], outfile, as_attachment=True)
+    sx = camera.get_ruler_xres()
+    sy = camera.get_ruler_yres()
+    if recorded_files.get_recording(ident).is_video():
+        if os.path.exists(os.path.join(rf, outfile+".mp4")):
+            print("already exists: ", outfile+".mp4")
+            return send_from_directory(app.config['RECORDING_FOLDER'], outfile+".mp4", as_attachment=True)
+        detect_video(pdetector, os.path.join(rf, filename), os.path.join(rf, outfile+".mp4"), os.path.join(rf, csvfile), sx, sy)
+        return send_from_directory(app.config['RECORDING_FOLDER'], outfile+".mp4", as_attachment=True)
+    else:
+        detect_image(pdetector, os.path.join(rf, filename), os.path.join(rf, outfile), os.path.join(rf, csvfile), sx, sy)
+        return send_from_directory(app.config['RECORDING_FOLDER'], outfile, as_attachment=True)
 
 @app.route('/download_detect_csv/<ident>')
 def download_detect_csv(ident):
@@ -223,7 +237,7 @@ def get_params():
 
     if pdetector is not None:
         data['detector_threshold'] = pdetector.get_threshold()
-        
+
     return jsonify(data)
 
 @app.route('/')

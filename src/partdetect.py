@@ -76,7 +76,7 @@ if __name__ == "__main__":
     #img = cv2.imread('../data/test_cam_02.png', cv2.IMREAD_COLOR)
     #cv2.imshow('image',img)
     pd = ParticleDetector()
-    detector.detect_image(pd, '../data/test_cam_02.png', '../data/detect_test_cam_02.png', "../data/test_cam_02.csv")
+    detector.detect_image(pd, '../data/test_cam_02.png', '../data/detect_test_cam_02.png', "../data/test_cam_02.csv", 1.5, 1.5)
     #img, particles = pd.detect(img)
     #cv2.imshow('contimage', image)
     #print(particles)

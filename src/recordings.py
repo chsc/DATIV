@@ -138,6 +138,7 @@ class Recordings:
             recording = self.recordings[ident]
             os.remove(recording.make_json_path())
             os.remove(recording.make_file_path())
+            #os.remove(recording.)
             del self.recordings[ident]
             return True
         except Exception as inst:
