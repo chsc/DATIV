@@ -56,6 +56,8 @@ def generate_video(camera):
     while True:
         time.sleep(0.05)
         output = camera.get_stream_image()
+        if pdetector is not None:
+            output, particles = pdetector.detect(output, True)
         output = draw_passe_partout(output, video_size, camera.get_ruler_length(), camera.get_ruler_xres(), camera.get_passe_partout_h(), camera.get_passe_partout_v())
         ret, buffer = cv2.imencode(".jpeg", output)
         if not ret:
@@ -75,9 +77,9 @@ def download(ident):
 def download_detect(ident):
     rf = app.config['RECORDING_FOLDER']
     outfile = recorded_files.get_detect_file(ident)
-    if os.path.exists(os.path.join(rf, outfile)):
-        print("already exists: ", outfile)
-        return send_from_directory(app.config['RECORDING_FOLDER'], outfile, as_attachment=True)
+    #if os.path.exists(os.path.join(rf, outfile)):
+    #    print("already exists: ", outfile)
+    #    return send_from_directory(app.config['RECORDING_FOLDER'], outfile, as_attachment=True)
     print("running detection: ", outfile)
     filename = recorded_files.get_file(ident)
     csvfile = recorded_files.get_detect_csv_file(ident)
@@ -106,32 +108,7 @@ def delete_recording(ident):
         return jsonify(result=True, stext=f"Recording '{ident}' deleted")
     else:
         return jsonify(result=False, stext=f"Unable to delete recording: '{ident}'")
-"""
-@app.route('/record', methods=['POST'])
-def record():
-    global camera
-    global camevents
-    json = request.get_json()
-    print(json)
-    name         = json['name']
-    description  = json['description']
-    trigger      = json['trigger']
-    if not name:
-        name = "Movie"
-    if not description:
-        description = "(no description provided)"
-    camevents.set_name_desc_trigger_info(name, description, trigger)
-    if not camera.is_recording():
-        if trigger == 'manual':
-            camera.record_video_manual()
-        elif trigger == 'motion':
-            camera.record_video_motion()
-        else:
-            return jsonify(result=False, stext="Invalid trigger!")
-        return jsonify(result=True, stext="Recording video...", id=camevents.recording.id())
-    else:
-        return jsonify(result=False, stext="Already recording")
-"""
+
 @app.route('/record_video')
 def record_video():
     global camera
@@ -231,6 +208,9 @@ def set_param(param):
         camera.set_passe_partout_h(value)
     elif param == "passe_partout_v":
         camera.set_passe_partout_v(value)
+    elif param == "detector_threshold":
+        if pdetector is not None:
+            pdetector.set_threshold(value)
     else:
         return jsonify({"result": False, "stext": f"Unknown parameter {param}"})
     return jsonify({"result": True, "stext": f"Parameter {param} set"})    
@@ -240,6 +220,10 @@ def get_params():
     global camera
     data = {}
     get_camera_parameters(data, camera)
+
+    if pdetector is not None:
+        data['detector_threshold'] = pdetector.get_threshold()
+        
     return jsonify(data)
 
 @app.route('/')

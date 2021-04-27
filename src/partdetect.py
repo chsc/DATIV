@@ -11,12 +11,24 @@ import detector
 class ParticleDetector(detector.Detector):
     def __init__(self, ratio = 1.1):
         self.reject_ratio = ratio
+        self.threshold = 127
+
+    def set_threshold(self, th):
+        self.threshold = th
+
+    def get_threshold(self):
+        return self.threshold
 
     def detect(self, image, genout):
         grayimg = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         #kernel = numpy.ones((1, 1), numpy.uint8)
         #dilation = cv2.dilate(grayimg, kernel, iterations = 1)
-        ret, thresh = cv2.threshold(grayimg, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+        flag = cv2.THRESH_BINARY_INV
+        if self.threshold == -1:
+            flag += cv2.THRESH_OTSU
+        elif self.threshold == -2:
+            flag += cv2.THRESH_TRIANGLE
+        ret, thresh = cv2.threshold(grayimg, self.threshold, 255, flag)
         #cv2.imshow('thresh', thresh)
         #cv2.waitKey(0)
         #img, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)

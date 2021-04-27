@@ -24,6 +24,9 @@ const brighOutput = document.querySelector("#setting-brightness-output");
 const contrSlider = document.querySelector("#setting-contrast");
 const contrOutput = document.querySelector("#setting-contrast-output");
 
+const thresholdSlider = document.querySelector("#detector-threshold");
+const thresholdOutput = document.querySelector("#detector-threshold-output");
+
 const recordingTable = document.querySelector("#recording-table")
 
 // does not post anything and request a json response
@@ -223,6 +226,8 @@ function setupCameraSettingControlHandler() {
    setSliderHandler(isoSlider, isoOutput, "iso");
    setSliderHandler(brighSlider, brighOutput, "brightness");
    setSliderHandler(contrSlider, contrOutput, "contrast");
+
+   setSliderHandler(thresholdSlider, thresholdOutput, "detector_threshold");
 }
 
 async function initCameraSettings() {
