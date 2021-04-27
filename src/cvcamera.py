@@ -103,15 +103,19 @@ class MCamera(Camera):
         if self.mode != Mode.RECORD_OFF:
             return
         self.mode = Mode.RECORD_MANUAL
+        while self.recorder is None:
+            None
 
     def record_video_motion(self):
         if self.mode != Mode.RECORD_OFF:
             return
         self.mode = Mode.RECORD_MOTION
+        while self.recorder is None:
+            None
 
     def stop_recording(self):
         self.mode = Mode.RECORD_OFF
-        # wait unit closed...
+        # wait until closed...
         while self.recorder is not None:
             None
 

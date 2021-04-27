@@ -57,8 +57,8 @@
       <label class="catlabel">Trigger</label>
       <input type="radio" class="ratio" id="record-trigger-manual" name="trigger-mode" value="record-trigger-manual" checked>
       <label for="record-trigger-manual" class="ratiolabel">Manual</label>
-      <input type="radio" class="ratio" id="record-trigger-motion" name="trigger-mode" value="record-trigger-motion">
-      <label for="record-trigger-motion" class="ratiolabel">Motion</label>
+      <!--<input type="radio" class="ratio" id="record-trigger-motion" name="trigger-mode" value="record-trigger-motion">
+      <label for="record-trigger-motion" class="ratiolabel">Motion</label>-->
 
       <!--<input type="number" id="record-trigtime" name="trigger-time"/>
       <input type="number" id="record-trigpostroll" name="trigger-postroll"/>-->
@@ -66,10 +66,10 @@
       <label class="catlabel">Mode</label>
       <input type="radio" class="ratio" id="record-film-only" name="recording-mode" value="manual" checked>
       <label for="record-film-only" class="ratiolabel">Record film only</label><br/>
-      <input type="radio" class="ratio" id="record-detect-only" name="recording-mode" value="motion">
+      <!--<input type="radio" class="ratio" id="record-detect-only" name="recording-mode" value="motion">
       <label for="record-detect-only" class="ratiolabel">Detect objects only</label><br/>
       <input type="radio" class="ratio" id="record-film-and-detect" name="recording-mode" value="motion">
-      <label for="record-film-and-detect" class="ratiolabel">Record film and detect objects</label><br/>
+      <label for="record-film-and-detect" class="ratiolabel">Record film and detect objects</label><br/>-->
      
       <button class="redbutton" id="record-button">
         <img class="buttonicon" src="{{ url_for('static', filename='icons/record-24.png') }}"/>
@@ -108,7 +108,12 @@
             <a href="{{ url_for('download', ident=rectable.recordings[item].meta['id']) }}" download>
               <img src="{{ url_for('static', filename='icons/download-24.png') }}"" alt="Download"/>
             </a>
-            <img class="delete-recording-image" id="delete-image-{{rectable.recordings[item].meta['id']}}" data-recording="{{rectable.recordings[item].meta['id']}}" src="{{ url_for('static', filename='icons/delete-24.png') }}"" alt="Delete"/>
+            <a href="{{ url_for('detector', ident=rectable.recordings[item].meta['id']) }}">
+              <img src="{{ url_for('static', filename='icons/detect-24.png') }}"" alt="Detector"/>
+            </a>
+            <a href="#" onclick="deleteTableEntry(this)" data-id="{{rectable.recordings[item].id()}}">
+              <img src="{{ url_for('static', filename='icons/delete-24.png') }}"" alt="Delete"/>
+            </a>
           </td>
           <td>{{ rectable.recordings[item].meta['description'] }}</td>
           <td>{{ rectable.recordings[item].meta['datetime'] }}</td>

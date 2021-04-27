@@ -11,6 +11,7 @@
 RECORDING_FOLDER = '../recordings'
 CAMERA_SETTINGS  = 'camera_settings.json'
 STREAM_SIZE      = (960, 544)
-VIDEO_SIZE       = (1920, 1088)
+#VIDEO_SIZE       = (1920, 1088)
+VIDEO_SIZE       = (1920, 1080)
 MOTION_THRESHOLD = 120
-CAMERA_MODULE    = "rpicamera" # or cvcamera
+CAMERA_MODULE    = "cvcamera" # or cvcamera

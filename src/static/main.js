@@ -26,24 +26,6 @@ const contrOutput = document.querySelector("#setting-contrast-output");
 
 const recordingTable = document.querySelector("#recording-table")
 
-// does a json request and awaits a json response
-async function postServer(endPoint, data)
-{
-   console.log(data);
-   try {
-      const response = await fetch(endPoint, {
-         method: 'post',
-         headers: {'Content-Type' : 'application/json'},
-         body: JSON.stringify(data)
-      })
-      const json = await response.json();
-      console.log(json);
-      return json
-    } catch (error) {
-      console.log(error);
-    }
-}
-
 // does not post anything and request a json response
 async function getServer(endPoint, params)
 {
@@ -101,13 +83,28 @@ function addTableEntry(name, id, isVideo, description, dateTime)
    } else {
       cellIcons.innerHTML = "<a href=\"/player/" + id +  "\"><img src=\"/static/icons/image-24.png\" alt=\"Image View\"/></a> ";
    }
-   cellIcons.innerHTML += "<a href=\"/download/" + id + "\" download><img src=\"/static/icons/download-24.png\" alt=\"Download\"/></a> "
-   cellIcons.innerHTML += "<img class=\"delete-recording-image\" id=\"delete-image-" + id + "\" data-recording=\"" + id + "\" src=\"/static/icons/delete-24.png\" alt=\"Delete\"/>"
-   
-   installDeleteHandler(document.querySelector("#delete-image-" + id));
-   
+   cellIcons.innerHTML += "<a href=\"/download/" + id + "\" download><img src=\"/static/icons/download-24.png\" alt=\"Download\"/></a> ";
+   cellIcons.innerHTML += "<a href=\"/detector/" + id + "\"><img src=\"/static/icons/detect-24.png\" alt=\"Detector\"/></a> ";
+   cellIcons.innerHTML += "<a href=\"#\" onclick=\"deleteTableEntry(this)\" data-id=\"" + id + "\"><img src=\"/static/icons/delete-24.png\" alt=\"Delete\"/></a>";
+
    cellDesc.innerHTML = description;
    cellDateTime.innerHTML = dateTime;
+}
+
+async function deleteTableEntry(row)
+{
+   var answer = window.confirm("Do you really want to delete the file?");
+   if(!answer) return;
+   var id = row.getAttribute("data-id")
+   console.log("delete id")
+   console.log(id)
+   resp = await getServer("delete_recording/" + id, null);
+   if(resp.result) {
+      var rindex = row.parentNode.parentNode.rowIndex;
+      recordingTable.deleteRow(rindex);
+   } else {
+      setStatusError(resp.stext);
+   }   
 }
 
 async function setupCaptureStillImageButtonHandler()
@@ -162,7 +159,7 @@ async function setupStartRecordingButtonHandler()
             "mode" : rmode
          };
          
-         resp = await postServer("record", data);
+         resp = await getServer("record_video", data);
          if(resp.result) {
             setButtonTextRecording();
          } else {
@@ -248,37 +245,11 @@ async function initCameraSettings() {
    contrOutput.value = contrSlider.value;
 }
 
-function installDeleteHandler(deleteRecordingImage)
-{
-   deleteRecordingImage.addEventListener ("click", async function () {
-      var answer = window.confirm("Do you really want to delete the file?");
-      if(!answer) return;
-      var id = this.getAttribute("data-recording")
-      console.log("delete recording")
-      console.log(id)
-      resp = await getServer("delete_recording/" + id, null);
-      if(resp.result) {
-         location.reload();
-      } else {
-         setStatusError(resp.stext);
-      }     
-   });
-}
-
-function setupDeleteRecordingButtonHandler() {
-   const deleteRecordingImageList = document.getElementsByClassName("delete-recording-image");
-   if(deleteRecordingImageList == null) {
-      return;
-   }
-   Array.from(deleteRecordingImageList).forEach(installDeleteHandler);
-}
-
 document.addEventListener("DOMContentLoaded", function() { 
    setupStartRecordingButtonHandler();
    setupCaptureStillImageButtonHandler();
-   setupDeleteRecordingButtonHandler();
    setupCameraSettingControlHandler();
    initCameraSettings();
    updateSystemState();
-   setInterval(updateSystemState, 1000);
+   setInterval(updateSystemState, 2000);
 });

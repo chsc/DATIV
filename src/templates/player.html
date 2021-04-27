@@ -19,11 +19,11 @@
     </header>
     <div class="view">
         {% if recording.is_video() %}
-        <video src="{{ url_for('download', ident=recording.meta['id']) }}" width="100%" controls autoplay loop>
+        <video src="{{ url_for('download', ident=recording.id()) }}" width="90%" controls autoplay loop>
                 Your browser does not support video playback!<br />
         </video>
         {% elif recording.is_still_image() %}
-        <img src="{{ url_for('download', ident=recording.id()) }}" alt="Captured Image"/>
+        <img src="{{ url_for('download', ident=recording.id()) }}" width="90%" alt="Captured Image"/>
         {% else %}
         <p>Unsupported Format!</p>
         {% endif %}

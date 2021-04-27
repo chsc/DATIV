@@ -83,6 +83,17 @@ class Recording:
             return self.meta['imagefile']
         else:
             return None
+
+    def get_detect_file_name(self):
+        if self.is_video():
+            return 'detect_' + self.meta['videofile']
+        elif self.is_still_image():
+            return 'detect_' + self.meta['imagefile']
+        else:
+            return None
+
+    def get_detect_csv_file_name(self):
+        return self.meta['id'] + ".csv"
     
     def make_file_path(self):
         file = self.get_file_name()
@@ -137,6 +148,22 @@ class Recordings:
         try:
             recording = self.recordings[ident]
             return recording.get_file_name()
+        except Exception as inst:
+            print(inst)
+            return None
+
+    def get_detect_file(self, ident):
+        try:
+            recording = self.recordings[ident]
+            return recording.get_detect_file_name()
+        except Exception as inst:
+            print(inst)
+            return None
+    
+    def get_detect_csv_file(self, ident):
+        try:
+            recording = self.recordings[ident]
+            return recording.get_detect_csv_file_name()
         except Exception as inst:
             print(inst)
             return None

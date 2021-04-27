@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>RPiMicroscope - Player</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='main.css') }}">
+</head>
+
+<body>
+    <header>
+        <div class="header">
+            <div class="left-header">
+                RPiMicroscope - Detector
+            </div>
+        </div>
+    </header>
+    <div class="view">
+        {% if recording.is_video() %}
+        <video src="{{ url_for('download_detect', ident=recording.id()) }}" width="90%" controls autoplay loop>
+                Your browser does not support video playback!<br />
+        </video>
+        {% elif recording.is_still_image() %}
+        <img src="{{ url_for('download_detect', ident=recording.id()) }}" width="90%" alt="Detected Image"/>
+        {% else %}
+        <p>Unsupported Format!</p>
+        {% endif %}
+    </div>
+    <p>
+        <a href="{{ url_for('download_detect_csv', ident=recording.id()) }}">Download CSV File</a>
+    </p>
+    <footer>
+        {{ copyright }}
+    </footer>
+</body>
+
+</html>

@@ -1,6 +1,10 @@
 import time
 import cv2
 import numpy as np
+import partdetect
+import detector
+from detector import detect_image
+import os.path
 from flask import Flask, Response, render_template, request, redirect, url_for, jsonify, send_from_directory
 from camera import CameraEvents, draw_passe_partout, get_camera_parameters, create_camera
 from recordings import Recordings
@@ -41,6 +45,7 @@ class CamEvents(CameraEvents):
         status_text = "Image captured"
         self.recordings.end_capture_still_image(self.capture)
 
+pdetector       = partdetect.ParticleDetector()
 recorded_files  = Recordings(app.config['RECORDING_FOLDER'])
 camevents       = CamEvents(recorded_files)
 mdetector       = MotionDetector(app.config['MOTION_THRESHOLD'])
@@ -66,10 +71,33 @@ def download(ident):
     filename = recorded_files.get_file(ident)
     return send_from_directory(app.config['RECORDING_FOLDER'], filename, as_attachment=True, mimetype='video/h264')
 
+@app.route('/download_detect/<ident>')
+def download_detect(ident):
+    rf = app.config['RECORDING_FOLDER']
+    outfile = recorded_files.get_detect_file(ident)
+    if os.path.exists(os.path.join(rf, outfile)):
+        print("already exists: ", outfile)
+        return send_from_directory(app.config['RECORDING_FOLDER'], outfile, as_attachment=True)
+    print("running detection: ", outfile)
+    filename = recorded_files.get_file(ident)
+    csvfile = recorded_files.get_detect_csv_file(ident)
+    detect_image(pdetector, os.path.join(rf, filename), os.path.join(rf, outfile), os.path.join(rf, csvfile))
+    return send_from_directory(app.config['RECORDING_FOLDER'], outfile, as_attachment=True)
+
+@app.route('/download_detect_csv/<ident>')
+def download_detect_csv(ident):
+    csvfile = recorded_files.get_detect_csv_file(ident)
+    return send_from_directory(app.config['RECORDING_FOLDER'], csvfile, as_attachment=True)
+
 @app.route('/player/<ident>')
 def player(ident):
     rec = recorded_files.get_recording(ident)
     return render_template('player.html', recording=rec)
+
+@app.route('/detector/<ident>')
+def detector(ident):
+    rec = recorded_files.get_recording(ident)
+    return render_template('detect.html', recording=rec)
 
 @app.route('/delete_recording/<ident>')
 def delete_recording(ident):
@@ -78,7 +106,7 @@ def delete_recording(ident):
         return jsonify(result=True, stext=f"Recording '{ident}' deleted")
     else:
         return jsonify(result=False, stext=f"Unable to delete recording: '{ident}'")
-
+"""
 @app.route('/record', methods=['POST'])
 def record():
     global camera
@@ -103,7 +131,7 @@ def record():
         return jsonify(result=True, stext="Recording video...", id=camevents.recording.id())
     else:
         return jsonify(result=False, stext="Already recording")
-
+"""
 @app.route('/record_video')
 def record_video():
     global camera
