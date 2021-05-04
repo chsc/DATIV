@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RPiMicroscope - Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='main.css') }}">
+</head>
+<body>
+    <header>
+        <div class="header">
+            <div class="left-header">{{title}} - Camera Administration</div>
+        </div>
+    </header>
+    
+    <button class="greenbutton" id="update-button">
+        <img class="buttonicon" src="{{ url_for('static', filename='icons/update-24.png') }}"/>
+        Scan for Cameras...
+    </button>
+
+    <table id="host-table">
+        <tbody>
+            <tr>
+                <th>IP</th>
+                <th>Host Name</th>
+                <th>Status</th>
+                <th>
+                    <button class="greenbutton" id="all-capture-still-button">Capture Still Image</button>
+                </th>
+                <th>
+                    <button class="greenbutton" id="all-record-video-button">Record Video</button>
+                </th>
+            </tr>
+            {% for item in camnetwork.get_hosts() %}
+            <tr>
+                <td>
+                    <a href="http://{{item[0]}}:{{camnetwork.get_port()}}" alt="Camera Link">{{ item[0] }}</a>
+                </td>
+                <td>{{item[1]}}</td>
+                <td>...</td>
+                <td>
+                    <button class="greenbutton" id="capture-still-button">Capture Still Image</button>
+                </td>
+                <td>
+                    <button class="greenbutton" id="record-video-button">Record Video</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+      </table>
+    <footer>{{ copyright }}</footer>
+</body>
+<script type=text/javascript src="{{ url_for('static', filename='camnetwork.js') }}"></script>
+</html>

@@ -20,8 +20,9 @@ input, textarea, button, select {
   border: 1px solid;
   border-radius: 4px;
   border-color: darkslategrey;
+  margin-top: 0.25em;
+  margin-bottom: 0.25em;
   width: 100%;  
-  margin-top: 0.5em;
 }
 
 textarea {
@@ -73,6 +74,21 @@ button.redbutton:hover {
 
 button.redbutton:active {
   background-color: #dd5533; 
+  color: white;
+}
+
+button.greenbutton {
+  background-color: #4a9750;
+  color: white;
+}
+
+button.greenbutton:hover {
+  background-color: #2e7924; 
+  color: white;
+}
+
+button.greenbutton:active {
+  background-color: #bbd3b2; 
   color: white;
 }
 

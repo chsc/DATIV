@@ -71,12 +71,37 @@ class ParticleDetector(detector.Detector):
 
         return contimage, particles
 
+
+class ParticleDetector2(detector.Detector):
+    def __init__(self, ratio = 1.1):
+        self.reject_ratio = ratio
+        self.threshold = 127
+
+    def set_threshold(self, th):
+        self.threshold = th
+
+    def get_threshold(self):
+        return self.threshold
+
+    def detect(self, image, genout):
+        grayimg = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        particles = []
+        #cv2.imshow('image', image)
+        #edges = cv2.Canny(image, 100, 200)
+        ret, thresh = cv2.threshold(grayimg, 120, 255, cv2.THRESH_BINARY_INV)
+        ret, thresh2 = cv2.threshold(grayimg, 180, 255, cv2.THRESH_BINARY)
+        th = thresh + thresh2
+        cv2.imshow('edges', th)
+        return thresh, particles
+
 if __name__ == "__main__":
+    dir = "/home/christoph/Dokumente/bilder/"
     #img = cv2.imread('../data/test.png', cv2.IMREAD_COLOR)
-    #img = cv2.imread('../data/test_cam_02.png', cv2.IMREAD_COLOR)
-    #cv2.imshow('image',img)
-    pd = ParticleDetector()
-    detector.detect_image(pd, '../data/test_cam_02.png', '../data/detect_test_cam_02.png', "../data/test_cam_02.csv", 1.5, 1.5)
+    #img = cv2.imread(dir + "Image_2021-04-23_23-57-45_126441.png", cv2.IMREAD_COLOR)
+    #cv2.imshow('img',img)
+    pd = ParticleDetector2()
+    #detector.detect_image(pd, '../data/test_cam_02.png', '../data/detect_test_cam_02.png', "../data/test_cam_02.csv", 1.5, 1.5)
+    detector.detect_image(pd, dir + "Image_2021-04-23_23-57-45_126441.png", dir + "Image_2021-04-23_23-57-45_126441_det.png", dir + "det.csv", 15, 15)
     #img, particles = pd.detect(img)
     #cv2.imshow('contimage', image)
     #print(particles)

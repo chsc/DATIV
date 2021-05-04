@@ -8,6 +8,7 @@
  
 """
 
+PORT             = 5000
 RECORDING_FOLDER = '../recordings'
 CAMERA_SETTINGS  = 'camera_settings.json'
 STREAM_SIZE      = (960, 544)
