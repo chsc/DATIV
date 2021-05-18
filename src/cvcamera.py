@@ -21,11 +21,11 @@ class MCamera(Camera):
         self.stream_size = stream_size
         # Parameters
         self.iso = 100
-        self.brightness = 50
-        self.contrast = 0
-        self.ruler_length = 200
-        self.ruler_xres = 5
-        self.ruler_yres = 5
+        self.brightness = 50.0
+        self.contrast = 0.0
+        self.ruler_length = 200.0
+        self.ruler_xres = 5.0
+        self.ruler_yres = 5.0
         self.passe_partout_h = 25
         self.passe_partout_v = 25
         # OpenCV Camera

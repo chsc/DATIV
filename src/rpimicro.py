@@ -4,13 +4,14 @@ import numpy as np
 import partdetect
 import detector
 import camnetwork
+import sysinfo
 from detector import detect_image, detect_video, transcode
 import os.path
 from flask import Flask, Response, render_template, request, redirect, url_for, jsonify, send_from_directory
 from camera import CameraEvents, draw_passe_partout, get_camera_parameters, create_camera
 from recordings import Recordings
 from motiondetect import MotionDetector
-from sysinfo import get_temperature, get_disk_free
+
 
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
@@ -183,16 +184,18 @@ def recording_state():
         mode = "recording"
     data = {
         'mode': mode,
-        'stext': status_text
+        'status_text': status_text
     }
     return jsonify(data)
 
 @app.route('/system_state')
 def system_state():
     global status_text
-    total, used, free = get_disk_free()
-    temp = get_temperature()
+    total, used, free = sysinfo.get_disk_free()
+    temp = sysinfo.get_temperature()
+    hostname = sysinfo.get_hostname()
     data = {
+        'hostname': hostname,
         "temperature": temp,
         "disk": {
             "total": total,
@@ -200,7 +203,7 @@ def system_state():
             "free": free
         },
         'recording': {
-            'stext': status_text
+            'status_text': status_text
         }
     }
     return jsonify(data)
@@ -229,7 +232,7 @@ def set_param(param):
             pdetector.set_threshold(value)
     else:
         return jsonify({"result": False, "stext": f"Unknown parameter {param}"})
-    return jsonify({"result": True, "stext": f"Parameter {param} set"})    
+    return jsonify({"result": True, "status_text": f"Parameter {param} set"})    
 
 @app.route('/get_params')
 def get_params():
@@ -255,32 +258,27 @@ def favicon():
 
 @app.route('/camera_network')
 def camera_network():
-    value = request.args.get('rescan')
-    if value == 'true':
-        cnetwork.update()
-    elif len(cnetwork.get_hosts()) == 0:
-        cnetwork.update()
     return render_template('camnetwork.html', title='RPiMicroscope', camnetwork=cnetwork)
 
 @app.route('/update_camera_network')
 def update_camera_network():
     cnetwork.update()
-    return jsonify({"result": True, "stext": f"Camera list updated"})
+    return jsonify({"result": True, "status_text": f"Camera list updated"})
 
 @app.route('/all_cature_still_image')
 def all_cature_still_image():
     cnetwork.broadcast('capture_still_image', None)
-    return jsonify({"result": True, "stext": f"Camera list updated"})
+    return jsonify({"result": True, "status_text": f"Camera list updated"})
 
 @app.route('/all_record_video')
 def all_record_video():
     cnetwork.broadcast('record_video', None)
-    return jsonify({"result": True, "stext": f"Camera list updated"})
+    return jsonify({"result": True, "status_text": f"Camera list updated"})
 
 @app.route('/all_stop_video')
 def all_stop_video():
     cnetwork.broadcast('stop', None)
-    return jsonify({"result": True, "stext": f"Camera list updated"})
+    return jsonify({"result": True, "status_text": f"Camera list updated"})
 
 
 

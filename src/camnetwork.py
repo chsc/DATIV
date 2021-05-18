@@ -45,7 +45,7 @@ class CameraNetwork:
             hostaddr = results.get()
             self.camera_hosts.append(hostaddr)
 
-    def call_request(self, ips, reqstr, params):
+    def do_request(self, ips, reqstr, params, results):
         while True:
             ip = ips.get()
             if ip is None:
@@ -54,13 +54,14 @@ class CameraNetwork:
                 response = requests.get(f"http://{ip}:{self.port}/{reqstr}", data=params)
                 json = response.json()
                 print("ok", json)
-                #results.put((hostaddr, hostname))
+                results.put((json.result, json.status_text))
             except:
-                print("fail", ip)
+                results.put((False, ip, "Request failed"))
 
     def broadcast(self, reqstr, params, pool_size=8):
         ips = multiprocessing.Queue()
-        pool = [multiprocessing.Process(target=self.call_request, args=(ips, reqstr, params)) for i in range(pool_size)]
+        results = multiprocessing.Queue()
+        pool = [multiprocessing.Process(target=self.do_request, args=(ips, reqstr, params, results)) for i in range(pool_size)]
         for p in pool:
             p.start()
 
@@ -73,6 +74,14 @@ class CameraNetwork:
         for p in pool:
             p.join()
 
+        ret = []
+        ok = True
+        while not results.empty():
+            res = results.get()
+            ok = res[0] and ok
+            ret.append(res)
+        return (ok, ret)
+
     def get_hosts(self):
         return self.camera_hosts
 
@@ -82,7 +91,7 @@ class CameraNetwork:
 if __name__ == "__main__":
     cn = CameraNetwork()
     cn.update() # scan the network
-    cn.broadcast('capture_still_image', None)
+    print(cn.broadcast('capture_still_image', None))
     cn.broadcast('record_video', None)
     cn.broadcast('stop', None)
 
