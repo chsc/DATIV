@@ -4,4 +4,4 @@ recordings/*.mp4
 recordings/*.h264
 recordings/*.png
 src/camera_settings.json
-src/__pycache__
+**/__pycache__
