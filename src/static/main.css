@@ -107,6 +107,13 @@ img.stream {
   width: 100%;
 }
 
+img.thumb {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 5px;
+  width: 50%;
+}
+
 img.delete-recording-image {
   cursor: pointer;
 }

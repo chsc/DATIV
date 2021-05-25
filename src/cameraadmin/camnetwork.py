@@ -3,7 +3,7 @@ import multiprocessing
 
 class CameraNetwork:
     def __init__(self, port=5000):
-        self.camera_hosts = []
+        self.camera_hosts = {}
         self.port = port
 
     def call_hosts(self, hostaddresses, results):
@@ -43,7 +43,7 @@ class CameraNetwork:
         self.camera_hosts.clear()
         while not results.empty():
             hostaddr = results.get()
-            self.camera_hosts.append(hostaddr)
+            self.camera_hosts[hostaddr[0]] = hostaddr[1]
 
     def do_request(self, ips, reqstr, params, results):
         while True:
@@ -65,8 +65,7 @@ class CameraNetwork:
         for p in pool:
             p.start()
 
-        for h in self.camera_hosts:
-            ip = h[0]
+        for ip in self.camera_hosts:
             ips.put(ip)
         for p in pool:
             ips.put(None)
@@ -87,6 +86,15 @@ class CameraNetwork:
 
     def get_port(self):
         return self.port
+
+    def register_camera(self, ip, hostname):
+        self.camera_hosts[ip] = hostname
+
+    def get_camera_link(self, ip):
+        if self.port == 80 or self.port < 0:
+            return f'http://{ip}'
+        else:
+            return f'http://{ip}:{self.port}'
 
 if __name__ == "__main__":
     cn = CameraNetwork()
