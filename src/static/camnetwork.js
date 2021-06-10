@@ -14,6 +14,15 @@ async function getServer(endPoint, params)
     }
 }
 
+function updateStatus(results) {
+   for(const [ip, res] of Object.entries(results)) {
+      element = document.getElementById("status-" + ip);
+      if(element != null) {
+         element.textContent = res[1];
+      }
+   }
+}
+
 async function setupButtonHandlers()
 {
    document.querySelector("#update-button").addEventListener ("click", async function () {
@@ -21,18 +30,25 @@ async function setupButtonHandlers()
       if(resp.result) {
         location.reload();
       }
+      console.log(resp);
    });
    document.querySelector("#all-capture-still-button").addEventListener ("click", async function () {
     resp = await getServer("all_capture_still_image");
-    if(resp.result) {
-      
+    if(!resp.result) {
+      updateStatus(resp.results);
     }
    });
    document.querySelector("#all-record-video-button").addEventListener ("click", async function () {
     resp = await getServer("all_record_video");
     if(resp.result) {
-      
+      updateStatus(resp.results);
     }
+   });
+   document.querySelector("#all-record-video-button").addEventListener ("click", async function () {
+      resp = await getServer("all_stop_video");
+      if(resp.result) {
+         updateStatus(resp.results);
+      }
    });
 }
 

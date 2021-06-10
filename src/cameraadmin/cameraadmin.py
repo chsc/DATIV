@@ -20,20 +20,20 @@ def update_camera_network():
     cnetwork.update()
     return flask.jsonify({"result": True, "status_text": f"Camera list updated"})
 
-@app.route('/all_cature_still_image')
-def all_cature_still_image():
-    cnetwork.broadcast('capture_still_image', None)
-    return flask.jsonify({"result": True, "status_text": f"Camera list updated"})
+@app.route('/all_capture_still_image')
+def all_capture_still_image():
+    res, stext, results = cnetwork.broadcast('capture_still_image', None)
+    return flask.jsonify({"result": res, "status_text": stext, "results": results})
 
 @app.route('/all_record_video')
 def all_record_video():
-    cnetwork.broadcast('record_video', None)
-    return flask.jsonify({"result": True, "status_text": f"Camera list updated"})
+    res, stext, results = cnetwork.broadcast('record_video', None)
+    return flask.jsonify({"result": res, "status_text": stext, "results": results})
 
 @app.route('/all_stop_video')
 def all_stop_video():
-    cnetwork.broadcast('stop', None)
-    return flask.jsonify({"result": True, "status_text": f"Camera list updated"})
+    ret, stext, results = cnetwork.broadcast('stop', None)
+    return flask.jsonify({"result": res, "status_text": stext, "results": results})
 
 @app.route('/overview')
 def overview():

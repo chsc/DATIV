@@ -51,12 +51,13 @@ class CameraNetwork:
             if ip is None:
                 break
             try:
-                response = requests.get(f"http://{ip}:{self.port}/{reqstr}", data=params)
+                print("request", ip)
+                response = requests.get(f"http://{ip}:{self.port}/{reqstr}", data=params, timeout=3)
                 json = response.json()
                 print("ok", json)
-                results.put((json.result, json.status_text))
+                results.put((ip, json.result, json.status_text))
             except:
-                results.put((False, ip, "Request failed"))
+                results.put((ip, False, "Request failed"))
 
     def broadcast(self, reqstr, params, pool_size=8):
         ips = multiprocessing.Queue()
@@ -73,13 +74,16 @@ class CameraNetwork:
         for p in pool:
             p.join()
 
-        ret = []
+        ret = {}
         ok = True
         while not results.empty():
             res = results.get()
-            ok = res[0] and ok
-            ret.append(res)
-        return (ok, ret)
+            ip = res[0]
+            result = res[1]
+            stext = res[2]
+            ok = result and ok
+            ret[ip] = (result, stext)
+        return (ok, "broadcast", ret)
 
     def get_hosts(self):
         return self.camera_hosts

@@ -33,6 +33,9 @@
                 <th>
                     <button class="greenbutton" id="all-record-video-button">Record Video</button>
                 </th>
+                <th>
+                    <button class="redbutton" id="all-stop-video-button">Stop Video Recording</button>
+                </th>
             </tr>
             {% for key in camnetwork.get_hosts() %}
             <tr>
@@ -50,6 +53,9 @@
                 </td>
                 <td>
                     <button class="greenbutton" id="record-{{key}}" data-ip="{{key}}">Record Video</button>
+                </td>
+                <td>
+                    <button class="redbutton" id="stop-{{key}}" data-ip="{{key}}">Stop Video Recordingo</button>
                 </td>
             </tr>
             {% endfor %}
