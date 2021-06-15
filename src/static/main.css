@@ -54,12 +54,13 @@ label.subcatlabel {
 }
 
 input {
-  margin: 0px;
+  margin: 1px;
   padding: 0.125em;
 }
 
 button {
   border: none;
+  display: inline-block;
 }
 
 button.redbutton {
@@ -67,7 +68,21 @@ button.redbutton {
   color: white;
 }
 
+button.redbutton-right {
+  background-color: #ff5533;
+  color: white;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  width: 50%;
+  margin: 0px;
+}
+
 button.redbutton:hover {
+  background-color: #bb2211; 
+  color: white;
+}
+
+button.redbutton-right:hover {
   background-color: #bb2211; 
   color: white;
 }
@@ -77,9 +92,23 @@ button.redbutton:active {
   color: white;
 }
 
+button.redbutton-right:active {
+  background-color: #dd5533; 
+  color: white;
+}
+
 button.greenbutton {
   background-color: #4a9750;
   color: white;
+}
+
+button.greenbutton-left {
+  background-color: #4a9750;
+  color: white;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  width: 50%;
+  margin: 0px;
 }
 
 button.greenbutton:hover {
@@ -87,7 +116,17 @@ button.greenbutton:hover {
   color: white;
 }
 
+button.greenbutton-left:hover {
+  background-color: #2e7924; 
+  color: white;
+}
+
 button.greenbutton:active {
+  background-color: #bbd3b2; 
+  color: white;
+}
+
+button.greenbutton-left:active {
   background-color: #bbd3b2; 
   color: white;
 }

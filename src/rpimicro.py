@@ -7,12 +7,14 @@ import sysinfo
 from detector import detect_image, detect_video, transcode
 import os.path
 from flask import Flask, Response, render_template, request, redirect, url_for, jsonify, send_from_directory
+import flask_cors
 from camera import CameraEvents, draw_passe_partout, get_camera_parameters, create_camera
 from recordings import Recordings
 from motiondetect import MotionDetector
 
 
 app = Flask(__name__)
+flask_cors.CORS(app)
 app.config.from_pyfile('config.py')
 
 status_text = "Ready"

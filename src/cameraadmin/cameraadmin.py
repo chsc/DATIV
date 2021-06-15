@@ -1,9 +1,11 @@
 import flask
+#import flask_cors
 import camnetwork
 
 copyright = "Copyright (C) 2021"
 
 app = flask.Flask(__name__, static_folder='../static', template_folder='../templates')
+#flask_cors.CORS(app)
 app.config.from_pyfile('config.py')
 
 cnetwork = camnetwork.CameraNetwork(app.config['PORT'])
@@ -51,4 +53,4 @@ if __name__ == "__main__":
     cnetwork.register_camera("127.0.0.1", "selfhost1")
     cnetwork.register_camera("127.0.0.2", "selfhost2")
     cnetwork.register_camera("127.0.0.4", "selfhost3")
-    app.run(host='0.0.0.0') #debug=True)
+    app.run(host='0.0.0.0', port=5001) #debug=True)

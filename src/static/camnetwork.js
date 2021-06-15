@@ -23,6 +23,29 @@ function updateStatus(results) {
    }
 }
 
+async function setupButtons(idprefix, requeststr)
+{
+   var capture = document.querySelectorAll("[id^='" + idprefix + "']");
+   console.log(capture)
+   capture.forEach(node=>{
+      //console.log(node);
+      node.addEventListener("click", async function() {
+      var ip = node.getAttribute("data-ip");
+      span = document.getElementById("status-" + ip);
+      resp = await getServer("http://" + ip + ":5000/" + requeststr);
+      if(resp != null && resp.result) {
+         console.log(resp);
+         if(span != null) {
+            span.textContent = resp.status_text;
+         }
+      } else {
+         if(span != null) {
+            span.textContent = "Request '" + requeststr + "' failed!";
+         }
+      }
+   })});
+}
+
 async function setupButtonHandlers()
 {
    document.querySelector("#update-button").addEventListener ("click", async function () {
@@ -32,6 +55,7 @@ async function setupButtonHandlers()
       }
       console.log(resp);
    });
+
    document.querySelector("#all-capture-still-button").addEventListener ("click", async function () {
     resp = await getServer("all_capture_still_image");
     if(!resp.result) {
@@ -44,12 +68,30 @@ async function setupButtonHandlers()
       updateStatus(resp.results);
     }
    });
-   document.querySelector("#all-record-video-button").addEventListener ("click", async function () {
+   document.querySelector("#all-stop-video-button").addEventListener ("click", async function () {
       resp = await getServer("all_stop_video");
       if(resp.result) {
          updateStatus(resp.results);
       }
    });
+   document.querySelector("#all-start-detection-button").addEventListener ("click", async function () {
+      resp = await getServer("all_start_detection");
+      if(resp.result) {
+         updateStatus(resp.results);
+      }
+   });
+   document.querySelector("#all-stop-detection-button").addEventListener ("click", async function () {
+      resp = await getServer("all_stop_detection");
+      if(resp.result) {
+         updateStatus(resp.results);
+      }
+   });
+  
+   setupButtons("capture-still", "capture_still_image");
+   setupButtons("record-video", "record_video");
+   setupButtons("stop-video", "stop");
+   setupButtons("start-detection", "start_detection");
+   setupButtons("stop-detection", "stop_detection");
 }
 
 document.addEventListener("DOMContentLoaded", function() { 

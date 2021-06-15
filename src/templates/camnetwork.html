@@ -31,10 +31,10 @@
                     <button class="greenbutton" id="all-capture-still-button">Capture Still Image</button>
                 </th>
                 <th>
-                    <button class="greenbutton" id="all-record-video-button">Record Video</button>
+                    <button class="greenbutton-left" id="all-record-video-button">Record Video</button><button class="redbutton-right" id="all-stop-video-button">Stop Video Recording</button>
                 </th>
-                <th>
-                    <button class="redbutton" id="all-stop-video-button">Stop Video Recording</button>
+                <th>    
+                    <button class="greenbutton-left" id="all-start-detection-button">Start Detection</button><button class="redbutton-right" id="all-stop-detection-button">Stop Detection</button>
                 </th>
             </tr>
             {% for key in camnetwork.get_hosts() %}
@@ -49,13 +49,13 @@
                     <span id="status-{{key}}">...</span>
                 </td>
                 <td>
-                    <button class="greenbutton" id="capture-{{key}}" data-ip="{{key}}">Capture Still Image</button>
+                    <button class="greenbutton" id="capture-still-{{key}}" data-ip="{{key}}">Capture Still Image</button>
                 </td>
                 <td>
-                    <button class="greenbutton" id="record-{{key}}" data-ip="{{key}}">Record Video</button>
+                    <button class="greenbutton-left" id="record-video-{{key}}" data-ip="{{key}}">Record Video</button><button class="redbutton-right" id="stop-video-{{key}}" data-ip="{{key}}">Stop Video Recordingo</button>
                 </td>
                 <td>
-                    <button class="redbutton" id="stop-{{key}}" data-ip="{{key}}">Stop Video Recordingo</button>
+                    <button class="greenbutton-left" id="start-detection-{{key}}" data-ip="{{key}}">Start Detection</button><button class="redbutton-right" id="stop-detection-{{key}}" data-ip="{{key}}">Stop Detection</button>
                 </td>
             </tr>
             {% endfor %}
