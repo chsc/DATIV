@@ -33,21 +33,35 @@ def detect_image(det, infile, outfile, csvfile, sx, sy):
 	write_particles(csvfile, data)
 	cv2.imwrite(outfile, out)
 
-def transcode(infile, outfile):
-	fourcc = cv2.VideoWriter_fourcc('H','2','6','4')
+def transcode(infile, outfile, fps):
+	#fourcc = cv2.VideoWriter_fourcc('H','2','6','4')
+	fourcc = cv2.VideoWriter_fourcc('a','v','c','1')
 	reader = cv2.VideoCapture(infile)
 	size = (int(reader.get(cv2.CAP_PROP_FRAME_WIDTH)), int(reader.get(cv2.CAP_PROP_FRAME_HEIGHT)))
-	fps = reader.get(cv2.CAP_PROP_FPS)
+	#fps = reader.get(cv2.CAP_PROP_FPS)
+	print("trascoding: ", infile, size, fps)
 	writer = cv2.VideoWriter(outfile, fourcc, fps, size)
 	fnr = 0
 	while reader.isOpened():
 		ret, frame = reader.read()
 		if ret:
-			print("transcode frame", fnr)
+			#print("transcode frame", fnr)
 			writer.write(frame)
 			fnr += 1
 		else:
 			break
+	return fnr
+	
+def count_frames(infile):
+	reader = cv2.VideoCapture(infile)
+	fnr = 0
+	while reader.isOpened():
+		ret, frame = reader.read()
+		if ret:
+			fnr += 1
+		else:
+			break
+	return fnr
 
 def detect_video(det, infile, outfile, csvfile, sx, sy):
 	fourcc = cv2.VideoWriter_fourcc('H','2','6','4')

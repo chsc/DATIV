@@ -10,6 +10,38 @@ import detector
 
 class ParticleDetector(detector.Detector):
     def __init__(self, ratio = 1.1):
+        self.bsub = cv2.createBackgroundSubtractorKNN(2, 40, False)
+        self.timage = True
+        self.threshold = 10
+    
+    def set_threshold(self, th):
+        self.threshold = th
+
+    def get_threshold(self):
+        return self.threshold    
+    
+    def detect(self, image, genout):
+        return image, []
+        
+        grayimg = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        fbmask = self.bsub.apply(grayimg)
+        
+        ret = cv2.findContours(fbmask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        contours = ret[0]
+        if len(ret) == 3: # for old version of find contours (pre 3.2)
+            contours = ret[1]
+            
+        contimage = None
+        if genout:
+            contimage = image
+            for i in range(len(contours)):
+                cnt = contours[i]
+                cv2.drawContours(contimage, contours, i, (0,255, 255), 1)
+            
+        return contimage, []
+
+class ParticleDetector3(detector.Detector):
+    def __init__(self, ratio = 1.1):
         self.reject_ratio = ratio
         self.threshold = 127
 
@@ -61,7 +93,7 @@ class ParticleDetector(detector.Detector):
                     d = detector.equi_diameter(area) / 2
                     particles.append((cx, cy, area))
                     if genout:
-                        cv2.drawContours(contimage, contours, i, (0,255,0), 1)
+                        cv2.drawContours(contimage, contours, i, (255,255,255), 1)
                         #cv2.circle(contimage, (int(cx), int(cy)), int(d), (255,255,0), 1)
                         cv2.putText(image, str(idx), (int(cx), int(cy)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1, cv2.LINE_AA)
                         idx += 1

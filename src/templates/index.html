@@ -19,27 +19,40 @@
   </header>
   <div class="view">
     <div class="controls">
-      <label class="catlabel">Calibration</label>
-      <label class="subcatlabel">X-Resolution (µm/pixel)</label>
-      <input type="number" id="ruler-xres" name="name" min="0" max="100" step="0.01" value="10.0"/>
-      <label class="subcatlabel">Y-Resolution (µm/pixel)</label>
-      <input type="number" id="ruler-yres" name="name" min="0" max="100" step="0.01" value="10.0"/>
-      <label class="subcatlabel">Ruler Length (µm)</label>
-      <input type="number" id="ruler-length" name="name" min="0" max="5000" step="10" value="200"/>
-
-      <label class="catlabel">Passe-Partout</label>
-      <label class="subcatlabel">Horizontal <output id="passe-partout-h-output" for="passe-partout-h">-</output> %</label>
-      <input id="passe-partout-h" name="passe-partout-h" type="range" min="0" max="100" step="1" value="25">
-      <label class="subcatlabel">Vertical <output id="passe-partout-v-output" for="passe-partout-v">-</output> %</label>
-      <input id="passe-partout-v" name="passe-partout-v" type="range" min="0" max="100" step="1" value="25">
-
+      <label class="catlabel">Mode (Experimental)</label>
+      <select id="setting-mode">
+        <option value="-">---</option>
+        <option value="1">1: 1920x1080 (Binning: None, FoV: Partial, FPS: 0.1-30)</option>
+        <option value="2">2: 3280x2464 (Binning: None, FoV: Full, FPS: 0.1-15)</option>
+        <option value="3">3: 3280x2464 (Binning: None, FoV: Full, FPS: 0.1-15)</option>
+        <option value="4">4: 1640x1232 (Binning: 2x2, FoV: Full, FPS: 0.1-40)</option>
+        <option value="5">5: 1640x922 (Binning: 2x2, FoV: Full, FPS: 0.1-40)</option>
+        <option value="6">6: 1280x720 (Binning: 2x2, FoV: Partial, FPS: 0.1-90)</option>
+        <option value="7">7: 640x480 (Binning: 2x2, FoV: Partial, FPS: 0.1-90)</option>
+      </select>
+      
+      <label class="catlabel">Resolution (Experimental)</label>
+      <select id="setting-resolution">
+        <option value="-">---</option>
+        <option value="160x120">160x120</option>
+        <option value="320x240">320x240</option>
+        <option value="640x480">640x480</option>
+        <option value="800x600">800x600</option>
+        <option value="1280x720">1280x720</option>
+        <option value="1920x1080">1920x1080</option>
+      </select>
+      
       <label class="catlabel">Camera Settings</label>
+      <label class="subcatlabel">Shutter Speed <output id="setting-shutter-output" for="setting-shutter">-</output> µs</label>
+      <input id="setting-shutter" name="setting-shutter" type="range" min="0" max="100000" step="100" value="5000">
       <label class="subcatlabel">ISO <output id="setting-iso-output" for="setting-iso">-</output></label>
       <input id="setting-iso" name="setting-iso" type="range" min="0" max="1600" step="100" value="100">
       <label class="subcatlabel">Brightness <output id="setting-brightness-output" for="setting-brightness">-</output></label>
       <input id="setting-brightness" name="setting-brightness" type="range" min="0" max="100" step="1" value="50">
       <label class="subcatlabel">Contrast <output id="setting-contrast-output" for="setting-contrast">-</output></label>
       <input id="setting-contrast" name="setting-contrast" type="range" min="-100" max="100" step="1" value="0">
+      
+      <span id="status" class="status-normal">Loading...</span>
     </div>
     <div class="video">
       <img src="{{ url_for('video_stream') }}" class="stream" alt="Camera Stream"/>
@@ -56,23 +69,10 @@
       <label class="subcatlabel">Threshold <output id="detector-threshold-output" for="detector-threshold">-</output></label>
       <input id="detector-threshold" name="detector-threshold" type="range" min="-2" max="255" step="1" value="127">
 
-      <label class="catlabel">Trigger</label>
-      <input type="radio" class="ratio" id="record-trigger-manual" name="trigger-mode" value="record-trigger-manual" checked>
-      <label for="record-trigger-manual" class="ratiolabel">Manual</label>
-      <!--<input type="radio" class="ratio" id="record-trigger-motion" name="trigger-mode" value="record-trigger-motion">
-      <label for="record-trigger-motion" class="ratiolabel">Motion</label>-->
-
-      <!--<input type="number" id="record-trigtime" name="trigger-time"/>
-      <input type="number" id="record-trigpostroll" name="trigger-postroll"/>-->
-
-      <label class="catlabel">Mode</label>
-      <input type="radio" class="ratio" id="record-film-only" name="recording-mode" value="manual" checked>
-      <label for="record-film-only" class="ratiolabel">Record film only</label><br/>
-      <!--<input type="radio" class="ratio" id="record-detect-only" name="recording-mode" value="motion">
-      <label for="record-detect-only" class="ratiolabel">Detect objects only</label><br/>
-      <input type="radio" class="ratio" id="record-film-and-detect" name="recording-mode" value="motion">
-      <label for="record-film-and-detect" class="ratiolabel">Record film and detect objects</label><br/>-->
-     
+      <!--<button class="redbutton" id="objdet-button">
+        <img class="buttonicon" src="{{ url_for('static', filename='icons/record-24.png') }}"/>
+        <span id="objdet-button-text">Start Objetct Detection</span>
+      </button>-->
       <button class="redbutton" id="record-button">
         <img class="buttonicon" src="{{ url_for('static', filename='icons/record-24.png') }}"/>
         <span id="record-button-text">Start Video Recording</span>
@@ -82,7 +82,20 @@
         <span id="record-button-text">Capture Still Image</span>
       </button>
       
-      <span id="status" class="status-normal">Loading...</span>
+      <label class="catlabel">Calibration</label>
+      <label class="subcatlabel">X-Resolution (µm/pixel)</label>
+      <input type="number" id="ruler-xres" name="name" min="0" max="100" step="0.01" value="10.0"/>
+      <label class="subcatlabel">Y-Resolution (µm/pixel)</label>
+      <input type="number" id="ruler-yres" name="name" min="0" max="100" step="0.01" value="10.0"/>
+      <label class="subcatlabel">Ruler Length (µm)</label>
+      <input type="number" id="ruler-length" name="name" min="0" max="5000" step="10" value="200"/>
+
+      <label class="catlabel">Passe-Partout</label>
+      <label class="subcatlabel">Horizontal <output id="passe-partout-h-output" for="passe-partout-h">-</output> %</label>
+      <input id="passe-partout-h" name="passe-partout-h" type="range" min="0" max="100" step="1" value="25">
+      <label class="subcatlabel">Vertical <output id="passe-partout-v-output" for="passe-partout-v">-</output> %</label>
+      <input id="passe-partout-v" name="passe-partout-v" type="range" min="0" max="100" step="1" value="25">
+      
     </div>
   </div>
   <div class="tablearea">
@@ -108,6 +121,9 @@
               {% endif %}
             </a> 
             <a href="{{ url_for('download', ident=rectable.recordings[item].meta['id']) }}" download>
+              <img src="{{ url_for('static', filename='icons/download-24.png') }}"" alt="Download"/>
+            </a>
+            <a href="{{ url_for('download_transcoded', ident=rectable.recordings[item].meta['id']) }}" download>
               <img src="{{ url_for('static', filename='icons/download-24.png') }}"" alt="Download"/>
             </a>
             <a href="{{ url_for('detector', ident=rectable.recordings[item].meta['id']) }}">

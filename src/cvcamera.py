@@ -9,7 +9,7 @@ fourcc = cv2.VideoWriter_fourcc('H','2','6','4')
 #fourcc = cv2.VideoWriter_fourcc('X','V','I','D')
 
 class MCamera(Camera):
-    def __init__(self, camevents, motiondet, camera_size, stream_size):
+    def __init__(self, camevents, motiondet, camera_size, stream_size, fps, smode):
         self.lock = Lock()
         self.thread = None
         self.running = False
@@ -99,17 +99,10 @@ class MCamera(Camera):
             self.thread.join()
             self.thread = None
 
-    def record_video_manual(self):
+    def record_video(self):
         if self.mode != Mode.RECORD_OFF:
             return
-        self.mode = Mode.RECORD_MANUAL
-        while self.recorder is None:
-            None
-
-    def record_video_motion(self):
-        if self.mode != Mode.RECORD_OFF:
-            return
-        self.mode = Mode.RECORD_MOTION
+        self.mode = Mode.RECORD
         while self.recorder is None:
             None
 
@@ -135,6 +128,24 @@ class MCamera(Camera):
                 return None
             return cv2.resize(self.frame, self.stream_size, interpolation=cv2.INTER_AREA)
 
+    def set_mode(self, mode):
+        print('Mode setting not suported!')
+        pass
+    
+    def get_resolution(self):
+        return self.stream_size
+        
+    def set_resolution(self, res):
+        return False
+
+    def fps(self):
+        return 25
+        
+    def set_shutter_speed(self, shutter):
+        pass
+        
+    def get_shutter_speed(self):
+        return 0
 
     def set_iso(self, iso):
         print("ISO not supported", iso)

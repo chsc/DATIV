@@ -17,12 +17,17 @@ const passePartoutHOutput  = document.querySelector("#passe-partout-h-output");
 const passePartoutVSlider  = document.querySelector("#passe-partout-v");
 const passePartoutVOutput  = document.querySelector("#passe-partout-v-output");
 
-const isoSlider   = document.querySelector("#setting-iso");
-const isoOutput   = document.querySelector("#setting-iso-output");
-const brighSlider = document.querySelector("#setting-brightness");
-const brighOutput = document.querySelector("#setting-brightness-output");
-const contrSlider = document.querySelector("#setting-contrast");
-const contrOutput = document.querySelector("#setting-contrast-output");
+const modeDropDown       = document.querySelector("#setting-mode");
+const resolutionDropDown = document.querySelector("#setting-resolution")
+
+const shutterSlider   = document.querySelector("#setting-shutter");
+const shutterOutput   = document.querySelector("#setting-shutter-output");
+const isoSlider       = document.querySelector("#setting-iso");
+const isoOutput       = document.querySelector("#setting-iso-output");
+const brighSlider     = document.querySelector("#setting-brightness");
+const brighOutput     = document.querySelector("#setting-brightness-output");
+const contrSlider     = document.querySelector("#setting-contrast");
+const contrOutput     = document.querySelector("#setting-contrast-output");
 
 const thresholdSlider = document.querySelector("#detector-threshold");
 const thresholdOutput = document.querySelector("#detector-threshold-output");
@@ -50,13 +55,14 @@ function setStatusNormal(status)
 {
    statusSpan.textContent = status;
    statusSpan.className = "status-normal";
+   //console.log("Normal: " + status);
 }
 
 function setStatusError(status)
 {
    statusSpan.textContent = status;
    statusSpan.className = "status-error";
-   console.log(status);
+   //console.log("Error: " + status);
 }
 
 function setButtonTextRecording()
@@ -87,6 +93,7 @@ function addTableEntry(name, id, isVideo, description, dateTime)
       cellIcons.innerHTML = "<a href=\"/player/" + id +  "\"><img src=\"/static/icons/image-24.png\" alt=\"Image View\"/></a> ";
    }
    cellIcons.innerHTML += "<a href=\"/download/" + id + "\" download><img src=\"/static/icons/download-24.png\" alt=\"Download\"/></a> ";
+   cellIcons.innerHTML += "<a href=\"/download_transcoded/" + id + "\" download><img src=\"/static/icons/download-24.png\" alt=\"Download\"/></a> ";
    cellIcons.innerHTML += "<a href=\"/detector/" + id + "\"><img src=\"/static/icons/detect-24.png\" alt=\"Detector\"/></a> ";
    cellIcons.innerHTML += "<a href=\"#\" onclick=\"deleteTableEntry(this)\" data-id=\"" + id + "\"><img src=\"/static/icons/delete-24.png\" alt=\"Delete\"/></a>";
 
@@ -108,6 +115,18 @@ async function deleteTableEntry(row)
    } else {
       setStatusError(resp.stext);
    }   
+}
+
+async function setupObjectDetectionButtonHandler()
+{
+   document.querySelector("#objdet-button").addEventListener ("click", async function () {
+      resp = await getServer("start_object_detection");
+      if(!resp.result) {
+         setStatusError(resp.stext);
+      } else {
+         addTableEntry(resp.name, resp.id, false, resp.description, resp.datetime);
+      }
+   });
 }
 
 async function setupCaptureStillImageButtonHandler()
@@ -136,30 +155,11 @@ async function setupStartRecordingButtonHandler()
          
          rname = document.querySelector("#record-name").value;
          rdescription = document.querySelector("#record-description").value;
-         rdetector = document.querySelector("#record-detector").value
-   
-         rtrigger = "manual"
-         if(document.querySelector("#record-trigger-manual").checked) {
-            rtrigger = "manual";
-         } else if(document.querySelector("#record-trigger-motion").checked) {
-            rtrigger = "motion";
-         }
-   
-         rmode = "film-only"
-         if(document.querySelector("#record-film-only").checked) {
-            rmode = "film-only";
-         } else if(document.querySelector("#record-detect-only").checked) {
-            rmode = "detect-only";
-         } else if(document.querySelector("#record-film-and-detect").checked) {
-            rmode = "film-and-detect";
-         }
+         //rdetector = document.querySelector("#record-detector").value
    
          data = {
             "name" : rname,
-            "description" : rdescription,
-            "detector" : rdetector,
-            "trigger" : rtrigger,
-            "mode" : rmode
+            "description" : rdescription
          };
          
          resp = await getServer("record_video", data);
@@ -174,7 +174,7 @@ async function setupStartRecordingButtonHandler()
             addTableEntry(resp.name, resp.id, true, resp.description, resp.datetime);
             setButtonTextNotRecording();
          } else {
-            setStatusError(resp.stext);
+            setStatusError(resp.status_text);
          }
       }
       return false;
@@ -192,14 +192,14 @@ async function updateSystemState()
    stateDiskFree.textContent  = resp.disk.free;
    document.querySelector("#percent_used").textContent = Math.round((resp.disk.used / resp.disk.total) * 100);
 
-   statusSpan.textContent = resp.recording.stext
+   //statusSpan.textContent = resp.recording.status_text
 }
 
 function setSpinHandler(input, paramname) {
    input.addEventListener("input", async function() {
       resp = await getServer("set_param/" + paramname, {'value': this.value});
       if(!resp.result) {
-         setStatusError(resp.stext);
+         setStatusError(resp.status_text);
       }
    });
 }
@@ -210,12 +210,30 @@ function setSliderHandler(input, output, paramname) {
       if(resp.result) {
          output.value = this.value;
       } else {
-         setStatusError(resp.stext);
+         setStatusError(resp.status_text);
       }
    });
 }
 
 function setupCameraSettingControlHandler() {
+   modeDropDown.addEventListener("change", async function() {
+      resp = await getServer("set_camera_mode", {'mode': this.value});
+      if(resp.result) {
+         setStatusNormal(resp.status_text);
+      } else {
+         setStatusError(resp.status_text);
+      }
+   });
+   
+   resolutionDropDown.addEventListener("change", async function() {
+      resp = await getServer("set_resolution", {'value': this.value});
+      if(resp.result) {
+         setStatusNormal(resp.status_text);
+      } else {
+         setStatusError(resp.status_text);
+      }
+   });
+   
    setSpinHandler(rulerXResInput, "ruler_xres");
    setSpinHandler(rulerYResInput, "ruler_yres");
    setSpinHandler(rulerLengthInput, "ruler_length");
@@ -223,6 +241,7 @@ function setupCameraSettingControlHandler() {
    setSliderHandler(passePartoutHSlider, passePartoutHOutput, "passe_partout_h");
    setSliderHandler(passePartoutVSlider, passePartoutVOutput, "passe_partout_v");
 
+   setSliderHandler(shutterSlider, shutterOutput, "shutter_speed");
    setSliderHandler(isoSlider, isoOutput, "iso");
    setSliderHandler(brighSlider, brighOutput, "brightness");
    setSliderHandler(contrSlider, contrOutput, "contrast");
@@ -242,17 +261,21 @@ async function initCameraSettings() {
    passePartoutHOutput.value = passePartoutHSlider.value;
    passePartoutVOutput.value = passePartoutVSlider.value;
 
-   isoSlider.value   = resp.iso;
-   brighSlider.value = resp.brightness;
-   contrSlider.value = resp.contrast;
-   isoOutput.value   = isoSlider.value;
-   brighOutput.value = brighSlider.value;
-   contrOutput.value = contrSlider.value;
+   shutterSlider.value = resp.shutter_speed
+   isoSlider.value     = resp.iso;
+   brighSlider.value   = resp.brightness;
+   contrSlider.value   = resp.contrast;
+   
+   shutterOutput.value = resp.shutter_speed
+   isoOutput.value     = isoSlider.value;
+   brighOutput.value   = brighSlider.value;
+   contrOutput.value   = contrSlider.value;
 }
 
 document.addEventListener("DOMContentLoaded", function() { 
    setupStartRecordingButtonHandler();
    setupCaptureStillImageButtonHandler();
+   setupObjectDetectionButtonHandler();
    setupCameraSettingControlHandler();
    initCameraSettings();
    updateSystemState();

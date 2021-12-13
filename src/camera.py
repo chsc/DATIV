@@ -7,8 +7,8 @@ import numpy as np
 
 class Mode(enum.Enum):
     RECORD_OFF    = 0
-    RECORD_MANUAL = 1
-    RECORD_MOTION = 2
+    RECORD        = 1
+    OBJDET        = 2
 
 def draw_passe_partout(image, orig_size, ruler_length, ruler_xres, psx, psy):
     sy, sx = image.shape[:2]
@@ -27,6 +27,7 @@ def draw_passe_partout(image, orig_size, ruler_length, ruler_xres, psx, psy):
     return image
 
 def get_camera_parameters(data, camera):
+    data['shutter_speed'] = camera.get_shutter_speed()
     data['iso'] = camera.get_iso()
     data['brightness'] = camera.get_brightness()
     data['contrast'] = camera.get_contrast()
@@ -37,6 +38,7 @@ def get_camera_parameters(data, camera):
     data['passe_partout_v'] = camera.get_passe_partout_v()
 
 def set_camera_parameters(data, camera):
+    camera.set_shutter_speed(data['shutter_speed'])
     camera.set_iso(data['iso'])
     camera.set_brightness(data['brightness'])
     camera.set_contrast(data['contrast'])
@@ -51,13 +53,19 @@ class CameraEvents:
         return ''
 
     def video_end_recording(self, camera):
-        None
+        pass
 
     def image_start_capture(self, camera):
         return ''
 
     def image_end_recording(self, camera):
-        None
+        pass
+        
+    def objdet_start(self, camera):
+        return''
+        
+    def objdet_end(self, camera):
+        pass
 
 class Camera:
     def save_state(self, filename):
@@ -73,7 +81,7 @@ class Camera:
             data = json.load(f)
             set_camera_parameters(data, self)
             
-def create_camera(modname, camevents, motiondet, camera_size, stream_size):
+def create_camera(modname, camevents, motiondet, camera_size, stream_size, fps, smode):
     module = __import__(modname)
-    camera = module.MCamera(camevents, motiondet, camera_size, stream_size)
+    camera = module.MCamera(camevents, motiondet, camera_size, stream_size, fps, smode)
     return camera

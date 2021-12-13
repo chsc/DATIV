@@ -22,14 +22,13 @@ class CamEvents(CameraEvents):
     def __init__(self, recordings):
         self.recordings = recordings
 
-    def set_name_desc_trigger_info(self, name, description, trigger):
+    def set_name_desc_trigger_info(self, name, description):
         self.name        = name
         self.description = description
-        self.trigger     = trigger
 
     def video_start_recording(self, camera):
         global status_text
-        self.recording = self.recordings.start_recording(self.name, self.description, self.trigger, camera)
+        self.recording = self.recordings.start_recording(self.name, self.description, "", camera)
         status_text = "Start video recording ..."
         return self.recording.make_file_path()
 
@@ -39,33 +38,57 @@ class CamEvents(CameraEvents):
         self.recordings.end_recording(self.recording)
 
     def image_start_capture(self, camera):
-        self.capture = self.recordings.start_capture_still_image(self.name, self.description, self.trigger, camera)
+        self.capture = self.recordings.start_capture_still_image(self.name, self.description, "", camera)
         return self.capture.make_file_path()
 
     def image_end_capture(self, camera):
         global status_text
         status_text = "Image captured"
         self.recordings.end_capture_still_image(self.capture)
+        
+    def objdet_start(self, camera):
+        global status_text
+        status_text = "Running object detection"
+        return "file.csv"
+        
+    def objdet_end(self, camera):
+        global status_text
+        status_text = "Object detection stopped"
 
 cnetwork        = camnetwork.CameraNetwork(app.config['PORT'])
 pdetector       = partdetect.ParticleDetector()
 recorded_files  = Recordings(app.config['RECORDING_FOLDER'])
 camevents       = CamEvents(recorded_files)
 mdetector       = MotionDetector(app.config['MOTION_THRESHOLD'])
-camera          = create_camera(app.config['CAMERA_MODULE'], camevents, mdetector, app.config['VIDEO_SIZE'], app.config['STREAM_SIZE'])
+camera          = create_camera(app.config['CAMERA_MODULE'], camevents, mdetector, app.config['CAMERA_SIZE'], app.config['STREAM_SIZE'], app.config['CAMERA_FPS'], app.config['CAMERA_SENSOR_MODE'])
 
 def generate_video(camera):
-    video_size = app.config['VIDEO_SIZE']
+    video_size = app.config['CAMERA_SIZE']
     while True:
         time.sleep(0.05)
         output = camera.get_stream_image()
-        if pdetector is not None:
+        if pdetector is not None and output is not None:
             output, particles = pdetector.detect(output, True)
         output = draw_passe_partout(output, video_size, camera.get_ruler_length(), camera.get_ruler_xres(), camera.get_passe_partout_h(), camera.get_passe_partout_v())
         ret, buffer = cv2.imencode(".jpeg", output)
         if not ret:
             continue
         yield (b'--frame\r\n'b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
+
+@app.route('/set_camera_mode')
+def set_camera_mode():
+    mode = int(request.args.get('mode'))
+    if camera.set_mode(mode):
+        return jsonify({"result": True, "status_text": f"Mode {camera.camera.sensor_mode} set ({camera.get_resolution()}, {camera.fps()})"})
+    return jsonify({"result": False , "status_text": f"Unable to set mode: {mode}"})
+
+@app.route('/set_resolution')
+def set_resolution():
+    res = request.args.get('value')
+    res = res.split('x')
+    if camera.set_resolution((int(res[0]), int(res[1]))):
+        return jsonify({"result": True, "status_text": f"Resolution {camera.get_resolution()} set ({camera.fps()}, {camera.camera.sensor_mode})"})
+    return jsonify({"result": False , "status_text": f"Unable to set resolution: {res}"})
 
 @app.route('/video_stream')
 def video_stream():
@@ -74,13 +97,17 @@ def video_stream():
 @app.route('/download/<ident>')
 def download(ident):
     filename = recorded_files.get_file(ident)
-    print("download ", filename)
+    return send_from_directory(app.config['RECORDING_FOLDER'], filename, as_attachment=True)
+        
+@app.route('/download_transcoded/<ident>')
+def download_transcoded(ident):
+    filename = recorded_files.get_file(ident)
     if recorded_files.get_recording(ident).is_video():
         rf = app.config['RECORDING_FOLDER']
         outfile = filename + ".mp4"
         print("download ", outfile)
         if not os.path.exists(os.path.join(rf, outfile)):
-            transcode(os.path.join(rf, filename), os.path.join(rf, outfile))
+            transcode(os.path.join(rf, filename), os.path.join(rf, outfile), camera.fps())
         return send_from_directory(app.config['RECORDING_FOLDER'], outfile, as_attachment=True)
     else:
         return send_from_directory(app.config['RECORDING_FOLDER'], filename, as_attachment=True)
@@ -132,20 +159,14 @@ def record_video():
     global camevents
     name        = request.args.get('name')
     description = request.args.get('description')
-    trigger     = request.args.get('trigger')
     if not name:
         name = "Movie"
     if not description:
         description = "(no description provided)"
-    camevents.set_name_desc_trigger_info(name, description, trigger)
+    camevents.set_name_desc_trigger_info(name, description)
     if camera.is_recording():
         return jsonify(result=False, stext="Already recording!")
-    if trigger == 'manual':
-        camera.record_video_manual()
-    elif trigger == 'motion':
-        camera.record_video_motion()
-    else:
-        return jsonify(result=False, stext="Invalid trigger!")
+    camera.record_video()
     return jsonify(result=True, stext="Recording video...", id=camevents.recording.id())
 
 @app.route('/stop')
@@ -166,12 +187,11 @@ def capture_still_image():
     global camevents
     name         = request.args.get('name')
     description  = request.args.get('description')
-    trigger      = request.args.get('trigger')
     if not name:
         name = "Image"
     if not description:
         description = "(no description provided)"
-    camevents.set_name_desc_trigger_info(name, description, trigger)
+    camevents.set_name_desc_trigger_info(name, description)
     camera.capture_still_image()
     return jsonify(result=True, stext="Still image captured!",
             id=camevents.capture.id(),
@@ -211,7 +231,13 @@ def system_state():
 @app.route('/set_param/<param>')
 def set_param(param):
     value = float(request.args.get('value'))
-    if param == "iso":
+    if param == "res_width":
+        camera.set_width(int(value))
+    elif param == "res_height":
+        camera.set_height(int(value))
+    elif param == "shutter_speed":
+        camera.set_shutter_speed(int(value))
+    elif param == "iso":
         camera.set_iso(int(value))
     elif param == "brightness":
         camera.set_brightness(int(value))
