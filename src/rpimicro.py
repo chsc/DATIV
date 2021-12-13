@@ -3,17 +3,18 @@ import cv2
 import numpy as np
 import partdetect
 import detector
-import camnetwork
 import sysinfo
 from detector import detect_image, detect_video, transcode
 import os.path
 from flask import Flask, Response, render_template, request, redirect, url_for, jsonify, send_from_directory
+import flask_cors
 from camera import CameraEvents, draw_passe_partout, get_camera_parameters, create_camera
 from recordings import Recordings
 from motiondetect import MotionDetector
 
 
 app = Flask(__name__)
+flask_cors.CORS(app)
 app.config.from_pyfile('config.py')
 
 status_text = "Ready"
@@ -55,7 +56,6 @@ class CamEvents(CameraEvents):
         global status_text
         status_text = "Object detection stopped"
 
-cnetwork        = camnetwork.CameraNetwork(app.config['PORT'])
 pdetector       = partdetect.ParticleDetector()
 recorded_files  = Recordings(app.config['RECORDING_FOLDER'])
 camevents       = CamEvents(recorded_files)
@@ -279,34 +279,6 @@ def index():
 @app.route('/favicon.ico')
 def favicon():
     return send_from_directory('static', 'icons/favicon.ico', mimetype='image/vnd.microsoft.icon')
-
-
-
-@app.route('/camera_network')
-def camera_network():
-    return render_template('camnetwork.html', title='RPiMicroscope', camnetwork=cnetwork)
-
-@app.route('/update_camera_network')
-def update_camera_network():
-    cnetwork.update()
-    return jsonify({"result": True, "status_text": f"Camera list updated"})
-
-@app.route('/all_cature_still_image')
-def all_cature_still_image():
-    cnetwork.broadcast('capture_still_image', None)
-    return jsonify({"result": True, "status_text": f"Camera list updated"})
-
-@app.route('/all_record_video')
-def all_record_video():
-    cnetwork.broadcast('record_video', None)
-    return jsonify({"result": True, "status_text": f"Camera list updated"})
-
-@app.route('/all_stop_video')
-def all_stop_video():
-    cnetwork.broadcast('stop', None)
-    return jsonify({"result": True, "status_text": f"Camera list updated"})
-
-
 
 if __name__ == "__main__":
     camera.start()

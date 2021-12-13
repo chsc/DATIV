@@ -3,7 +3,7 @@ import multiprocessing
 
 class CameraNetwork:
     def __init__(self, port=5000):
-        self.camera_hosts = []
+        self.camera_hosts = {}
         self.port = port
 
     def call_hosts(self, hostaddresses, results):
@@ -43,7 +43,7 @@ class CameraNetwork:
         self.camera_hosts.clear()
         while not results.empty():
             hostaddr = results.get()
-            self.camera_hosts.append(hostaddr)
+            self.camera_hosts[hostaddr[0]] = hostaddr[1]
 
     def do_request(self, ips, reqstr, params, results):
         while True:
@@ -51,12 +51,13 @@ class CameraNetwork:
             if ip is None:
                 break
             try:
-                response = requests.get(f"http://{ip}:{self.port}/{reqstr}", data=params)
+                print("request", ip)
+                response = requests.get(f"http://{ip}:{self.port}/{reqstr}", data=params, timeout=3)
                 json = response.json()
                 print("ok", json)
-                results.put((json.result, json.status_text))
+                results.put((ip, json.result, json.status_text))
             except:
-                results.put((False, ip, "Request failed"))
+                results.put((ip, False, "Request failed"))
 
     def broadcast(self, reqstr, params, pool_size=8):
         ips = multiprocessing.Queue()
@@ -65,8 +66,7 @@ class CameraNetwork:
         for p in pool:
             p.start()
 
-        for h in self.camera_hosts:
-            ip = h[0]
+        for ip in self.camera_hosts:
             ips.put(ip)
         for p in pool:
             ips.put(None)
@@ -74,19 +74,31 @@ class CameraNetwork:
         for p in pool:
             p.join()
 
-        ret = []
+        ret = {}
         ok = True
         while not results.empty():
             res = results.get()
-            ok = res[0] and ok
-            ret.append(res)
-        return (ok, ret)
+            ip = res[0]
+            result = res[1]
+            stext = res[2]
+            ok = result and ok
+            ret[ip] = (result, stext)
+        return (ok, "broadcast", ret)
 
     def get_hosts(self):
         return self.camera_hosts
 
     def get_port(self):
         return self.port
+
+    def register_camera(self, ip, hostname):
+        self.camera_hosts[ip] = hostname
+
+    def get_camera_link(self, ip):
+        if self.port == 80 or self.port < 0:
+            return f'http://{ip}'
+        else:
+            return f'http://{ip}:{self.port}'
 
 if __name__ == "__main__":
     cn = CameraNetwork()

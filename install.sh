@@ -10,6 +10,8 @@ sudo apt-get install python3-flask
 sudo apt-get install python3-opencv
 sudo apt-get install python3-picamera
 
+pip3 install -U flask-cors
+
 echo "Cloning repository ..."
 git clone https://gitlab.hzdr.de/hzdri/ext/rpimicro.git
 

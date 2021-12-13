@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RPiMicroscope - Camera Overview</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='main.css') }}">
+</head>
+<body>
+    <header>
+        <div class="header">
+            <div class="left-header">{{title}} - Camera Administration</div>
+        </div>
+    </header>
+
+    <p>
+        <a href="/" alt="Overview">Show Table</a>
+    </p>
+
+    {% for key in camnetwork.get_hosts() %}
+        <a href="{{camnetwork.get_camera_link(key)}}" alt="Camera Link">{{camnetwork.get_hosts()[key]}}</a> 
+        <img class="thumb" src="{{camnetwork.get_camera_link(key)}}/video_stream"/>
+    {% endfor %}
+    <footer>{{ copyright }}</footer>
+</body>
+</html>

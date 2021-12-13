@@ -9,4 +9,4 @@ data/*.mp4
 data/*.csv
 data/*.txt
 src/camera_settings.json
-src/__pycache__
+**/__pycache__
