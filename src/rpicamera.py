@@ -5,6 +5,8 @@ import time
 import csv
 import os
 import picamera
+import zipfile
+import io
 from threading import Thread, Lock
 from motiondetect import MotionDetector
 from camera import Camera, CameraEvents, Mode
@@ -47,8 +49,41 @@ class YuvFpsOutput(object):
     def frame(self, ydata, t, cnt):
         pass
         
-        
+ #if recorded_files.is_image_sequence(ident):
+    #    data io.BytesIO()
+    #    with as z:
+    #        for fname in recorded_files.get_image_seqence_files(ident):
+    #            z.write(fname)
+    #    data.seek(0)
+    #    return send_fiile(data, mimetype='application/zip', as_attachement=True, '')
+    
 class ImgSeqOutput(YuvFpsOutput):
+    def __init__(self, camera, size, fps, fname):
+        YuvFpsOutput.__init__(self, camera, size, fps)
+        self.zipf = zipfile.ZipFile(fname, mode='w', compression=zipfile.ZIP_DEFLATED)
+        self.csvstr = io.StringIO()
+        self.csvwr = csv.writer(self.csvstr)
+        #self.fname = fname
+    
+    def __del__(self):
+        self.zipf.writestr(f"timings.csv", self.csvstr.getvalue())
+        
+    def start(self):
+        #sf = os.path.splitext(self.fname)
+        #csvfile = open(f"{sf[0]}.csv", "w")
+        #self.wr = csv.writer(csvfile)
+        self.csvwr.writerow(['image', 'time'])
+        self.csvwr.writerow(['[nr]', '[s]'])
+        
+    def frame(self, ydata, t, cnt):
+        #fn = self.sf[0] + "_" + str(cnt) + self.sf[1]
+        #print("write file, fps", fn)
+        #cv2.imwrite(fn, ydata)
+        r, buf = cv2.imencode('.png', ydata)
+        self.zipf.writestr(f"{cnt}.png", buf)
+        self.csvwr.writerow([cnt, t])
+        
+class ObjDetOutput(YuvFpsOutput):
     def __init__(self, camera, size, fps, fname):
         YuvFpsOutput.__init__(self, camera, size, fps)
         self.fname = fname
@@ -57,14 +92,13 @@ class ImgSeqOutput(YuvFpsOutput):
         self.sf = os.path.splitext(self.fname)
         file = open(self.sf[0] + ".csv", "w")
         self.wr = csv.writer(file)
-        self.wr.writerow(['nr', 'time'])
+        self.wr.writerow(['nr', 'time', 'bx', 'by', 'bw', 'bh', 'cx', 'cy'])
         
     def frame(self, ydata, t, cnt):
         fn = self.sf[0] + "_" + str(cnt) + self.sf[1]
         print("write file, fps", fn)
         cv2.imwrite(fn, ydata)
         self.wr.writerow([cnt, t])
-        
 
         #if self.camera.motiondet.detect_motion(ydata):
             #print("###")

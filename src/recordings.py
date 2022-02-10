@@ -8,7 +8,7 @@ import glob
 META_FILE_EXT     = ".json"
 IMAGE_FILE_EXT    = ".png"
 VIDEO_FILE_EXT    = ".h264"
-IMAGESEQ_FILE_EXT = ".png"
+IMAGESEQ_FILE_EXT = ".zip"
 OBJDET_FILE_EXT   = ".csv"
 
 def build_base_name(name, now):
@@ -245,6 +245,13 @@ class Recordings:
     #    except Exception as inst:
     #        print(inst)
     #        return None
+    
+    def is_image_sequence(self, ident):
+        try:
+            recording = self.recordings[ident]
+            return recording.is_image_sequence()
+        except Exception:
+            return False
 
     def get_recording(self, ident):
         try:
