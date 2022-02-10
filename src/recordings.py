@@ -5,9 +5,11 @@ import os
 import json
 import glob
 
-META_FILE_EXT  = ".json"
-IMAGE_FILE_EXT = ".png"
-VIDEO_FILE_EXT = ".h264"
+META_FILE_EXT     = ".json"
+IMAGE_FILE_EXT    = ".png"
+VIDEO_FILE_EXT    = ".h264"
+IMAGESEQ_FILE_EXT = ".png"
+OBJDET_FILE_EXT   = ".csv"
 
 def build_base_name(name, now):
     return name + "_" + now.strftime("%Y-%m-%d_%H-%M-%S_%f")
@@ -20,7 +22,7 @@ def write_meta(filename, meta):
     with open(filename, 'w') as f:
         json.dump(meta, f, indent = 4)
 
-def new_meta_video(name, description, trigger, camera):
+def new_meta_video(name, description, camera):
     dt = datetime.datetime.now()
     basename = build_base_name(name, dt)
     metafile = basename + META_FILE_EXT
@@ -32,16 +34,19 @@ def new_meta_video(name, description, trigger, camera):
         'name': name,
         'description': description,
         'datetime': str(dt),
-        'trigger': trigger,
+        'shutter_speed': camera.get_shutter_speed(),
+        'fps': camera.get_fps(),
         'iso': camera.get_iso(),
         'brightness': camera.get_brightness(),
         'contrast': camera.get_contrast(),
         'ruler_xres': camera.get_ruler_xres(),
         'ruler_yres': camera.get_ruler_yres(),
+        'passe_partout_h': camera.get_passe_partout_h(),
+        'passe_partout_v': camera.get_passe_partout_v()
     }
     return meta
 
-def new_meta_image(name, description, trigger, camera):
+def new_meta_image(name, description, camera):
     dt = datetime.datetime.now()
     basename = build_base_name(name, dt)
     metafile = basename + META_FILE_EXT
@@ -53,12 +58,63 @@ def new_meta_image(name, description, trigger, camera):
         'name': name,
         'description': description,
         'datetime': str(dt),
-        'trigger': trigger,
+        'shutter_speed': camera.get_shutter_speed(),
+        'fps': camera.get_fps(),
         'iso': camera.get_iso(),
         'brightness': camera.get_brightness(),
         'contrast': camera.get_contrast(),
         'ruler_xres': camera.get_ruler_xres(),
         'ruler_yres': camera.get_ruler_yres(),
+        'passe_partout_h': camera.get_passe_partout_h(),
+        'passe_partout_v': camera.get_passe_partout_v()
+    }
+    return meta
+    
+def new_meta_image_sequence(name, description, camera):
+    dt = datetime.datetime.now()
+    basename = build_base_name(name, dt)
+    metafile = basename + META_FILE_EXT
+    imageseqfile = basename + IMAGESEQ_FILE_EXT
+    meta = {
+        'id': basename,
+        'metafile': metafile,
+        'imageseqfile': imageseqfile,
+        'name': name,
+        'description': description,
+        'datetime': str(dt),
+        'shutter_speed': camera.get_shutter_speed(),
+        'fps': camera.get_fps(),
+        'iso': camera.get_iso(),
+        'brightness': camera.get_brightness(),
+        'contrast': camera.get_contrast(),
+        'ruler_xres': camera.get_ruler_xres(),
+        'ruler_yres': camera.get_ruler_yres(),
+        'passe_partout_h': camera.get_passe_partout_h(),
+        'passe_partout_v': camera.get_passe_partout_v()
+    }
+    return meta
+
+def new_meta_objdet(name, description, camera):
+    dt = datetime.datetime.now()
+    basename = build_base_name(name, dt)
+    metafile = basename + META_FILE_EXT
+    objdetfile = basename + OBJDET_FILE_EXT
+    meta = {
+        'id': basename,
+        'metafile': metafile,
+        'objdetfile': objdetfile,
+        'name': name,
+        'description': description,
+        'datetime': str(dt),
+        'shutter_speed': camera.get_shutter_speed(),
+        'fps': camera.get_fps(),
+        'iso': camera.get_iso(),
+        'brightness': camera.get_brightness(),
+        'contrast': camera.get_contrast(),
+        'ruler_xres': camera.get_ruler_xres(),
+        'ruler_yres': camera.get_ruler_yres(),
+        'passe_partout_h': camera.get_passe_partout_h(),
+        'passe_partout_v': camera.get_passe_partout_v()
     }
     return meta
 
@@ -75,32 +131,34 @@ class Recording:
 
     def is_still_image(self):
         return 'imagefile' in self.meta
+        
+    def is_image_sequence(self):
+        return 'imageseqfile' in self.meta
+        
+    def is_objdet(self):
+        return 'objdetfile' in self.meta
 
     def get_file_name(self):
         if self.is_video():
             return self.meta['videofile']
         elif self.is_still_image():
             return self.meta['imagefile']
+        elif self.is_image_sequence():
+            return self.meta['imageseqfile']
+        elif self.is_objdet():
+            return self.meta['objdetfile']
         else:
             return None
-
-    def get_detect_file_name(self):
-        if self.is_video():
-            return 'detect_' + self.meta['videofile']
-        elif self.is_still_image():
-            return 'detect_' + self.meta['imagefile']
-        else:
-            return None
-
-    def get_detect_csv_file_name(self):
-        return self.meta['id'] + ".csv"
+            
+    def get_meta_file_name(self):
+        return self.meta['metafile']
     
     def make_file_path(self):
         file = self.get_file_name()
         return os.path.join(self.recdb.recdir, file)
 
     def make_json_path(self):
-        metafile = self.meta['metafile']
+        metafile = self.get_meta_file_name()
         return os.path.join(self.recdb.recdir, metafile)
 
 class Recordings:
@@ -117,8 +175,8 @@ class Recordings:
             meta = read_meta(mf)
             self.recordings[meta['id']] = Recording(self, meta)
 
-    def start_recording(self, name, description, trigger, camera):
-        return Recording(self, new_meta_video(name, description, trigger, camera))
+    def start_recording(self, name, description, camera):
+        return Recording(self, new_meta_video(name, description, camera))
 
     def end_recording(self, recording):
         basename = recording.meta['id']
@@ -126,11 +184,23 @@ class Recordings:
         write_meta(jsonfile, recording.meta)
         self.recordings[basename] = recording
         return basename
+        
+    def start_image_sequence(self, name, description, camera):
+        return Recording(self, new_meta_image_sequence(name, description, camera))
 
-    def start_capture_still_image(self, name, description, trigger, camera):
-        return Recording(self, new_meta_image(name, description, trigger, camera))
+    def end_image_sequence(self, capture):
+        return self.end_recording(capture)
+
+    def start_capture_still_image(self, name, description, camera):
+        return Recording(self, new_meta_image(name, description, camera))
 
     def end_capture_still_image(self, capture):
+        return self.end_recording(capture)
+        
+    def start_objdet(self, name, description, camera):
+        return Recording(self, new_meta_objdet(name, description, camera))
+    
+    def end_objdet(self, capture):
         return self.end_recording(capture)
 
     def delete_recording(self, ident):
@@ -138,7 +208,6 @@ class Recordings:
             recording = self.recordings[ident]
             os.remove(recording.make_json_path())
             os.remove(recording.make_file_path())
-            #os.remove(recording.)
             del self.recordings[ident]
             return True
         except Exception as inst:
@@ -152,22 +221,30 @@ class Recordings:
         except Exception as inst:
             print(inst)
             return None
-
-    def get_detect_file(self, ident):
-        try:
-            recording = self.recordings[ident]
-            return recording.get_detect_file_name()
-        except Exception as inst:
-            print(inst)
-            return None
     
-    def get_detect_csv_file(self, ident):
+    def get_meta_file(self, ident):
         try:
             recording = self.recordings[ident]
-            return recording.get_detect_csv_file_name()
+            return recording.get_meta_file_name()
         except Exception as inst:
             print(inst)
             return None
+
+    #def get_detect_file(self, ident):
+    #    try:
+    #        recording = self.recordings[ident]
+    #        return recording.get_detect_file_name()
+    #    except Exception as inst:
+    #        print(inst)
+    #        return None
+    
+    #def get_detect_csv_file(self, ident):
+    #    try:
+    #        recording = self.recordings[ident]
+    #        return recording.get_detect_csv_file_name()
+    #    except Exception as inst:
+    #        print(inst)
+    #        return None
 
     def get_recording(self, ident):
         try:

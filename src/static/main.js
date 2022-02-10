@@ -17,7 +17,7 @@ const passePartoutHOutput  = document.querySelector("#passe-partout-h-output");
 const passePartoutVSlider  = document.querySelector("#passe-partout-v");
 const passePartoutVOutput  = document.querySelector("#passe-partout-v-output");
 
-const modeDropDown       = document.querySelector("#setting-mode");
+//const modeDropDown       = document.querySelector("#setting-mode");
 const resolutionDropDown = document.querySelector("#setting-resolution")
 
 const shutterSlider   = document.querySelector("#setting-shutter");
@@ -28,6 +28,9 @@ const brighSlider     = document.querySelector("#setting-brightness");
 const brighOutput     = document.querySelector("#setting-brightness-output");
 const contrSlider     = document.querySelector("#setting-contrast");
 const contrOutput     = document.querySelector("#setting-contrast-output");
+
+const zoomSlider     = document.querySelector("#view-zoom");
+const zoomOutput     = document.querySelector("#view-zoom-output");
 
 const thresholdSlider = document.querySelector("#detector-threshold");
 const thresholdOutput = document.querySelector("#detector-threshold-output");
@@ -169,7 +172,44 @@ async function setupStartRecordingButtonHandler()
             setStatusError(resp.stext);
          }
       } if(resp.mode == "recording") {
-         resp = await getServer("stop");
+         resp = await getServer("stop_record_video");
+         if(resp.result) {
+            addTableEntry(resp.name, resp.id, true, resp.description, resp.datetime);
+            setButtonTextNotRecording();
+         } else {
+            setStatusError(resp.status_text);
+         }
+      }
+      return false;
+   });
+}
+
+// "#capture-sequence-button" "capture_image_sequence" "stop_capture_sequence"
+async function setupStartButtonHandler(buttonid, recstr, stopstr)
+{
+   resp = await getServer("recording_state");
+   if(resp.mode == "playback") {
+      setButtonTextNotRecording();
+   } if(resp.mode == "recording") {
+      setButtonTextRecording();
+   }
+   document.querySelector(buttonid).addEventListener ("click", async function () {
+      resp = await getServer("recording_state");
+      if(resp.mode == "playback") {
+         rname = document.querySelector("#record-name").value;
+         rdescription = document.querySelector("#record-description").value;
+         data = {
+            "name" : rname,
+            "description" : rdescription
+         };
+         resp = await getServer(recstr, data);
+         if(resp.result) {
+            setButtonTextRecording();
+         } else {
+            setStatusError(resp.stext);
+         }
+      } if(resp.mode == "recording") {
+         resp = await getServer(stopstr);
          if(resp.result) {
             addTableEntry(resp.name, resp.id, true, resp.description, resp.datetime);
             setButtonTextNotRecording();
@@ -215,24 +255,15 @@ function setSliderHandler(input, output, paramname) {
    });
 }
 
-function setupCameraSettingControlHandler() {
-   modeDropDown.addEventListener("change", async function() {
-      resp = await getServer("set_camera_mode", {'mode': this.value});
-      if(resp.result) {
-         setStatusNormal(resp.status_text);
-      } else {
-         setStatusError(resp.status_text);
-      }
-   });
-   
+function setupCameraSettingControlHandler() {   
    resolutionDropDown.addEventListener("change", async function() {
-      resp = await getServer("set_resolution", {'value': this.value});
+      resp = await getServer("set_resolution_and_mode", {'value': this.value});
       if(resp.result) {
          setStatusNormal(resp.status_text);
       } else {
          setStatusError(resp.status_text);
       }
-   });
+   });   
    
    setSpinHandler(rulerXResInput, "ruler_xres");
    setSpinHandler(rulerYResInput, "ruler_yres");
@@ -245,6 +276,8 @@ function setupCameraSettingControlHandler() {
    setSliderHandler(isoSlider, isoOutput, "iso");
    setSliderHandler(brighSlider, brighOutput, "brightness");
    setSliderHandler(contrSlider, contrOutput, "contrast");
+   
+   setSliderHandler(zoomSlider, zoomOutput, "zoom")
 
    setSliderHandler(thresholdSlider, thresholdOutput, "detector_threshold");
 }
@@ -265,19 +298,38 @@ async function initCameraSettings() {
    isoSlider.value     = resp.iso;
    brighSlider.value   = resp.brightness;
    contrSlider.value   = resp.contrast;
+   zoomSlider.value    = resp.zoom;
    
-   shutterOutput.value = resp.shutter_speed
+   shutterOutput.value = shutterSlider.value;
    isoOutput.value     = isoSlider.value;
    brighOutput.value   = brighSlider.value;
    contrOutput.value   = contrSlider.value;
+   zoomOutput.value    = zoomSlider.value;
+}
+
+async function setDate() {
+   const now = Date.now();
+   const today = new Date(now);
+   const s = today.toISOString();
+   console.log(s)
+   resp = await getServer("set_date", {'value': (s)});
+   if(resp.result) {
+      setStatusNormal(resp.status_text);
+   } else {
+      setStatusError(resp.status_text);
+   }
 }
 
 document.addEventListener("DOMContentLoaded", function() { 
    setupStartRecordingButtonHandler();
+   
+   setupStartButtonHandler("#capture-sequence-button", "capture_image_sequence", "stop_capture_image_sequence")
+   
    setupCaptureStillImageButtonHandler();
    setupObjectDetectionButtonHandler();
    setupCameraSettingControlHandler();
    initCameraSettings();
    updateSystemState();
+   //setDate();
    setInterval(updateSystemState, 2000);
 });

@@ -189,11 +189,11 @@ th {
 
 .controls {
   padding: 0.25em;
-  flex: 30%;
+  flex: 15%;
 }
 
 .video {
-  flex: 60%;
+  flex: 70%;
   /*background-color: black;*/
   padding: 0.25em;
   display: flex;

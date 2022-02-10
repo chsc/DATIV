@@ -19,27 +19,30 @@
   </header>
   <div class="view">
     <div class="controls">
-      <label class="catlabel">Mode (Experimental)</label>
-      <select id="setting-mode">
-        <option value="-">---</option>
-        <option value="1">1: 1920x1080 (Binning: None, FoV: Partial, FPS: 0.1-30)</option>
-        <option value="2">2: 3280x2464 (Binning: None, FoV: Full, FPS: 0.1-15)</option>
-        <option value="3">3: 3280x2464 (Binning: None, FoV: Full, FPS: 0.1-15)</option>
-        <option value="4">4: 1640x1232 (Binning: 2x2, FoV: Full, FPS: 0.1-40)</option>
-        <option value="5">5: 1640x922 (Binning: 2x2, FoV: Full, FPS: 0.1-40)</option>
-        <option value="6">6: 1280x720 (Binning: 2x2, FoV: Partial, FPS: 0.1-90)</option>
-        <option value="7">7: 640x480 (Binning: 2x2, FoV: Partial, FPS: 0.1-90)</option>
-      </select>
-      
-      <label class="catlabel">Resolution (Experimental)</label>
+      <label class="catlabel">Resolution</label>
       <select id="setting-resolution">
         <option value="-">---</option>
-        <option value="160x120">160x120</option>
-        <option value="320x240">320x240</option>
-        <option value="640x480">640x480</option>
-        <option value="800x600">800x600</option>
-        <option value="1280x720">1280x720</option>
-        <option value="1920x1080">1920x1080</option>
+        <option value="-">Camera V1 (OV5647)</option>
+        <option value="640x480,7">- 640x480 (M7, Binning: 4x4, FoV: Full)</option>
+        <option value="640x480,6">- 640x480 (M6, Binning: 4x4, FoV: Full)</option>
+        <option value="1280x730,5">- 1280x720 (M5, Binning: 2x2, FoV: Full)</option>
+        <option value="1296x972,4">- 1296x972 (M4, Binning: 2x2, FoV: Full)</option>
+        <option value="1920x1080,1">- 1920x1080 (M1, Binning: None, FoV: Partial)</option>
+        <option value="2592x1944,2">- 2592x1944 (M2, Binning: None, FoV: Full)</option>
+        <option value="2592x1944,3">- 2592x1944 (M3, Binning: None, FoV: Full)</option>
+        <option value="-">Camera V2 (IMX219)</option>
+        <option value="640x480,7">- 640x480 (M7, Binning: 2x2, FoV: Partial)</option>
+        <option value="1280x720,6">- 1280x720 (M6, Binning: 2x2, FoV: Partial)</option>
+        <option value="1640x922,5">- 1640x922 (M5, Binning: 2x2, FoV: Full)</option>
+        <option value="1640x1232,4">- 1640x1232 (M4, Binning: 2x2, FoV: Full)</option>
+        <option value="1920x1080,1">- 1920x1080 (M1, Binning: None, FoV: Partial)</option>
+        <option value="3280x2464,2">- 3280x2464 (M2, Binning: None, FoV: Full)</option>
+        <!--<option value="3280x2464,3">- 3280x2464 (M3, Binning: None, FoV: Full)</option>--> <!-- freezes -->
+        <option value="-">Camera HQ (IMX477)</option>
+        <option value="1332x990,4">- 1332x990 (M4, Binning: 2x2, FoV:Partial)</option>
+        <option value="4056x3040,3">- 4056x3040 (M3, Binning: None, FoV:Full)</option>
+        <option value="2028x1520,2">- 2028x1520 (M2, Binning: 2x2, FoV:Full)</option>
+        <option value="2028x1080,1">- 2028x1080 (M1, Binning: 2x2, FoV:Partial)</option>
       </select>
       
       <label class="catlabel">Camera Settings</label>
@@ -52,7 +55,25 @@
       <label class="subcatlabel">Contrast <output id="setting-contrast-output" for="setting-contrast">-</output></label>
       <input id="setting-contrast" name="setting-contrast" type="range" min="-100" max="100" step="1" value="0">
       
-      <span id="status" class="status-normal">Loading...</span>
+      <label class="catlabel">View</label>
+      <label class="subcatlabel">Zoom <output id="view-zoom-output" for="view-zoom">-</output> %</label>
+      <input id="view-zoom" name="view-zoom" type="range" min="100" max="500" step="25" value="100">
+      
+      <label class="catlabel">Calibration</label>
+      <label class="subcatlabel">X-Resolution (µm/pixel)</label>
+      <input type="number" id="ruler-xres" name="name" min="0" max="100" step="0.01" value="10.0"/>
+      <label class="subcatlabel">Y-Resolution (µm/pixel)</label>
+      <input type="number" id="ruler-yres" name="name" min="0" max="100" step="0.01" value="10.0"/>
+      <label class="subcatlabel">Ruler Length (µm)</label>
+      <input type="number" id="ruler-length" name="name" min="0" max="5000" step="10" value="200"/>
+
+      <label class="catlabel">Passe-Partout</label>
+      <label class="subcatlabel">Horizontal <output id="passe-partout-h-output" for="passe-partout-h">-</output> %</label>
+      <input id="passe-partout-h" name="passe-partout-h" type="range" min="0" max="100" step="1" value="25">
+      <label class="subcatlabel">Vertical <output id="passe-partout-v-output" for="passe-partout-v">-</output> %</label>
+      <input id="passe-partout-v" name="passe-partout-v" type="range" min="0" max="100" step="1" value="25">
+      
+      <span id="status" class="status-normal">...</span>
     </div>
     <div class="video">
       <img src="{{ url_for('video_stream') }}" class="stream" alt="Camera Stream"/>
@@ -69,10 +90,6 @@
       <label class="subcatlabel">Threshold <output id="detector-threshold-output" for="detector-threshold">-</output></label>
       <input id="detector-threshold" name="detector-threshold" type="range" min="-2" max="255" step="1" value="127">
 
-      <!--<button class="redbutton" id="objdet-button">
-        <img class="buttonicon" src="{{ url_for('static', filename='icons/record-24.png') }}"/>
-        <span id="objdet-button-text">Start Objetct Detection</span>
-      </button>-->
       <button class="redbutton" id="record-button">
         <img class="buttonicon" src="{{ url_for('static', filename='icons/record-24.png') }}"/>
         <span id="record-button-text">Start Video Recording</span>
@@ -81,20 +98,14 @@
         <img class="buttonicon" src="{{ url_for('static', filename='icons/record-24.png') }}"/>
         <span id="record-button-text">Capture Still Image</span>
       </button>
-      
-      <label class="catlabel">Calibration</label>
-      <label class="subcatlabel">X-Resolution (µm/pixel)</label>
-      <input type="number" id="ruler-xres" name="name" min="0" max="100" step="0.01" value="10.0"/>
-      <label class="subcatlabel">Y-Resolution (µm/pixel)</label>
-      <input type="number" id="ruler-yres" name="name" min="0" max="100" step="0.01" value="10.0"/>
-      <label class="subcatlabel">Ruler Length (µm)</label>
-      <input type="number" id="ruler-length" name="name" min="0" max="5000" step="10" value="200"/>
-
-      <label class="catlabel">Passe-Partout</label>
-      <label class="subcatlabel">Horizontal <output id="passe-partout-h-output" for="passe-partout-h">-</output> %</label>
-      <input id="passe-partout-h" name="passe-partout-h" type="range" min="0" max="100" step="1" value="25">
-      <label class="subcatlabel">Vertical <output id="passe-partout-v-output" for="passe-partout-v">-</output> %</label>
-      <input id="passe-partout-v" name="passe-partout-v" type="range" min="0" max="100" step="1" value="25">
+       <button class="redbutton" id="capture-sequence-button">
+        <img class="buttonicon" src="{{ url_for('static', filename='icons/record-24.png') }}"/>
+        <span id="capture-sequence-button-text">Capture Luma Image Sequence</span>
+      </button>
+      <button class="redbutton" id="objdet-button">
+        <img class="buttonicon" src="{{ url_for('static', filename='icons/record-24.png') }}"/>
+        <span id="objdet-button-text">Start Objetct Detection</span>
+      </button>
       
     </div>
   </div>
@@ -116,6 +127,10 @@
               <img src="{{ url_for('static', filename='icons/video-24.png') }}" alt="Video Player"/>
               {% elif rectable.recordings[item].is_still_image() %}
               <img src="{{ url_for('static', filename='icons/image-24.png') }}" alt="Image View"/>
+              {% elif rectable.recordings[item].is_image_sequence() %}
+              <img src="{{ url_for('static', filename='icons/image-24.png') }}" alt="Image View"/>
+              {% elif rectable.recordings[item].is_objdet() %}
+              <img src="{{ url_for('static', filename='icons/video-24.png') }}" alt="Image View"/>
               {% else %}
               View
               {% endif %}
@@ -123,11 +138,8 @@
             <a href="{{ url_for('download', ident=rectable.recordings[item].meta['id']) }}" download>
               <img src="{{ url_for('static', filename='icons/download-24.png') }}"" alt="Download"/>
             </a>
-            <a href="{{ url_for('download_transcoded', ident=rectable.recordings[item].meta['id']) }}" download>
-              <img src="{{ url_for('static', filename='icons/download-24.png') }}"" alt="Download"/>
-            </a>
-            <a href="{{ url_for('detector', ident=rectable.recordings[item].meta['id']) }}">
-              <img src="{{ url_for('static', filename='icons/detect-24.png') }}"" alt="Detector"/>
+            <a href="{{ url_for('download_meta', ident=rectable.recordings[item].meta['id']) }}" download>
+              <img src="{{ url_for('static', filename='icons/meta-24.png') }}"" alt="Download"/>
             </a>
             <a href="#" onclick="deleteTableEntry(this)" data-id="{{rectable.recordings[item].id()}}">
               <img src="{{ url_for('static', filename='icons/delete-24.png') }}"" alt="Delete"/>

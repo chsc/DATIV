@@ -1,18 +1,27 @@
 import requests
+import json
 import multiprocessing
 
 class CameraNetwork:
-    def __init__(self, port=5000):
+    def __init__(self, port, iptempl, iprange):
         self.camera_hosts = {}
         self.port = port
-
+        self.iptempl = iptempl
+        self.iprange = iprange
+        
+    def req_str(self, hostaddr, rstr):
+        if self.port == 80:
+            return f"http://{hostaddr}/{rstr}"
+        else:
+            return f"http://{hostaddr}:{self.port}/{rstr}"
+        
     def call_hosts(self, hostaddresses, results):
         while True:
             hostaddr = hostaddresses.get()
             if hostaddr is None:
                 break
             try:
-                response = requests.get(f"http://{hostaddr}:{self.port}/system_state")
+                response = requests.get(self.req_str(hostaddr, "system_state"))
                 json = response.json()
                 print("ok", response.url)
                 hostname = '<unknown>'
@@ -22,7 +31,7 @@ class CameraNetwork:
             except:
                 print("fail", hostaddr)
 
-    def update(self, pool_size=8):
+    def update(self, pool_size = 8):
         hostaddresses = multiprocessing.Queue()
         results = multiprocessing.Queue()
 
@@ -30,9 +39,8 @@ class CameraNetwork:
         for p in pool:
             p.start()
 
-        for i in range(2, 10):
-            # TODO: 192.168.1.0/24 only
-            hostaddr = f"192.168.1.{i}"
+        for i in range(self.iprange[0], self.iprange[1]):
+            hostaddr = self.iptempl.format(i)
             hostaddresses.put(hostaddr)
         for p in pool:
             hostaddresses.put(None)
@@ -51,8 +59,9 @@ class CameraNetwork:
             if ip is None:
                 break
             try:
-                print("request", ip)
-                response = requests.get(f"http://{ip}:{self.port}/{reqstr}", data=params, timeout=3)
+                rstr = self.req_str(ip, reqstr)
+                print("request", rstr)
+                response = requests.get(rstr, data=params, timeout=3)
                 json = response.json()
                 print("ok", json)
                 results.put((ip, json.result, json.status_text))
@@ -99,11 +108,20 @@ class CameraNetwork:
             return f'http://{ip}'
         else:
             return f'http://{ip}:{self.port}'
+            
+    def save_cameras(self, filename):
+         with open(filename, 'w') as f:
+            json.dump(self.camera_hosts, f, indent = 4)
+        
+    def load_cameras(self, filename):
+        with open(filename, 'r') as f:
+            self.camera_hosts = json.load(f)
 
 if __name__ == "__main__":
     cn = CameraNetwork()
-    cn.update() # scan the network
-    print(cn.broadcast('capture_still_image', None))
-    cn.broadcast('record_video', None)
-    cn.broadcast('stop', None)
+    #cn.update() # scan the network
+    #cn.load_cameras(app.config['CAMERA_HOST_FILE'])
+    #print(cn.broadcast('capture_still_image', None))
+    #cn.broadcast('record_video', None)
+    #cn.broadcast('stop', None)
 

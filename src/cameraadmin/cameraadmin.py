@@ -8,18 +8,20 @@ app = flask.Flask(__name__, static_folder='../static', template_folder='../templ
 #flask_cors.CORS(app)
 app.config.from_pyfile('config.py')
 
-cnetwork = camnetwork.CameraNetwork(app.config['PORT'])
+cnetwork = camnetwork.CameraNetwork(app.config['CAMERA_PORT'], app.config['CAMERA_IP_TEMPL'], app.config['CAMERA_IP_RANGE'])
 
 @app.route('/register_camera')
 def register_camera():
     ip       = flask.request.args.get('ip')
     hostname = flask.request.args.get('hostname')
     cnetwork.register_camera(ip, hostname)
+    cnetwork.save_cameras(app.config['CAMERA_HOST_FILE'])
     return flask.jsonify({"result": True, "status_text": f"Camera added"})
 
 @app.route('/update_camera_network')
 def update_camera_network():
     cnetwork.update()
+    cnetwork.save_cameras(app.config['CAMERA_HOST_FILE'])
     return flask.jsonify({"result": True, "status_text": f"Camera list updated"})
 
 @app.route('/all_capture_still_image')
@@ -50,7 +52,7 @@ def favicon():
     return flask.send_from_directory('../static', 'icons/favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 if __name__ == "__main__":
-    cnetwork.register_camera("127.0.0.1", "selfhost1")
-    cnetwork.register_camera("127.0.0.2", "selfhost2")
-    cnetwork.register_camera("127.0.0.4", "selfhost3")
-    app.run(host='0.0.0.0', port=5001) #debug=True)
+    #cnetwork.save_cameras(app.config['CAMERA_HOST_FILE'])
+    cnetwork.load_cameras(app.config['CAMERA_HOST_FILE'])
+    app.run(host='0.0.0.0', port=app.config['PORT']) #debug=True)
+    

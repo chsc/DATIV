@@ -4,14 +4,14 @@ import numpy as np
 import partdetect
 import detector
 import sysinfo
+import requests
 from detector import detect_image, detect_video, transcode
 import os.path
 from flask import Flask, Response, render_template, request, redirect, url_for, jsonify, send_from_directory
 import flask_cors
-from camera import CameraEvents, draw_passe_partout, get_camera_parameters, create_camera
+from camera import CameraEvents, draw_passe_partout, zoom_image, get_camera_parameters, create_camera
 from recordings import Recordings
 from motiondetect import MotionDetector
-
 
 app = Flask(__name__)
 flask_cors.CORS(app)
@@ -29,7 +29,7 @@ class CamEvents(CameraEvents):
 
     def video_start_recording(self, camera):
         global status_text
-        self.recording = self.recordings.start_recording(self.name, self.description, "", camera)
+        self.recording = self.recordings.start_recording(self.name, self.description, camera)
         status_text = "Start video recording ..."
         return self.recording.make_file_path()
 
@@ -39,13 +39,22 @@ class CamEvents(CameraEvents):
         self.recordings.end_recording(self.recording)
 
     def image_start_capture(self, camera):
-        self.capture = self.recordings.start_capture_still_image(self.name, self.description, "", camera)
+        self.capture = self.recordings.start_capture_still_image(self.name, self.description, camera)
         return self.capture.make_file_path()
 
     def image_end_capture(self, camera):
         global status_text
         status_text = "Image captured"
         self.recordings.end_capture_still_image(self.capture)
+        
+    def image_sequence_start_capture(self, camera):
+        self.imgseq_capture = self.recordings.start_image_sequence(self.name, self.description, camera)
+        return self.imgseq_capture.make_file_path()
+
+    def image_sequence_end_capture(self, camera):
+        global status_text
+        status_text = "Image sequence captured"
+        self.recordings.end_image_sequence(self.imgseq_capture)
         
     def objdet_start(self, camera):
         global status_text
@@ -59,8 +68,8 @@ class CamEvents(CameraEvents):
 pdetector       = partdetect.ParticleDetector()
 recorded_files  = Recordings(app.config['RECORDING_FOLDER'])
 camevents       = CamEvents(recorded_files)
-mdetector       = MotionDetector(app.config['MOTION_THRESHOLD'])
-camera          = create_camera(app.config['CAMERA_MODULE'], camevents, mdetector, app.config['CAMERA_SIZE'], app.config['STREAM_SIZE'], app.config['CAMERA_FPS'], app.config['CAMERA_SENSOR_MODE'])
+camera          = create_camera(app.config['CAMERA_MODULE'], camevents, app.config['CAMERA_SIZE'], app.config['STREAM_SIZE'], app.config['CAMERA_SEQUENCE_FPS'], app.config['CAMERA_SENSOR_MODE'])
+
 
 def generate_video(camera):
     video_size = app.config['CAMERA_SIZE']
@@ -70,24 +79,30 @@ def generate_video(camera):
         if pdetector is not None and output is not None:
             output, particles = pdetector.detect(output, True)
         output = draw_passe_partout(output, video_size, camera.get_ruler_length(), camera.get_ruler_xres(), camera.get_passe_partout_h(), camera.get_passe_partout_v())
+        output = zoom_image(output, camera.get_zoom())
         ret, buffer = cv2.imencode(".jpeg", output)
         if not ret:
             continue
         yield (b'--frame\r\n'b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
 
-@app.route('/set_camera_mode')
-def set_camera_mode():
-    mode = int(request.args.get('mode'))
-    if camera.set_mode(mode):
-        return jsonify({"result": True, "status_text": f"Mode {camera.camera.sensor_mode} set ({camera.get_resolution()}, {camera.fps()})"})
-    return jsonify({"result": False , "status_text": f"Unable to set mode: {mode}"})
+@app.route('/set_date')
+def set_date():
+    value = (request.args.get('value')) # unquote_plus
+    if sysinfo.set_time(value):
+        return jsonify({"result": True , "status_text": f"Date set to: {value}"})    
+    return jsonify({"result": False, "status_text": f"Date not set to: {value}"})    
 
-@app.route('/set_resolution')
+@app.route('/set_resolution_and_mode')
 def set_resolution():
-    res = request.args.get('value')
-    res = res.split('x')
-    if camera.set_resolution((int(res[0]), int(res[1]))):
-        return jsonify({"result": True, "status_text": f"Resolution {camera.get_resolution()} set ({camera.fps()}, {camera.camera.sensor_mode})"})
+    v = request.args.get('value')
+    rm = v.split(',')
+    if len(rm) != 2:
+        return jsonify({"result": False , "status_text": f"Invalid mode: {v}"})
+    res = rm[0].split('x')
+    if len(res) != 2:
+        return jsonify({"result": False , "status_text": f"Invalid resolution: {v}"})
+    if camera.set_resolution_and_mode((int(res[0]), int(res[1])), int(rm[1])):
+        return jsonify({"result": True, "status_text": f"Resolution {camera.get_resolution()} set ({camera.get_fps()}, {camera.camera.sensor_mode})"})
     return jsonify({"result": False , "status_text": f"Unable to set resolution: {res}"})
 
 @app.route('/video_stream')
@@ -98,7 +113,13 @@ def video_stream():
 def download(ident):
     filename = recorded_files.get_file(ident)
     return send_from_directory(app.config['RECORDING_FOLDER'], filename, as_attachment=True)
-        
+
+@app.route('/download_meta/<ident>')
+def download_meta(ident):
+    filename = recorded_files.get_meta_file(ident)
+    return send_from_directory(app.config['RECORDING_FOLDER'], filename, as_attachment=True)
+
+"""        
 @app.route('/download_transcoded/<ident>')
 def download_transcoded(ident):
     filename = recorded_files.get_file(ident)
@@ -107,7 +128,7 @@ def download_transcoded(ident):
         outfile = filename + ".mp4"
         print("download ", outfile)
         if not os.path.exists(os.path.join(rf, outfile)):
-            transcode(os.path.join(rf, filename), os.path.join(rf, outfile), camera.fps())
+            transcode(os.path.join(rf, filename), os.path.join(rf, outfile), camera.get_fps())
         return send_from_directory(app.config['RECORDING_FOLDER'], outfile, as_attachment=True)
     else:
         return send_from_directory(app.config['RECORDING_FOLDER'], filename, as_attachment=True)
@@ -129,21 +150,17 @@ def download_detect(ident):
     else:
         detect_image(pdetector, os.path.join(rf, filename), os.path.join(rf, outfile), os.path.join(rf, csvfile), sx, sy)
         return send_from_directory(app.config['RECORDING_FOLDER'], outfile, as_attachment=True)
-
-@app.route('/download_detect_csv/<ident>')
-def download_detect_csv(ident):
-    csvfile = recorded_files.get_detect_csv_file(ident)
-    return send_from_directory(app.config['RECORDING_FOLDER'], csvfile, as_attachment=True)
+"""
 
 @app.route('/player/<ident>')
 def player(ident):
     rec = recorded_files.get_recording(ident)
     return render_template('player.html', recording=rec)
 
-@app.route('/detector/<ident>')
-def detector(ident):
-    rec = recorded_files.get_recording(ident)
-    return render_template('detect.html', recording=rec)
+#@app.route('/detector/<ident>')
+#def detector(ident):
+#    rec = recorded_files.get_recording(ident)
+#    return render_template('detect.html', recording=rec)
 
 @app.route('/delete_recording/<ident>')
 def delete_recording(ident):
@@ -152,6 +169,7 @@ def delete_recording(ident):
         return jsonify(result=True, stext=f"Recording '{ident}' deleted")
     else:
         return jsonify(result=False, stext=f"Unable to delete recording: '{ident}'")
+
 
 @app.route('/record_video')
 def record_video():
@@ -169,17 +187,54 @@ def record_video():
     camera.record_video()
     return jsonify(result=True, stext="Recording video...", id=camevents.recording.id())
 
-@app.route('/stop')
-def stop():
+@app.route('/stop_record_video')
+def stop_record_video():
     global camera
     global camevents
     if camera.is_recording():
         camera.stop_recording()
         return jsonify(result=True, stext="Recording stopped!",
-            id=camevents.recording.id(),
-            name=camevents.recording.meta['name'], description=camevents.recording.meta['description'], datetime=camevents.recording.meta['datetime'])
+            id = camevents.recording.id(),
+            name = camevents.recording.meta['name'],
+            description = camevents.recording.meta['description'],
+            datetime = camevents.recording.meta['datetime'])
     else:
         return jsonify(result=False, stext="Not recording!")
+
+
+@app.route('/capture_image_sequence')
+def capture_image_sequence():
+    global camera
+    global camevents
+    name        = request.args.get('name')
+    description = request.args.get('description')
+    if not name:
+        name = "Sequence"
+    if not description:
+        description = "(no description provided)"
+    camevents.set_name_desc_trigger_info(name, description)
+    if camera.is_recording():
+        return jsonify(result=False, stext="Already recording!")
+    camera.capture_image_sequence()
+    return jsonify(result = True,
+        stext = "Recording video...",
+        id = camevents.imgseq_capture.id())
+
+@app.route('/stop_capture_image_sequence')
+def stop_capture_image_sequence():
+    global camera
+    global camevents
+    if camera.is_recording():
+        camera.stop_capture_image_sequence()
+        return jsonify(result=True,
+            stext = "Recording stopped!",
+            id = camevents.imgseq_capture.id(),
+            name = camevents.imgseq_capture.meta['name'],
+            description = camevents.imgseq_capture.meta['description'],
+            datetime = camevents.imgseq_capture.meta['datetime'])
+    else:
+        return jsonify(result=False, stext="Not recording!")
+
 
 @app.route('/capture_still_image')
 def capture_still_image():
@@ -193,9 +248,12 @@ def capture_still_image():
         description = "(no description provided)"
     camevents.set_name_desc_trigger_info(name, description)
     camera.capture_still_image()
-    return jsonify(result=True, stext="Still image captured!",
-            id=camevents.capture.id(),
-            name=camevents.capture.meta['name'], description=camevents.capture.meta['description'], datetime=camevents.capture.meta['datetime'])
+    return jsonify(result=True,
+            stext = "Still image captured!",
+            id = camevents.capture.id(),
+            name = camevents.capture.meta['name'],
+            description = camevents.capture.meta['description'],
+            datetime = camevents.capture.meta['datetime'])
 
 @app.route('/recording_state')
 def recording_state():
@@ -243,6 +301,8 @@ def set_param(param):
         camera.set_brightness(int(value))
     elif param == "contrast":
         camera.set_contrast(int(value))
+    elif param == "zoom":
+        camera.set_zoom(int(value))
     elif param == "ruler_xres":
         camera.set_ruler_xres(value)
     elif param == "ruler_yres":
@@ -274,13 +334,26 @@ def get_params():
 @app.route('/')
 def index():
     global recorded_files
-    return render_template('index.html', title='RPiMicroscope', rectable=recorded_files)
+    return render_template('index.html', title='SANSAEROCam', rectable=recorded_files)
 
 @app.route('/favicon.ico')
 def favicon():
     return send_from_directory('static', 'icons/favicon.ico', mimetype='image/vnd.microsoft.icon')
 
+def register_camera(app):
+    hostname = sysinfo.get_hostname()
+    ip       = sysinfo.get_ip(app.config['SEND_ADDR_OF_ADAPTER'])
+    print('register camera', ip, hostname, '@', app.config['CAMERA_ADMIN_HOST'])
+    try:
+        response = requests.get("http://" + app.config['CAMERA_ADMIN_HOST'] + ":" + str(app.config['CAMERA_ADMIN_PORT']) + "/register_camera", data = {"ip" : ip, "hostname" : hostname}, timeout=3)
+        json = response.json()
+        print('response: ', json)
+    except Exception as e:
+        print('failed to register camera')
+    
+
 if __name__ == "__main__":
+    register_camera(app)
     camera.start()
     camera.load_state(app.config['CAMERA_SETTINGS'])
     app.run(host='0.0.0.0') #debug=True)

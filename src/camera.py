@@ -8,7 +8,8 @@ import numpy as np
 class Mode(enum.Enum):
     RECORD_OFF    = 0
     RECORD        = 1
-    OBJDET        = 2
+    IMGSEQ        = 2
+    OBJDET        = 3
 
 def draw_passe_partout(image, orig_size, ruler_length, ruler_xres, psx, psy):
     sy, sx = image.shape[:2]
@@ -26,11 +27,22 @@ def draw_passe_partout(image, orig_size, ruler_length, ruler_xres, psx, psy):
     image = cv2.line(image, (10 + ruler_len, sy - 11), (10 + ruler_len, sy - 9), (0, 255, 0), 1)
     return image
 
+def zoom_image(img, zoom):
+    ih, iw, c = img.shape
+    cx = iw / 2
+    cy = ih / 2
+    w = iw / (zoom / 100.0)
+    h = ih / (zoom / 100.0)
+    x = cx - w / 2
+    y = cy - h / 2
+    return img[int(y):int(y + h), int(x):int(x + w)]
+
 def get_camera_parameters(data, camera):
     data['shutter_speed'] = camera.get_shutter_speed()
     data['iso'] = camera.get_iso()
     data['brightness'] = camera.get_brightness()
     data['contrast'] = camera.get_contrast()
+    data['zoom'] = camera.get_zoom()
     data['ruler_length'] = camera.get_ruler_length()
     data['ruler_xres'] = camera.get_ruler_xres()
     data['ruler_yres'] = camera.get_ruler_yres()
@@ -42,6 +54,7 @@ def set_camera_parameters(data, camera):
     camera.set_iso(data['iso'])
     camera.set_brightness(data['brightness'])
     camera.set_contrast(data['contrast'])
+    camera.set_zoom(data['zoom'])
     camera.set_ruler_length(data['ruler_length'])
     camera.set_ruler_xres(data['ruler_xres'])
     camera.set_ruler_yres(data['ruler_yres'])
@@ -81,7 +94,7 @@ class Camera:
             data = json.load(f)
             set_camera_parameters(data, self)
             
-def create_camera(modname, camevents, motiondet, camera_size, stream_size, fps, smode):
+def create_camera(modname, camevents, camera_size, stream_size, seqfps, smode):
     module = __import__(modname)
-    camera = module.MCamera(camevents, motiondet, camera_size, stream_size, fps, smode)
+    camera = module.MCamera(camevents, camera_size, stream_size, seqfps, smode)
     return camera
