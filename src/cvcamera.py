@@ -1,7 +1,6 @@
 import cv2
 import datetime
 from threading import Thread, Lock
-from motiondetect import MotionDetector
 from camera import Camera, Mode
 
 fourcc = cv2.VideoWriter_fourcc('H','2','6','4')

@@ -31,6 +31,7 @@ const contrOutput     = document.querySelector("#setting-contrast-output");
 const zoomSlider     = document.querySelector("#view-zoom");
 const zoomOutput     = document.querySelector("#view-zoom-output");
 
+const detectorDropDown = document.querySelector("#detector-selection");
 const thresholdSlider = document.querySelector("#detector-threshold");
 const thresholdOutput = document.querySelector("#detector-threshold-output");
 
@@ -97,7 +98,7 @@ function addTableEntry(name, id, isVideo, description, dateTime)
       cellIcons.innerHTML = "<a href=\"/player/" + id +  "\"><img src=\"/static/icons/image-24.png\" alt=\"Image View\"/></a> ";
    }
    cellIcons.innerHTML += "<a href=\"/download/" + id + "\" download><img src=\"/static/icons/download-24.png\" alt=\"Download\"/></a> ";
-   cellIcons.innerHTML += "<a href=\"/download_transcoded/" + id + "\" download><img src=\"/static/icons/download-24.png\" alt=\"Download\"/></a> ";
+   cellIcons.innerHTML += "<a href=\"/download_meta/" + id + "\" download><img src=\"/static/icons/download-24.png\" alt=\"Download\"/></a> ";
    cellIcons.innerHTML += "<a href=\"/detector/" + id + "\"><img src=\"/static/icons/detect-24.png\" alt=\"Detector\"/></a> ";
    cellIcons.innerHTML += "<a href=\"#\" onclick=\"deleteTableEntry(this)\" data-id=\"" + id + "\"><img src=\"/static/icons/delete-24.png\" alt=\"Delete\"/></a>";
 
@@ -264,7 +265,7 @@ function setupCameraSettingControlHandler() {
       } else {
          setStatusError(resp.status_text);
       }
-   });   
+   });
    
    setSpinHandler(rulerXResInput, "ruler_xres");
    setSpinHandler(rulerYResInput, "ruler_yres");
@@ -279,12 +280,26 @@ function setupCameraSettingControlHandler() {
    setSliderHandler(contrSlider, contrOutput, "contrast");
    
    setSliderHandler(zoomSlider, zoomOutput, "zoom")
+}
 
+function setupDetectorControlHandler() {
+   detectorDropDown.addEventListener("change", async function() {
+      resp = await getServer("set_detector", {'value': this.value});
+      if(resp.result) {
+         setStatusNormal(resp.status_text);
+         resp = await getServer("get_params", {});
+         thresholdSlider.value = resp.detector_threshold;
+         thresholdOutput.value = thresholdSlider.value;
+      } else {
+         setStatusError(resp.status_text);
+      }
+   });
+   
    setSliderHandler(thresholdSlider, thresholdOutput, "detector_threshold");
 }
 
 async function initCameraSettings() {
-   resp = await getServer("get_params", {});
+   let resp = await getServer("get_params", {});
 
    rulerLengthInput.value  = resp.ruler_length;
    rulerXResInput.value    = resp.ruler_xres;
@@ -306,6 +321,15 @@ async function initCameraSettings() {
    brighOutput.value   = brighSlider.value;
    contrOutput.value   = contrSlider.value;
    zoomOutput.value    = zoomSlider.value;
+   
+   thresholdSlider.value = resp.detector_threshold;
+   thresholdOutput.value = thresholdSlider.value;
+   
+   resp = await getServer("get_detector", {});
+   detectorDropDown.value = resp.detector;
+   
+   resp = await getServer("get_resolution_and_mode", {});
+   resolutionDropDown.value = resp.resmode;
 }
 
 async function setDate() {
@@ -323,13 +347,15 @@ async function setDate() {
 
 document.addEventListener("DOMContentLoaded", function() { 
    setupStartRecordingButtonHandler();
-   
    setupStartButtonHandler("#capture-sequence-button", "#capture-sequence-button-text", "Capture Luma Image Sequence", "capture_image_sequence", "stop_capture_image_sequence")
-   
    setupCaptureStillImageButtonHandler();
    setupObjectDetectionButtonHandler();
+   
    setupCameraSettingControlHandler();
+   setupDetectorControlHandler();
+   
    initCameraSettings();
+   
    updateSystemState();
    //setDate();
    setInterval(updateSystemState, 2000);

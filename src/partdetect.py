@@ -8,11 +8,10 @@ import detector
 # U = pi * d
 # -> d = U/pi
 
-class ParticleDetector(detector.Detector):
+class ParticleDetectorThreshold(detector.Detector):
     def __init__(self, ratio = 1.1):
-        self.bsub = cv2.createBackgroundSubtractorKNN(2, 40, False)
         self.timage = True
-        self.threshold = 10
+        self.threshold = 200
     
     def set_threshold(self, th):
         self.threshold = th
@@ -21,7 +20,44 @@ class ParticleDetector(detector.Detector):
         return self.threshold    
     
     def detect(self, image, genout):
-        return image, []
+        grayimg = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+        flag = cv2.THRESH_BINARY
+        if self.threshold == -1:
+            flag += cv2.THRESH_OTSU
+        elif self.threshold == -2:
+            flag += cv2.THRESH_TRIANGLE
+        ret, thresh = cv2.threshold(grayimg, self.threshold, 255, flag)
+        
+        ret = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        contours = ret[0]
+        if len(ret) == 3: # for old version of find contours (pre 3.2)
+            contours = ret[1]
+        
+        contimage = image #.clone()
+        if genout:
+            for i in range(len(contours)):
+                cv2.drawContours(contimage, contours, i, (0, 255, 255), 1)
+            return []
+            
+        return []
+        
+class ParticleDetectorDifference(detector.Detector):
+    def __init__(self, ratio = 1.1):
+        #self.bsub = cv2.createBackgroundSubtractorKNN(2, 40, False)
+        self.bsub = cv2.createBackgroundSubtractorMOG2(detectShadows=False)
+        self.threshold = 180
+    
+    def set_threshold(self, th):
+        self.threshold = th
+        if th >= 0:
+            self.bsub.setVarThreshold(th)
+
+    def get_threshold(self):
+        return self.threshold    
+    
+    def detect(self, image, genout):
+        #return image, []
         
         grayimg = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         fbmask = self.bsub.apply(grayimg)
@@ -31,14 +67,16 @@ class ParticleDetector(detector.Detector):
         if len(ret) == 3: # for old version of find contours (pre 3.2)
             contours = ret[1]
             
-        contimage = None
         if genout:
             contimage = image
             for i in range(len(contours)):
                 cnt = contours[i]
                 cv2.drawContours(contimage, contours, i, (0,255, 255), 1)
             
-        return contimage, []
+        return []
+
+
+
 
 class ParticleDetector3(detector.Detector):
     def __init__(self, ratio = 1.1):
@@ -126,6 +164,35 @@ class ParticleDetector2(detector.Detector):
         cv2.imshow('edges', th)
         return thresh, particles
 
+class MotionDetector:
+    def __init__(self, threshold):
+        self.threshold = threshold
+        self.prev_frame = None
+        self.delta = None
+
+    def detect_motion(self, image):
+        if self.prev_frame is None:
+            self.prev_frame = image
+            #self.prev_frame = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            #self.prev_frame = cv2.GaussianBlur(self.prev_frame, (21, 21), 0)
+            #self.prev_frame = cv2.medianBlur(self.prev_frame, 5)
+            return False
+        #gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        #gray = cv2.GaussianBlur(gray, (21, 21), 0)
+        #gray = cv2.medianBlur(gray, 5)
+        
+        self.delta = cv2.absdiff(self.prev_frame, image)
+        #height, width = delta.shape
+        #avg_delta = cv2.sumElems(delta)[0] / (width * height * 255) * 100.0
+        
+        self.prev_frame = image
+
+        amax = numpy.amax(self.delta) / 2.55
+        #print(amax)
+        #print(avg_delta)
+        
+        return amax >= self.threshold
+        
 if __name__ == "__main__":
     dir = "/home/christoph/Dokumente/bilder/"
     #img = cv2.imread('../data/test.png', cv2.IMREAD_COLOR)

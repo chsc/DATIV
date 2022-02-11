@@ -8,7 +8,6 @@ import picamera
 import zipfile
 import io
 from threading import Thread, Lock
-from motiondetect import MotionDetector
 from camera import Camera, CameraEvents, Mode
 from detector import detect_image, detect_video, transcode, count_frames
 
@@ -141,10 +140,10 @@ class MCamera(Camera):
         
         # Pi Camera
         self.camera = picamera.PiCamera(resolution=camera_size, sensor_mode=smode)
-        self.camera.exposure_mode = 'off'
+        #self.camera.exposure_mode = 'off' auto
         self.camera.awb_mode = 'off'
         self.camera.awb_gains = (1.4, 1.7)
-        self.camera.led = True
+        #self.camera.led = True
 
         print('default camera resolution:', self.get_resolution())
         print('framerate:', self.get_fps())

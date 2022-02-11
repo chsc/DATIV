@@ -17,6 +17,16 @@ def pixel_to_µm(t, sx, sy, framenr):
 class Detector:
     def detect(self, image, genout):
         pass
+        
+def get_det_parameters(data, det):
+	if det is None:
+		return
+	data['detector_threshold'] = det.get_threshold()
+
+def set_det_parameters(data, det):
+	if det is None:
+		return
+	det.set_threshold(data['detector_threshold'])
 
 def write_particles(filename, particles):
 	with open(filename, 'w', newline='') as csvfile:

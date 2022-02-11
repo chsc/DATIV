@@ -84,8 +84,10 @@
       <textarea id="record-description" name="description" placeholder="Description text goes here..."></textarea>
       
       <label class="catlabel">Detector</label>
-      <select id="record-detector">
-        <option value="soapbubble">Soap Bubble</option>
+      <select id="detector-selection">
+        <option value="-">-</option>
+        <option value="threshold">Threshold</option>
+        <option value="difference">Difference</option>
       </select>
       <label class="subcatlabel">Threshold <output id="detector-threshold-output" for="detector-threshold">-</output></label>
       <input id="detector-threshold" name="detector-threshold" type="range" min="-2" max="255" step="1" value="127">

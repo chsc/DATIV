@@ -5,13 +5,12 @@ import partdetect
 import detector
 import sysinfo
 import requests
-from detector import detect_image, detect_video, transcode
 import os.path
 from flask import Flask, Response, render_template, request, redirect, url_for, jsonify, send_from_directory
 import flask_cors
+from detector import get_det_parameters
 from camera import CameraEvents, draw_passe_partout, zoom_image, get_camera_parameters, create_camera
 from recordings import Recordings
-from motiondetect import MotionDetector
 
 app = Flask(__name__)
 flask_cors.CORS(app)
@@ -65,7 +64,9 @@ class CamEvents(CameraEvents):
         global status_text
         status_text = "Object detection stopped"
 
-pdetector       = partdetect.ParticleDetector()
+pdetector       = None
+detectorstr     = "-"
+resmodestr      = f"{app.config['CAMERA_SIZE'][0]}x{app.config['CAMERA_SIZE'][1]},{app.config['CAMERA_SENSOR_MODE']}"
 recorded_files  = Recordings(app.config['RECORDING_FOLDER'])
 camevents       = CamEvents(recorded_files)
 camera          = create_camera(app.config['CAMERA_MODULE'], camevents, app.config['CAMERA_SIZE'], app.config['STREAM_SIZE'], app.config['CAMERA_SEQUENCE_FPS'], app.config['CAMERA_SENSOR_MODE'])
@@ -77,7 +78,7 @@ def generate_video(camera):
         time.sleep(0.05)
         output = camera.get_stream_image()
         if pdetector is not None and output is not None:
-            output, particles = pdetector.detect(output, True)
+            _ = pdetector.detect(output, True)
         output = draw_passe_partout(output, video_size, camera.get_ruler_length(), camera.get_ruler_xres(), camera.get_passe_partout_h(), camera.get_passe_partout_v())
         output = zoom_image(output, camera.get_zoom())
         ret, buffer = cv2.imencode(".jpeg", output)
@@ -93,7 +94,8 @@ def set_date():
     return jsonify({"result": False, "status_text": f"Date not set to: {value}"})    
 
 @app.route('/set_resolution_and_mode')
-def set_resolution():
+def set_resolution_and_mode():
+    global resmodestr
     v = request.args.get('value')
     rm = v.split(',')
     if len(rm) != 2:
@@ -102,8 +104,34 @@ def set_resolution():
     if len(res) != 2:
         return jsonify({"result": False , "status_text": f"Invalid resolution: {v}"})
     if camera.set_resolution_and_mode((int(res[0]), int(res[1])), int(rm[1])):
+        resmode = v
         return jsonify({"result": True, "status_text": f"Resolution {camera.get_resolution()} set ({camera.get_fps()}, {camera.camera.sensor_mode})"})
     return jsonify({"result": False , "status_text": f"Unable to set resolution: {res}"})
+
+@app.route('/get_resolution_and_mode')
+def get_resolution_and_mode():
+    global camera, resmodestr
+    return jsonify({"resmode": resmodestr})
+
+@app.route('/set_detector')
+def set_detector():
+    global pdetector, detectorstr
+    v = request.args.get('value')
+    if v == "threshold":
+        pdetector = partdetect.ParticleDetectorThreshold()
+    elif v == "difference":
+        pdetector = partdetect.ParticleDetectorDifference()
+    elif v == "-":
+        pdetector = None
+    else:
+        return jsonify({"result": False , "status_text": f"Unable to set detector: {v}"})
+    detectorstr = v
+    return jsonify({"result": True , "status_text": f"Detector {v} set."})
+
+@app.route('/get_detector')
+def get_detector():
+    global detectorstr
+    return jsonify({"detector": detectorstr})
 
 @app.route('/video_stream')
 def video_stream():
@@ -119,48 +147,10 @@ def download_meta(ident):
     filename = recorded_files.get_meta_file(ident)
     return send_from_directory(app.config['RECORDING_FOLDER'], filename, as_attachment=True)
 
-"""        
-@app.route('/download_transcoded/<ident>')
-def download_transcoded(ident):
-    filename = recorded_files.get_file(ident)
-    if recorded_files.get_recording(ident).is_video():
-        rf = app.config['RECORDING_FOLDER']
-        outfile = filename + ".mp4"
-        print("download ", outfile)
-        if not os.path.exists(os.path.join(rf, outfile)):
-            transcode(os.path.join(rf, filename), os.path.join(rf, outfile), camera.get_fps())
-        return send_from_directory(app.config['RECORDING_FOLDER'], outfile, as_attachment=True)
-    else:
-        return send_from_directory(app.config['RECORDING_FOLDER'], filename, as_attachment=True)
-
-@app.route('/download_detect/<ident>')
-def download_detect(ident):
-    rf = app.config['RECORDING_FOLDER']
-    outfile = recorded_files.get_detect_file(ident)
-    filename = recorded_files.get_file(ident)
-    csvfile = recorded_files.get_detect_csv_file(ident)
-    sx = camera.get_ruler_xres()
-    sy = camera.get_ruler_yres()
-    if recorded_files.get_recording(ident).is_video():
-        if os.path.exists(os.path.join(rf, outfile+".mp4")):
-            print("already exists: ", outfile+".mp4")
-            return send_from_directory(app.config['RECORDING_FOLDER'], outfile+".mp4", as_attachment=True)
-        detect_video(pdetector, os.path.join(rf, filename), os.path.join(rf, outfile+".mp4"), os.path.join(rf, csvfile), sx, sy)
-        return send_from_directory(app.config['RECORDING_FOLDER'], outfile+".mp4", as_attachment=True)
-    else:
-        detect_image(pdetector, os.path.join(rf, filename), os.path.join(rf, outfile), os.path.join(rf, csvfile), sx, sy)
-        return send_from_directory(app.config['RECORDING_FOLDER'], outfile, as_attachment=True)
-"""
-
 @app.route('/player/<ident>')
 def player(ident):
     rec = recorded_files.get_recording(ident)
     return render_template('player.html', recording=rec)
-
-#@app.route('/detector/<ident>')
-#def detector(ident):
-#    rec = recorded_files.get_recording(ident)
-#    return render_template('detect.html', recording=rec)
 
 @app.route('/delete_recording/<ident>')
 def delete_recording(ident):
@@ -288,6 +278,7 @@ def system_state():
 
 @app.route('/set_param/<param>')
 def set_param(param):
+    global pdetector
     value = float(request.args.get('value'))
     if param == "res_width":
         camera.set_width(int(value))
@@ -325,10 +316,7 @@ def get_params():
     global camera
     data = {}
     get_camera_parameters(data, camera)
-
-    if pdetector is not None:
-        data['detector_threshold'] = pdetector.get_threshold()
-
+    get_det_parameters(data, pdetector)
     return jsonify(data)
 
 @app.route('/')
@@ -359,3 +347,43 @@ if __name__ == "__main__":
     app.run(host='0.0.0.0') #debug=True)
     camera.save_state(app.config['CAMERA_SETTINGS'])
     camera.stop()
+
+
+
+
+
+
+
+
+"""        
+@app.route('/download_transcoded/<ident>')
+def download_transcoded(ident):
+    filename = recorded_files.get_file(ident)
+    if recorded_files.get_recording(ident).is_video():
+        rf = app.config['RECORDING_FOLDER']
+        outfile = filename + ".mp4"
+        print("download ", outfile)
+        if not os.path.exists(os.path.join(rf, outfile)):
+            transcode(os.path.join(rf, filename), os.path.join(rf, outfile), camera.get_fps())
+        return send_from_directory(app.config['RECORDING_FOLDER'], outfile, as_attachment=True)
+    else:
+        return send_from_directory(app.config['RECORDING_FOLDER'], filename, as_attachment=True)
+
+@app.route('/download_detect/<ident>')
+def download_detect(ident):
+    rf = app.config['RECORDING_FOLDER']
+    outfile = recorded_files.get_detect_file(ident)
+    filename = recorded_files.get_file(ident)
+    csvfile = recorded_files.get_detect_csv_file(ident)
+    sx = camera.get_ruler_xres()
+    sy = camera.get_ruler_yres()
+    if recorded_files.get_recording(ident).is_video():
+        if os.path.exists(os.path.join(rf, outfile+".mp4")):
+            print("already exists: ", outfile+".mp4")
+            return send_from_directory(app.config['RECORDING_FOLDER'], outfile+".mp4", as_attachment=True)
+        detect_video(pdetector, os.path.join(rf, filename), os.path.join(rf, outfile+".mp4"), os.path.join(rf, csvfile), sx, sy)
+        return send_from_directory(app.config['RECORDING_FOLDER'], outfile+".mp4", as_attachment=True)
+    else:
+        detect_image(pdetector, os.path.join(rf, filename), os.path.join(rf, outfile), os.path.join(rf, csvfile), sx, sy)
+        return send_from_directory(app.config['RECORDING_FOLDER'], outfile, as_attachment=True)
+"""
