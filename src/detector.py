@@ -14,6 +14,23 @@ def pixel_to_µm(t, sx, sy, framenr):
 	area_µm = area * sx * sy
 	return (framenr, cx * sx, cy * sy, area_µm, equi_diameter(area_µm))
 
+def contour_center(cnt):
+	M = cv2.moments(cnt)
+	m00 = M['m00']
+	if m00 != 0:
+		cx = M['m10'] / m00
+		cy = M['m01'] / m00
+		return (cx, cy)
+	else:
+		return (-1, -1)
+		
+def is_round(cnt, area, ratio):
+	U = equi_perimeter(area)
+	perimeter = cv2.arcLength(cnt, True)
+	if U != 0:
+		return (perimeter / U) < ratio
+	return False
+
 class Detector:
     def detect(self, image, genout):
         pass

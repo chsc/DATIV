@@ -4,6 +4,7 @@
  
 """
 
+CAMERA_NAME        = "Camera 00"
 PORT               = 5000
 RECORDING_FOLDER   = '../recordings'
 

@@ -77,8 +77,11 @@ def generate_video(camera):
     while True:
         time.sleep(0.05)
         output = camera.get_stream_image()
-        if pdetector is not None and output is not None:
-            _ = pdetector.detect(output, True)
+        output = cv2.cvtColor(output, cv2.COLOR_BGR2GRAY)
+        if pdetector is not None:
+            output, parts = pdetector.detect(output, True)
+        else:
+            output = cv2.cvtColor(output, cv2.COLOR_GRAY2BGR)
         output = draw_passe_partout(output, video_size, camera.get_ruler_length(), camera.get_ruler_xres(), camera.get_passe_partout_h(), camera.get_passe_partout_v())
         output = zoom_image(output, camera.get_zoom())
         ret, buffer = cv2.imencode(".jpeg", output)
@@ -225,6 +228,39 @@ def stop_capture_image_sequence():
     else:
         return jsonify(result=False, stext="Not recording!")
 
+@app.route('/detect_objects')
+def detect_objects():
+    global camera
+    global camevents
+    name        = request.args.get('name')
+    description = request.args.get('description')
+    if not name:
+        name = "Sequence"
+    if not description:
+        description = "(no description provided)"
+    camevents.set_name_desc_trigger_info(name, description)
+    if camera.is_recording():
+        return jsonify(result=False, stext="Already recording!")
+    camera.detect_objects()
+    return jsonify(result = True,
+        stext = "Recording video...",
+        id = camevents.imgseq_capture.id())
+
+@app.route('/stop_detect_objects')
+def stop_detect_objects():
+    global camera
+    global camevents
+    if camera.is_recording():
+        camera.stop_detect_objects()
+        return jsonify(result = True,
+            stext = "Recording stopped!",
+            id = camevents.imgseq_capture.id(),
+            name = camevents.imgseq_capture.meta['name'],
+            description = camevents.imgseq_capture.meta['description'],
+            datetime = camevents.imgseq_capture.meta['datetime'])
+    else:
+        return jsonify(result=False, stext="Not recording!")
+
 
 @app.route('/capture_still_image')
 def capture_still_image():
@@ -322,7 +358,7 @@ def get_params():
 @app.route('/')
 def index():
     global recorded_files
-    return render_template('index.html', title='SANSAEROCam', rectable=recorded_files)
+    return render_template('index.html', title=app.config['CAMERA_NAME'], rectable=recorded_files)
 
 @app.route('/favicon.ico')
 def favicon():
@@ -341,7 +377,7 @@ def register_camera(app):
     
 
 if __name__ == "__main__":
-    register_camera(app)
+    #register_camera(app)
     camera.start()
     camera.load_state(app.config['CAMERA_SETTINGS'])
     app.run(host='0.0.0.0') #debug=True)

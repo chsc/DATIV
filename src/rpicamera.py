@@ -47,58 +47,77 @@ class YuvFpsOutput(object):
         
     def frame(self, ydata, t, cnt):
         pass
-        
- #if recorded_files.is_image_sequence(ident):
-    #    data io.BytesIO()
-    #    with as z:
-    #        for fname in recorded_files.get_image_seqence_files(ident):
-    #            z.write(fname)
-    #    data.seek(0)
-    #    return send_fiile(data, mimetype='application/zip', as_attachement=True, '')
     
+class YuvOutput(object):
+    def __init__(self, camera, size):
+        self.camera = camera
+        self.size = size
+        self.cnt = 0
+        
+    def write(self, buffer):
+        ydata = np.frombuffer(buffer, dtype=np.uint8, count=self.size[0] * self.size[1]).reshape(self.size[1], self.size[0])
+        if self.cnt == 0:
+            self.tstart = time.time()
+            self.start()
+            self.frame(ydata, 0.0, 0)
+        else:
+            self.frame(ydata, time.time() - self.tstart, self.cnt)
+            self.cnt += 1
+                
+    def flush(self):
+        pass
+        
+    def start(self):
+        pass
+        
+    def frame(self, ydata, t, cnt):
+        pass
+
 class ImgSeqOutput(YuvFpsOutput):
     def __init__(self, camera, size, fps, fname):
         YuvFpsOutput.__init__(self, camera, size, fps)
         self.zipf = zipfile.ZipFile(fname, mode='w', compression=zipfile.ZIP_DEFLATED)
         self.csvstr = io.StringIO()
         self.csvwr = csv.writer(self.csvstr)
-        #self.fname = fname
     
     def __del__(self):
         self.zipf.writestr(f"timings.csv", self.csvstr.getvalue())
         
     def start(self):
-        #sf = os.path.splitext(self.fname)
-        #csvfile = open(f"{sf[0]}.csv", "w")
-        #self.wr = csv.writer(csvfile)
         self.csvwr.writerow(['image', 'time'])
         self.csvwr.writerow(['[nr]', '[s]'])
         
     def frame(self, ydata, t, cnt):
-        #fn = self.sf[0] + "_" + str(cnt) + self.sf[1]
-        #print("write file, fps", fn)
-        #cv2.imwrite(fn, ydata)
         r, buf = cv2.imencode('.png', ydata)
         self.zipf.writestr(f"{cnt}.png", buf)
         self.csvwr.writerow([cnt, t])
         
-class ObjDetOutput(YuvFpsOutput):
-    def __init__(self, camera, size, fps, fname):
-        YuvFpsOutput.__init__(self, camera, size, fps)
-        self.fname = fname
+class ObjDetOutput(YuvOutput):
+    def __init__(self, odet, camera, size, fname):
+        YuvOutput.__init__(self, camera, size)
+        self.zipf = zipfile.ZipFile(fname, mode='w', compression=zipfile.ZIP_DEFLATED)
+        self.csvstr = io.StringIO()
+        self.csvwr = csv.writer(self.csvstr)
+        self.odet = odet
+    
+    def __del__(self):
+        self.zipf.writestr(f"objects.csv", self.csvstr.getvalue())
         
     def start(self):
-        self.sf = os.path.splitext(self.fname)
-        file = open(self.sf[0] + ".csv", "w")
-        self.wr = csv.writer(file)
-        self.wr.writerow(['nr', 'time', 'bx', 'by', 'bw', 'bh', 'cx', 'cy'])
+        self.csvwr.writerow(['image', 'time', 'bx', 'by', 'bw', 'bh', 'cx', 'cy'])
+        self.csvwr.writerow(['[nr]', '[s]', '[px]', '[px]', '[px]', '[px]'])
         
     def frame(self, ydata, t, cnt):
-        fn = self.sf[0] + "_" + str(cnt) + self.sf[1]
-        print("write file, fps", fn)
-        cv2.imwrite(fn, ydata)
-        self.wr.writerow([cnt, t])
-
+        
+        r, buf = cv2.imencode('.png', ydata)
+        self.zipf.writestr(f"{cnt}.png", buf)
+        
+        self.csvwr.writerow([cnt, t])
+        
+        det_objs, _ = pdetector.detect(output, False)
+        
+        
+       
         #if self.camera.motiondet.detect_motion(ydata):
             #print("###")
         #    r, th = cv2.threshold(ydata, 120, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
@@ -178,6 +197,7 @@ class MCamera(Camera):
         self.close()
         time.sleep(0.5)
         self.camera = picamera.PiCamera(sensor_mode=mode, resolution=res)
+        self.camera_size=res
         self.cached_image = False
         self.lock.release()
         return True
@@ -188,9 +208,14 @@ class MCamera(Camera):
         self.lock.acquire()
         self.cached_image = True
         filename = self.camevents.video_start_recording(self)
-        self.camera.start_recording(filename, format='h264', sps_timing=True)
-        self.mode = Mode.RECORD
+        try:
+            self.camera.start_recording(filename, format='h264', sps_timing=True)
+            self.mode = Mode.RECORD
+        except Excpetion:
+            self.lock.release()
+            return False
         self.lock.release()
+        return True
 
     def stop_recording(self):
         self.lock.acquire()
@@ -199,6 +224,7 @@ class MCamera(Camera):
         self.camevents.video_end_recording(self)
         self.cached_image = False
         self.lock.release()
+        return True
         
     def capture_image_sequence(self):
         if self.mode != Mode.RECORD_OFF:
@@ -207,9 +233,6 @@ class MCamera(Camera):
         self.cached_image = True
         filename = self.camevents.image_sequence_start_capture(self)
         yuv_output = ImgSeqOutput(self, self.camera_size, self.seqfps, filename)
-        #self.savedfps = self.camera.framerate
-        #self.camera.framerate = self.seqfps
-        #print(self.savedfps, self.seqfps, self.camera.framerate)
         self.camera.start_recording(yuv_output, format='yuv')
         self.mode = Mode.IMGSEQ
         self.lock.release()
@@ -220,9 +243,6 @@ class MCamera(Camera):
         self.camera.stop_recording()
         self.camevents.image_sequence_end_capture(self)
         self.cached_image = False
-        #print(self.savedfps, self.camera.framerate)
-        #self.camera.framerate = self.savedfps
-        #print(self.savedfps, self.camera.framerate)
         self.lock.release()
 
     def capture_still_image(self):
@@ -230,25 +250,24 @@ class MCamera(Camera):
             return
         self.lock.acquire()
         self.cached_image = True
-        #time.sleep(0.5)
         filename = self.camevents.image_start_capture(self)
         self.camera.capture(filename);
         self.camevents.image_end_capture(self)
-        #time.sleep(0.5)
         self.cached_image = False
         self.lock.release()
     
-    def objdet_start(self):
+    def detect_objects(self):
         if self.mode != Mode.RECORD_OFF:
             return
         self.lock.acquire()
         self.cached_image = True
         filename = self.camevents.objdet_start(self)
-        self.camera.start_recording(self.yuv_output, format='yuv')
+        yuv_output = ObjDetOutput(self, self.camera_size, self.seqfps, filename)
+        self.camera.start_recording(yuv_output, format='yuv')
         self.mode = Mode.OBJDET
         self.lock.release()
         
-    def objdet_stop(self):
+    def stop_detect_objects(self):
         self.lock.acquire()
         self.mode = Mode.RECORD_OFF
         self.camera.stop_recording()

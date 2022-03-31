@@ -36,8 +36,9 @@
         <option value="1640x922,5">- 1640x922 (M5, Binning: 2x2, FoV: Full)</option>
         <option value="1640x1232,4">- 1640x1232 (M4, Binning: 2x2, FoV: Full)</option>
         <option value="1920x1080,1">- 1920x1080 (M1, Binning: None, FoV: Partial)</option>
-        <option value="3280x2464,2">- 3280x2464 (M2, Binning: None, FoV: Full)</option>
+        <!--<option value="3280x2464,2">- 3280x2464 (M2, Binning: None, FoV: Full)</option>-->
         <!--<option value="3280x2464,3">- 3280x2464 (M3, Binning: None, FoV: Full)</option>--> <!-- freezes -->
+        <option value="3280x2464,0">- 3280x2464 (M3, Binning: None, FoV: Full)</option> <!-- freezes -->
         <option value="-">Camera HQ (IMX477)</option>
         <option value="1332x990,4">- 1332x990 (M4, Binning: 2x2, FoV:Partial)</option>
         <option value="4056x3040,3">- 4056x3040 (M3, Binning: None, FoV:Full)</option>
@@ -92,21 +93,21 @@
       <label class="subcatlabel">Threshold <output id="detector-threshold-output" for="detector-threshold">-</output></label>
       <input id="detector-threshold" name="detector-threshold" type="range" min="-2" max="255" step="1" value="127">
 
-      <button class="redbutton" id="record-button">
+      <button class="redbutton" id="record-video-button">
         <img class="buttonicon" src="{{ url_for('static', filename='icons/record-24.png') }}"/>
-        <span id="record-button-text">Start Video Recording</span>
+        <span id="record-video-button-text">Start Video Recording</span>
       </button>
-      <button class="redbutton" id="capture-button">
+      <button class="redbutton" id="capture-still-image-button">
         <img class="buttonicon" src="{{ url_for('static', filename='icons/record-24.png') }}"/>
         <span id="capture-still-image-button-text">Capture Still Image</span>
       </button>
        <button class="redbutton" id="capture-sequence-button">
         <img class="buttonicon" src="{{ url_for('static', filename='icons/record-24.png') }}"/>
-        <span id="capture-sequence-button-text">Capture Luma Image Sequence</span>
+        <span id="capture-sequence-button-text">Capture Luma Image Sequence (0.5 FPS)</span>
       </button>
-      <button class="redbutton" id="objdet-button">
+      <button class="redbutton" id="detect-objects-button">
         <img class="buttonicon" src="{{ url_for('static', filename='icons/record-24.png') }}"/>
-        <span id="objdet-button-text">Start Objetct Detection</span>
+        <span id="detect-objects-button-text">Start Object Detection</span>
       </button>
       
     </div>

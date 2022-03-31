@@ -11,7 +11,9 @@ import detector
 class ParticleDetectorThreshold(detector.Detector):
     def __init__(self, ratio = 1.1):
         self.timage = True
-        self.threshold = 200
+        self.threshold = 60
+        self.maxArea = 300
+        self.minArea = 20
     
     def set_threshold(self, th):
         self.threshold = th
@@ -20,33 +22,50 @@ class ParticleDetectorThreshold(detector.Detector):
         return self.threshold    
     
     def detect(self, image, genout):
-        grayimg = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        #grayimg = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
         flag = cv2.THRESH_BINARY
         if self.threshold == -1:
             flag += cv2.THRESH_OTSU
         elif self.threshold == -2:
             flag += cv2.THRESH_TRIANGLE
-        ret, thresh = cv2.threshold(grayimg, self.threshold, 255, flag)
+        ret, thresh = cv2.threshold(image, self.threshold, 255, flag)
         
         ret = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         contours = ret[0]
         if len(ret) == 3: # for old version of find contours (pre 3.2)
             contours = ret[1]
         
-        contimage = image #.clone()
+        contimage = None
         if genout:
-            for i in range(len(contours)):
-                cv2.drawContours(contimage, contours, i, (0, 255, 255), 1)
-            return []
+            contimage = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
+                
+        particles = []
+        for i in range(len(contours)):
+            cnt = contours[i]
+            area = cv2.contourArea(cnt)
+            if area > self.maxArea or area < self.minArea:
+                #cv2.drawContours(contimage, contours, i, (0, 255, 255), 1)
+                continue
+            is_round = detector.is_round(cnt, area, 1.5)
+            if not is_round:
+                #cv2.drawContours(contimage, contours, i, (0, 0, 255), 1)
+                continue
+                
+            if genout:
+                cv2.drawContours(contimage, contours, i, (0, 255, 0), 1)
+                
+            cx, cy = detector.contour_center(cnt)
             
-        return []
+            particles.append((cx, cy, area))
+            
+        return contimage, particles
         
 class ParticleDetectorDifference(detector.Detector):
     def __init__(self, ratio = 1.1):
         #self.bsub = cv2.createBackgroundSubtractorKNN(2, 40, False)
         self.bsub = cv2.createBackgroundSubtractorMOG2(detectShadows=False)
-        self.threshold = 180
+        self.threshold = 230
     
     def set_threshold(self, th):
         self.threshold = th
@@ -58,24 +77,22 @@ class ParticleDetectorDifference(detector.Detector):
     
     def detect(self, image, genout):
         #return image, []
-        
-        grayimg = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        fbmask = self.bsub.apply(grayimg)
+        #grayimg = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        fbmask = self.bsub.apply(image)
         
         ret = cv2.findContours(fbmask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         contours = ret[0]
         if len(ret) == 3: # for old version of find contours (pre 3.2)
             contours = ret[1]
-            
+        
+        contimage = None
         if genout:
-            contimage = image
+            contimage = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
             for i in range(len(contours)):
                 cnt = contours[i]
-                cv2.drawContours(contimage, contours, i, (0,255, 255), 1)
+                cv2.drawContours(contimage, contours, i, (0, 255, 0), 1)
             
-        return []
-
-
+        return contimage, []
 
 
 class ParticleDetector3(detector.Detector):
