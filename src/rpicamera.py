@@ -23,7 +23,10 @@ class YuvFpsOutput(object):
         self.adt = 0
         
     def write(self, buffer):
-        ydata = np.frombuffer(buffer, dtype=np.uint8, count=self.size[0] * self.size[1]).reshape(self.size[1], self.size[0])
+        print("size", self.size)
+        fw = (self.size[0] + 31) // 32 * 32
+        fh = (self.size[1] + 15) // 16 * 16
+        ydata = np.frombuffer(buffer, dtype=np.uint8, count=fw*fh).reshape(fh, fw)
         if self.tprev == -1:
             self.tprev = time.time()
             self.tstart = self.tprev
@@ -55,7 +58,10 @@ class YuvOutput(object):
         self.cnt = 0
         
     def write(self, buffer):
-        ydata = np.frombuffer(buffer, dtype=np.uint8, count=self.size[0] * self.size[1]).reshape(self.size[1], self.size[0])
+        print("size", self.size)
+        fw = (self.size[0] + 31) // 32 * 32
+        fh = (self.size[1] + 15) // 16 * 16
+        ydata = np.frombuffer(buffer, dtype=np.uint8, count=fw*fh).reshape(fh, fw)
         if self.cnt == 0:
             self.tstart = time.time()
             self.start()
@@ -88,6 +94,7 @@ class ImgSeqOutput(YuvFpsOutput):
         self.csvwr.writerow(['[nr]', '[s]'])
         
     def frame(self, ydata, t, cnt):
+        print('frame', t, cnt)
         r, buf = cv2.imencode('.png', ydata)
         self.zipf.writestr(f"{cnt}.png", buf)
         self.csvwr.writerow([cnt, t])

@@ -89,11 +89,10 @@ function addTableEntry(name, id, isVideo, description, dateTime)
    } else {
       cellIcons.innerHTML = "<a href=\"/player/" + id +  "\"><img src=\"/static/icons/image-24.png\" alt=\"Image View\"/></a> ";
    }
-   cellIcons.innerHTML += "<a href=\"/download/" + id + "\" download><img src=\"/static/icons/download-24.png\" alt=\"Download\"/></a> ";
-   cellIcons.innerHTML += "<a href=\"/download_meta/" + id + "\" download><img src=\"/static/icons/download-24.png\" alt=\"Download\"/></a> ";
-   cellIcons.innerHTML += "<a href=\"/detector/" + id + "\"><img src=\"/static/icons/detect-24.png\" alt=\"Detector\"/></a> ";
-   cellIcons.innerHTML += "<a href=\"#\" onclick=\"deleteTableEntry(this)\" data-id=\"" + id + "\"><img src=\"/static/icons/delete-24.png\" alt=\"Delete\"/></a>";
-
+   cellIcons.innerHTML += "<a href=\"/download/" + id + "\" download><img src=\"/static/icons/download-24.png\" alt=\"Download File\"/></a> ";
+   cellIcons.innerHTML += "<a href=\"/download_meta/" + id + "\" download><img src=\"/static/icons/meta-24.png\" alt=\"Download Meta\"/></a> ";
+   cellIcons.innerHTML += "<a href=\"#\" onclick=\"deleteTableEntry(this)\" data-id=\"" + id + "\"><img src=\"/static/icons/delete-24.png\" alt=\"Delete File\"/></a>";
+         
    cellDesc.innerHTML = description;
    cellDateTime.innerHTML = dateTime;
 }

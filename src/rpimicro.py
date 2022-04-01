@@ -358,22 +358,22 @@ def get_params():
 @app.route('/')
 def index():
     global recorded_files
-    return render_template('index.html', title=app.config['CAMERA_NAME'], rectable=recorded_files)
+    return render_template('index.html', title=sysinfo.get_hostname(), rectable=recorded_files)
 
 @app.route('/favicon.ico')
 def favicon():
     return send_from_directory('static', 'icons/favicon.ico', mimetype='image/vnd.microsoft.icon')
 
-def register_camera(app):
-    hostname = sysinfo.get_hostname()
-    ip       = sysinfo.get_ip(app.config['SEND_ADDR_OF_ADAPTER'])
-    print('register camera', ip, hostname, '@', app.config['CAMERA_ADMIN_HOST'])
-    try:
-        response = requests.get("http://" + app.config['CAMERA_ADMIN_HOST'] + ":" + str(app.config['CAMERA_ADMIN_PORT']) + "/register_camera", data = {"ip" : ip, "hostname" : hostname}, timeout=3)
-        json = response.json()
-        print('response: ', json)
-    except Exception as e:
-        print('failed to register camera')
+#def register_camera(app):
+#    hostname = sysinfo.get_hostname()
+#    ip       = sysinfo.get_ip(app.config['SEND_ADDR_OF_ADAPTER'])
+#    print('register camera', ip, hostname, '@', app.config['CAMERA_ADMIN_HOST'])
+#    try:
+#        response = requests.get("http://" + app.config['CAMERA_ADMIN_HOST'] + ":" + str(app.config['CAMERA_ADMIN_PORT']) + "/register_camera", data = {"ip" : ip, "hostname" : hostname}, timeout=3)
+#        json = response.json()
+#        print('response: ', json)
+#    except Exception as e:
+#        print('failed to register camera')
     
 
 if __name__ == "__main__":
