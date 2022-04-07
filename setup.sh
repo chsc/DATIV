@@ -15,9 +15,6 @@ sudo apt-get install python3-picamera
 pip3 install -U flask-cors
 pip3 install -U netifaces
 
-echo "Cloning repository ..."
-git clone https://gitlab.hzdr.de/hzdri/ext/rpimicro.git
-
 echo "Install and start systemd service ..."
 sudo install rpimicro/systemd/rpimicro.service /etc/systemd/system
 sudo systemctl enable rpimicro
