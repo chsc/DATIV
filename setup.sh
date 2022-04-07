@@ -15,6 +15,6 @@ pip3 install -U flask-cors
 pip3 install -U netifaces
 
 echo "Install and start systemd service ..."
-sudo install rpimicro/systemd/rpimicro.service /etc/systemd/system
+sudo install systemd/rpimicro.service /etc/systemd/system
 sudo systemctl enable rpimicro
 sudo systemctl start rpimicro
