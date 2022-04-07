@@ -10,7 +10,10 @@ Clone the repository to `/home/pi`:
 
     git clone https://gitlab.hzdr.de/hzdri/ext/rpimicro.git
 
-Change to the `rpimicro` directory and run `setup.sh` (**Make shure to enable the camera interface before runnig the script!**)!
+Change to the `rpimicro` directory and run `setup.sh`! 
+
+**Before you run the script, make shure you have enabled the camera.
+You can use the `raspi-config` tool to do this (*see Interface Options*).**
 
 ## Standard Install
 
@@ -40,14 +43,15 @@ Open the command line to install the required software packages:
     pip3 install -U flask-cors
     pip3 install -U netifaces
 
-**Before you run the server, make shure you have enabled the camera.
-You can use the `raspi-config` tool to do this (*see Interface Options*).**
-
 Now, start and install the service using systemd (works only if repsitory is cloned to /home/pi/rpimicro):
 
     sudo install rpimicro/systemd/rpimicro.service /etc/systemd/system
     sudo systemctl enable rpimicro
     sudo systemctl start rpimicro
+
+**Make shure to enable the camera interface before runnig the service!**
+
+## Web Interface
 
 Open your browser and enter the following URL:
 
@@ -57,16 +61,20 @@ or
 
     http://localhost:5000
 
-if you are running it on the Pi.
+if you are running it on the Pi itself.
 
-## TODO
+## Network Setup
 
-* Build-in particle/object detection
+A detailed description on how to setup a camera network can be found [here](doc/NETWORK.md).
 
 ## Notes
 
-[Additional notes...](doc/NOTES.md)
+Additional notes are [here](doc/NOTES.md).
 
 ## API
 
 The camera can be remote controlled with a set of [HTTP requests](doc/API.md).
+
+## TODO
+
+* Build-in particle/object detection
