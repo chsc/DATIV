@@ -4,6 +4,7 @@ recordings/*.mp4
 recordings/*.h264
 recordings/*.png
 recordings/*.csv
+recordings/*.zip
 data/*.h264
 data/*.mp4
 data/*.csv
