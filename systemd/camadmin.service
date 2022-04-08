@@ -1,0 +1,12 @@
+[Unit]
+Description=RPi Microscope Administartion Service
+After=network.target
+
+[Service]
+User=pi
+WorkingDirectory=/home/pi/rpimicro/src/cameraadmin
+ExecStart=python3 cameraadmin.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
