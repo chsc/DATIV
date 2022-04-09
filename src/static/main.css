@@ -173,13 +173,16 @@ table, th, td {
 
 tr:nth-child(even) {
   background-color: #eee;
+  margin: 1px;
 }
 tr:nth-child(odd) {
   background-color: #fff;
+  margin: 1px;
 }
 th {
   background-color: #20639B;
   color: white;
+  margin: 1px;
 }
 
 .view {
