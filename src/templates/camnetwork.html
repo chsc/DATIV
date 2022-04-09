@@ -16,11 +16,6 @@
         <a href="{{url_for('overview')}}" alt="Overview">Show Overview</a>
     </p>
 
-    <button class="greenbutton" id="update-button">
-        <img class="buttonicon" src="{{ url_for('static', filename='icons/update-24.png') }}"/>
-        Scan for Cameras...
-    </button>
-
     <table id="host-table">
         <tbody>
             <tr>
@@ -28,10 +23,13 @@
                 <th>IP</th>
                 <th>Status</th>
                 <th>
-                    <button class="greenbutton" id="all-capture-still-button">Capture Still Image</button>
+                    <button class="greenbutton" id="all-capture-still-image-button">Capture Still Image</button>
                 </th>
                 <th>
-                    <button class="greenbutton-left" id="all-record-video-button">Record Video</button><button class="redbutton-right" id="all-stop-video-button">Stop Video Recording</button>
+                    <button class="greenbutton-left" id="all-record-video-button">Record Video</button><button class="redbutton-right" id="all-stop-record-video-button">Stop Video Recording</button>
+                </th>
+                <th>
+                    <button class="greenbutton-left" id="all-record-image-sequence-button">Record Video</button><button class="redbutton-right" id="all-stop-record-image-sequece-button">Stop Video Recording</button>
                 </th>
                 <th>    
                     <button class="greenbutton-left" id="all-start-detection-button">Start Detection</button><button class="redbutton-right" id="all-stop-detection-button">Stop Detection</button>
@@ -49,7 +47,10 @@
                     <span id="status-{{key}}">...</span>
                 </td>
                 <td>
-                    <button class="greenbutton" id="capture-still-{{key}}" data-ip="{{key}}">Capture Still Image</button>
+                    <button class="greenbutton" id="capture-still-image-{{key}}" data-ip="{{key}}">Capture Still Image</button>
+                </td>
+                <td>
+                    <button class="greenbutton-left" id="record-image-sequence-{{key}}" data-ip="{{key}}">Record Image Sequence</button><button class="redbutton-right" id="stop-record-image-sequence-{{key}}" data-ip="{{key}}">Stop Record Image Sequence</button>
                 </td>
                 <td>
                     <button class="greenbutton-left" id="record-video-{{key}}" data-ip="{{key}}">Record Video</button><button class="redbutton-right" id="stop-video-{{key}}" data-ip="{{key}}">Stop Video Recordingo</button>

@@ -112,7 +112,7 @@ class CameraNetwork:
     def save_cameras(self, filename):
          with open(filename, 'w') as f:
             json.dump(self.camera_hosts, f, indent = 4)
-        
+    
     def load_cameras(self, filename):
         with open(filename, 'r') as f:
             self.camera_hosts = json.load(f)

@@ -17,9 +17,10 @@
     </p>
 
     {% for key in camnetwork.get_hosts() %}
-        <a href="{{camnetwork.get_camera_link(key)}}" alt="Camera Link">{{camnetwork.get_hosts()[key]}}</a> 
-        <img class="thumb" src="{{camnetwork.get_camera_link(key)}}/video_stream"/>
+        <a href="{{camnetwork.get_camera_link(key)}}" alt="Camera Link">{{camnetwork.get_hosts()[key]}}</a> <br/>
+        <img class="thumb" src="{{camnetwork.get_camera_link(key)}}/video_stream"/><br/>
     {% endfor %}
+    
     <footer>{{ copyright }}</footer>
 </body>
 </html>
