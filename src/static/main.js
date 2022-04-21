@@ -119,11 +119,12 @@ async function setupCaptureStillImageButtonHandler()
       setButtonTextRecording("#capture-still-image-button-text", "Capturing...");
       resp = await getServer("capture_still_image");
       if(!resp.result) {
-         setStatusError(resp.stext);
+         setStatusError(resp.status_text);
       } else {
          addTableEntry(resp.name, resp.id, false, resp.description, resp.datetime);
       }
       setButtonTextRecording("#capture-still-image-button-text", "Capture Still Image");
+      setStatusNormal(resp.status_text);
    });
 }
 
@@ -148,7 +149,7 @@ async function setupStartButtonHandler(buttonid, buttextspan, origtext, recstr, 
          if(resp.result) {
             setButtonTextRecording(buttextspan, "Stop");
          } else {
-            setStatusError(resp.stext);
+            setStatusError(resp.status_text);
          }
       } if(resp.mode == "recording") {
          resp = await getServer(stopstr);
@@ -298,6 +299,6 @@ document.addEventListener("DOMContentLoaded", function() {
    initCameraSettings();
    
    updateSystemState();
-   //setDate();
+   
    setInterval(updateSystemState, 2000);
 });

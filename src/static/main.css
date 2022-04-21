@@ -169,6 +169,7 @@ table {
 table, th, td {
   border-collapse: collapse;
   text-align: left;
+  padding: 2px;
 }
 
 tr:nth-child(even) {

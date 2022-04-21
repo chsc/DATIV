@@ -218,7 +218,8 @@ class MCamera(Camera):
         try:
             self.camera.start_recording(filename, format='h264', sps_timing=True)
             self.mode = Mode.RECORD
-        except Excpetion:
+        except Exception as e:
+            print(str(e))
             self.lock.release()
             return False
         self.lock.release()
@@ -245,6 +246,8 @@ class MCamera(Camera):
         self.lock.release()
 
     def stop_capture_image_sequence(self):
+        if self.mode == Mode.RECORD_OFF:
+            return
         self.lock.acquire()
         self.mode = Mode.RECORD_OFF
         self.camera.stop_recording()
@@ -275,6 +278,8 @@ class MCamera(Camera):
         self.lock.release()
         
     def stop_detect_objects(self):
+        if self.mode == Mode.RECORD_OFF:
+            return
         self.lock.acquire()
         self.mode = Mode.RECORD_OFF
         self.camera.stop_recording()

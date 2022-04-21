@@ -49,7 +49,7 @@ async function setupButtons(idprefix, requeststr)
    });
 }
 
-async function setupInitialStatusText() {
+async function updateStatus() {
    const resp = await getServer("get_hosts");
    //const cameraPort = await getServer("get_camera_port")
    //console.log(resp)
@@ -76,8 +76,27 @@ async function setupAllButton(request, btext) {
    resp = await getServer("get_hosts");
    for(const [ip, host] of Object.entries(resp)) {
       updateStatusText(ip, btext);
-      const query = "http://" + ip + ":5000/" + request;
+      const query = makeRequest(ip, cameraPort, request);
       fetch(query).then(response => response.json()).then(data => {
+         updateStatusText(ip, data.status_text);
+      }).catch((error) => {
+            updateStatusText(ip, "Unable to reach host!");
+      });
+   }
+}
+
+async function setDate() {
+   const now = Date.now();
+   const today = new Date(now);
+   const s = today.toISOString();
+   console.log(s)
+   const resp = await getServer("get_hosts");
+   for(const [ip, host] of Object.entries(resp)) {
+      updateStatusText(ip, "Setting time and date...");
+      const urls = makeRequest(ip, cameraPort, "set_date");
+      var url = new URL(urls);
+      url.search = new URLSearchParams({'value': (s)}).toString();
+      fetch(url).then(response => response.json()).then(data => {
          updateStatusText(ip, data.status_text);
       }).catch((error) => {
             updateStatusText(ip, "Unable to reach host!");
@@ -89,6 +108,13 @@ async function setupButtonHandlers()
 {
    cameraPort = await getServer("get_camera_port");
    console.log(cameraPort)
+   
+   document.querySelector("#sync-time-button").addEventListener ("click", async function () {
+      setDate();
+   });
+   document.querySelector("#update-state-button").addEventListener ("click", async function () {
+      updateStatus();
+   });
    
    document.querySelector("#all-capture-still-image-button").addEventListener ("click", async function () {
       await setupAllButton("capture_still_image", "Capturing ...");
@@ -115,5 +141,5 @@ async function setupButtonHandlers()
 
 document.addEventListener("DOMContentLoaded", function() {
     setupButtonHandlers();
-    setupInitialStatusText();
+    updateStatus();
 });

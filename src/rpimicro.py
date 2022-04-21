@@ -177,8 +177,10 @@ def record_video():
     camevents.set_name_desc_trigger_info(name, description)
     if camera.is_recording():
         return jsonify(result=False, status_text="Already recording!")
-    camera.record_video()
-    return jsonify(result=True, status_text="Recording video...", id=camevents.recording.id())
+    if camera.record_video():
+        return jsonify(result=True, status_text="Recording video...", id=camevents.recording.id())
+    else:
+        return jsonify(result=False, status_text="Unable to record video! Check size! 1080p is maximum!")
 
 @app.route('/stop_record_video')
 def stop_record_video():
@@ -286,6 +288,7 @@ def capture_still_image():
 @app.route('/recording_state')
 def recording_state():
     mode = "playback"
+    print(camera.is_recording())
     if camera.is_recording():
         mode = "recording"
     data = {
