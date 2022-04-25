@@ -288,7 +288,7 @@ async function setDate() {
 
 document.addEventListener("DOMContentLoaded", function() { 
    setupStartButtonHandler("#record-video-button", "#record-video-button-text", "Record Video", "record_video", "stop_record_video")
-   setupStartButtonHandler("#capture-sequence-button", "#capture-sequence-button-text", "Capture Luma Image Sequence", "capture_image_sequence", "stop_capture_image_sequence")
+   setupStartButtonHandler("#capture-sequence-button", "#capture-sequence-button-text", "Capture Image Sequence", "capture_image_sequence", "stop_capture_image_sequence")
    setupStartButtonHandler("#detect-objects-button", "#detect-objects-button-text", "Detect Objects", "detect_objects", "stop_detect_objects")
    
    setupCaptureStillImageButtonHandler();

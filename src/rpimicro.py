@@ -28,16 +28,17 @@ class CamEvents(CameraEvents):
 
     def video_start_recording(self, camera):
         global status_text
-        self.recording = self.recordings.start_recording(self.name, self.description, camera)
+        self.video = self.recordings.start_recording(self.name, self.description, camera)
         status_text = "Start video recording ..."
         return self.recording.make_file_path()
 
     def video_end_recording(self, camera):
         global status_text
         status_text = "Video recording ended"
-        self.recordings.end_recording(self.recording)
+        self.recordings.end_recording(self.video)
 
     def image_start_capture(self, camera):
+        global status_text
         self.capture = self.recordings.start_capture_still_image(self.name, self.description, camera)
         return self.capture.make_file_path()
 
@@ -47,6 +48,8 @@ class CamEvents(CameraEvents):
         self.recordings.end_capture_still_image(self.capture)
         
     def image_sequence_start_capture(self, camera):
+        global status_text
+        status_text = "Start image sequence..."
         self.imgseq_capture = self.recordings.start_image_sequence(self.name, self.description, camera)
         return self.imgseq_capture.make_file_path()
 
@@ -58,11 +61,13 @@ class CamEvents(CameraEvents):
     def objdet_start(self, camera):
         global status_text
         status_text = "Running object detection"
-        return "file.csv"
+        self.objdet = self.recordings.start_objdet(self.name, self.description, camera)
+        return self.objdet.make_file_path()
         
     def objdet_end(self, camera):
         global status_text
         status_text = "Object detection stopped"
+        self.recordings.end_objdet(self.objdet)
 
 pdetector       = None
 detectorstr     = "-"
@@ -70,7 +75,6 @@ resmodestr      = f"{app.config['CAMERA_SIZE'][0]}x{app.config['CAMERA_SIZE'][1]
 recorded_files  = Recordings(app.config['RECORDING_FOLDER'])
 camevents       = CamEvents(recorded_files)
 camera          = create_camera(app.config['CAMERA_MODULE'], camevents, app.config['CAMERA_SIZE'], app.config['STREAM_SIZE'], app.config['CAMERA_SEQUENCE_FPS'], app.config['CAMERA_SENSOR_MODE'])
-
 
 def generate_video(camera):
     video_size = app.config['CAMERA_SIZE']
@@ -191,10 +195,10 @@ def stop_record_video():
         return jsonify(
             result=True,
             status_text="Recording stopped!",
-            id = camevents.recording.id(),
-            name = camevents.recording.meta['name'],
-            description = camevents.recording.meta['description'],
-            datetime = camevents.recording.meta['datetime'])
+            id = camevents.video.id(),
+            name = camevents.video.meta['name'],
+            description = camevents.video.meta['description'],
+            datetime = camevents.video.meta['datetime'])
     else:
         return jsonify(result=False, status_text="Not recording!")
 
@@ -245,10 +249,12 @@ def detect_objects():
     camevents.set_name_desc_trigger_info(name, description)
     if camera.is_recording():
         return jsonify(result=False, status_text="Already recording!")
-    camera.detect_objects()
+    if pdetector is None:
+        return jsonify(result=False, status_text="Detector not set!")
+    camera.detect_objects(pdetector)
     return jsonify(result = True,
         status_text = "Recording video...",
-        id = camevents.imgseq_capture.id())
+        id = camevents.objdet.id())
 
 @app.route('/stop_detect_objects')
 def stop_detect_objects():
@@ -258,10 +264,10 @@ def stop_detect_objects():
         camera.stop_detect_objects()
         return jsonify(result = True,
             status_text = "Recording stopped!",
-            id = camevents.imgseq_capture.id(),
-            name = camevents.imgseq_capture.meta['name'],
-            description = camevents.imgseq_capture.meta['description'],
-            datetime = camevents.imgseq_capture.meta['datetime'])
+            id = camevents.objdet.id(),
+            name = camevents.objdet.meta['name'],
+            description = camevents.objdet.meta['description'],
+            datetime = camevents.objdet.meta['datetime'])
     else:
         return jsonify(result=False, status_text="Not recording!")
 

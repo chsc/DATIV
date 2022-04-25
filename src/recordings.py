@@ -9,7 +9,7 @@ META_FILE_EXT     = ".json"
 IMAGE_FILE_EXT    = ".png"
 VIDEO_FILE_EXT    = ".h264"
 IMAGESEQ_FILE_EXT = ".zip"
-OBJDET_FILE_EXT   = ".csv"
+OBJDET_FILE_EXT   = ".zip"
 
 def build_base_name(name, now):
     return name + "_" + now.strftime("%Y-%m-%d_%H-%M-%S_%f")
@@ -229,22 +229,6 @@ class Recordings:
         except Exception as inst:
             print(inst)
             return None
-
-    #def get_detect_file(self, ident):
-    #    try:
-    #        recording = self.recordings[ident]
-    #        return recording.get_detect_file_name()
-    #    except Exception as inst:
-    #        print(inst)
-    #        return None
-    
-    #def get_detect_csv_file(self, ident):
-    #    try:
-    #        recording = self.recordings[ident]
-    #        return recording.get_detect_csv_file_name()
-    #    except Exception as inst:
-    #        print(inst)
-    #        return None
     
     def is_image_sequence(self, ident):
         try:

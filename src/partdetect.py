@@ -11,8 +11,8 @@ import detector
 class ParticleDetectorThreshold(detector.Detector):
     def __init__(self, ratio = 1.1):
         self.timage = True
-        self.threshold = 60
-        self.maxArea = 300
+        self.threshold = -1
+        self.maxArea = 500
         self.minArea = 20
     
     def set_threshold(self, th):
@@ -45,19 +45,21 @@ class ParticleDetectorThreshold(detector.Detector):
             cnt = contours[i]
             area = cv2.contourArea(cnt)
             if area > self.maxArea or area < self.minArea:
-                #cv2.drawContours(contimage, contours, i, (0, 255, 255), 1)
+                cv2.drawContours(contimage, contours, i, (0, 255, 255), 1)
                 continue
             is_round = detector.is_round(cnt, area, 1.5)
             if not is_round:
-                #cv2.drawContours(contimage, contours, i, (0, 0, 255), 1)
+                cv2.drawContours(contimage, contours, i, (0, 0, 255), 1)
                 continue
                 
             if genout:
                 cv2.drawContours(contimage, contours, i, (0, 255, 0), 1)
                 
+            bx, by, bw, bh = cv2.boundingRect(cnt)
             cx, cy = detector.contour_center(cnt)
+            area = cv2.contourArea(cnt)
             
-            particles.append((cx, cy, area))
+            particles.append((bx, by, bw, bh, cx, cy, area))
             
         return contimage, particles
         
@@ -85,16 +87,44 @@ class ParticleDetectorDifference(detector.Detector):
         if len(ret) == 3: # for old version of find contours (pre 3.2)
             contours = ret[1]
         
+        particles = []
         contimage = None
         if genout:
             contimage = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
-            for i in range(len(contours)):
-                cnt = contours[i]
+        
+        for i in range(len(contours)):
+            cnt = contours[i]
+                
+            bx, by, bw, bh = cv2.boundingRect(cnt)
+            cx, cy = detector.contour_center(cnt)
+            area = cv2.contourArea(cnt)
+            
+            particles.append((bx, by, bw, bh, cx, cy, area))
+                
+            if genout:
                 cv2.drawContours(contimage, contours, i, (0, 255, 0), 1)
             
-        return contimage, []
+        return contimage, particles
 
 
+        
+       
+        #if self.camera.motiondet.detect_motion(ydata):
+            #print("###")
+        #    r, th = cv2.threshold(ydata, 120, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        #    cv2.imwrite(str(self.cnt) + "img.png", th)
+        
+            #cv2.imwrite(str(self.cnt) + "img.png", self.camera.motiondet.delta)
+        
+        #mask = self.backsub.apply(ydata)
+        #mask = mask[mask > 200]
+        
+        #height, width = mask.shape
+        #avg = cv2.sumElems(mask)[0] / (width * height) * 100.0
+        #if avg > 10:
+        #     print(avg)
+        #     cv2.imwrite(str(self.cnt) + "img.png", mask)
+        
 class ParticleDetector3(detector.Detector):
     def __init__(self, ratio = 1.1):
         self.reject_ratio = ratio

@@ -68,7 +68,7 @@ class YuvOutput(object):
             self.frame(ydata, 0.0, 0)
         else:
             self.frame(ydata, time.time() - self.tstart, self.cnt)
-            self.cnt += 1
+        self.cnt += 1
                 
     def flush(self):
         pass
@@ -94,13 +94,13 @@ class ImgSeqOutput(YuvFpsOutput):
         self.csvwr.writerow(['[nr]', '[s]'])
         
     def frame(self, ydata, t, cnt):
-        print('frame', t, cnt)
+        #print('frame', t, cnt)
         r, buf = cv2.imencode('.png', ydata)
         self.zipf.writestr(f"{cnt}.png", buf)
         self.csvwr.writerow([cnt, t])
         
 class ObjDetOutput(YuvOutput):
-    def __init__(self, odet, camera, size, fname):
+    def __init__(self, camera, odet, size, fname):
         YuvOutput.__init__(self, camera, size)
         self.zipf = zipfile.ZipFile(fname, mode='w', compression=zipfile.ZIP_DEFLATED)
         self.csvstr = io.StringIO()
@@ -111,36 +111,20 @@ class ObjDetOutput(YuvOutput):
         self.zipf.writestr(f"objects.csv", self.csvstr.getvalue())
         
     def start(self):
-        self.csvwr.writerow(['image', 'time', 'bx', 'by', 'bw', 'bh', 'cx', 'cy'])
-        self.csvwr.writerow(['[nr]', '[s]', '[px]', '[px]', '[px]', '[px]'])
+        self.csvwr.writerow(['image', 'time', 'bx', 'by', 'bw', 'bh', 'cx', 'cy', 'area'])
+        self.csvwr.writerow(['[nr]', '[s]', '[px]', '[px]', '[px]', '[px]', '[px]', '[px]', '[px²]'])
         
     def frame(self, ydata, t, cnt):
+        #r, buf = cv2.imencode('.png', ydata)
+        #self.zipf.writestr(f"{cnt}.png", buf)
         
-        r, buf = cv2.imencode('.png', ydata)
-        self.zipf.writestr(f"{cnt}.png", buf)
-        
-        self.csvwr.writerow([cnt, t])
-        
-        det_objs, _ = pdetector.detect(output, False)
+        _, dobjs = self.odet.detect(ydata, False)
+        for dobj in dobjs:
+            bx, by, bw, bh, cx, cy, area = dobj;
+            self.csvwr.writerow([cnt, t, bx, by, bw, bh, cx, cy, area])
         
         
-       
-        #if self.camera.motiondet.detect_motion(ydata):
-            #print("###")
-        #    r, th = cv2.threshold(ydata, 120, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        #    cv2.imwrite(str(self.cnt) + "img.png", th)
-        
-            #cv2.imwrite(str(self.cnt) + "img.png", self.camera.motiondet.delta)
-        
-        #mask = self.backsub.apply(ydata)
-        #mask = mask[mask > 200]
-        
-        #height, width = mask.shape
-        #avg = cv2.sumElems(mask)[0] / (width * height) * 100.0
-        #if avg > 10:
-        #     print(avg)
-        #     cv2.imwrite(str(self.cnt) + "img.png", mask)
-        
+                
 
 class MCamera(Camera):
     def __init__(self, camevents, camera_size, stream_size, seqfps, smode):
@@ -266,13 +250,13 @@ class MCamera(Camera):
         self.cached_image = False
         self.lock.release()
     
-    def detect_objects(self):
+    def detect_objects(self, odet):
         if self.mode != Mode.RECORD_OFF:
             return
         self.lock.acquire()
         self.cached_image = True
         filename = self.camevents.objdet_start(self)
-        yuv_output = ObjDetOutput(self, self.camera_size, self.seqfps, filename)
+        yuv_output = ObjDetOutput(self, odet, self.camera_size, filename)
         self.camera.start_recording(yuv_output, format='yuv')
         self.mode = Mode.OBJDET
         self.lock.release()
@@ -283,7 +267,7 @@ class MCamera(Camera):
         self.lock.acquire()
         self.mode = Mode.RECORD_OFF
         self.camera.stop_recording()
-        self.camevents.objdet_stop(self)
+        self.camevents.objdet_end(self)
         self.cached_image = False
         self.lock.release()
         
