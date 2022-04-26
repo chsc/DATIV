@@ -4,4 +4,4 @@
 
 git remote add primarycamera pi@192.168.1.10:/home/pi/rpimicro
 
-git pull primarycamera
+sshpass -p raspberry git pull primarycamera
