@@ -54,7 +54,7 @@ async function updateStatus() {
    //const cameraPort = await getServer("get_camera_port")
    //console.log(resp)
    for(const [ip, host] of Object.entries(resp)) {
-      updateStatusText(ip, "Updating status...");
+      updateStatusText(ip, "Updating state...");
       const query = makeRequest(ip, cameraPort, "recording_state");
       console.log(query)
       fetch(query).then(response => response.json()).then(data => {
@@ -80,7 +80,7 @@ async function setupAllButton(request, btext) {
       fetch(query).then(response => response.json()).then(data => {
          updateStatusText(ip, data.status_text);
       }).catch((error) => {
-            updateStatusText(ip, "Unable to reach host!");
+         updateStatusText(ip, "Unable to reach host!");
       });
    }
 }
@@ -126,17 +126,25 @@ async function setupButtonHandlers()
       await setupAllButton("stop_record_video", "Stop recording ...");
    });
    document.querySelector("#all-record-image-sequence-button").addEventListener ("click", async function () {
-      await setupAllButton("record_image_sequnce", "Start sequence ...");
+      await setupAllButton("record_image_sequence", "Start sequence ...");
    });
    document.querySelector("#all-stop-record-image-sequence-button").addEventListener ("click", async function () {
-      await setupAllButton("stop_record_image_sequnce", "Stup sequence ...");
+      await setupAllButton("stop_record_image_sequnce", "Stop sequence ...");
+   });
+   document.querySelector("#all-start-detection-button").addEventListener ("click", async function () {
+      await setupAllButton("detect_objects", "Start object detection ...");
+   });
+   document.querySelector("#all-stop-detection-button").addEventListener ("click", async function () {
+      await setupAllButton("stop_detect_objects", "Stop object detection ...");
    });
   
    setupButtons("capture-still-image", "capture_still_image");
    setupButtons("record-video", "record_video");
    setupButtons("stop-record-video", "stop_record_video");
-   setupButtons("start-detection", "start_detection");
-   setupButtons("stop-detection", "stop_detection");
+   setupButtons("record-image-sequence", "record_image_sequence");
+   setupButtons("stop-record-image-sequence", "stop_record_image_sequence");
+   setupButtons("start-detection", "detect_objects");
+   setupButtons("stop-detection", "stop_detect_objects");
 }
 
 document.addEventListener("DOMContentLoaded", function() {

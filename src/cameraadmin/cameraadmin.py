@@ -6,6 +6,8 @@ app = flask.Flask(__name__, static_folder='../static', template_folder='../templ
 flask_cors.CORS(app)
 app.config.from_pyfile('config.py')
 
+title = "SANSAERO"
+
 class CameraNetwork:
     def __init__(self, port):
         self.camera_hosts = {}
@@ -45,11 +47,11 @@ def get_camera_port():
 
 @app.route('/overview')
 def overview():
-    return flask.render_template('overview.html', title='RPiMicroscope', camnetwork=cnetwork)
+    return flask.render_template('overview.html', title=title, camnetwork=cnetwork)
 
 @app.route('/')
 def index():
-    return flask.render_template('camnetwork.html', title='RPiMicroscope', camnetwork=cnetwork)
+    return flask.render_template('camnetwork.html', title=title, camnetwork=cnetwork)
 
 @app.route('/favicon.ico')
 def favicon():

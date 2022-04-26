@@ -30,7 +30,7 @@ class CamEvents(CameraEvents):
         global status_text
         self.video = self.recordings.start_recording(self.name, self.description, camera)
         status_text = "Start video recording ..."
-        return self.recording.make_file_path()
+        return self.video.make_file_path()
 
     def video_end_recording(self, camera):
         global status_text
@@ -182,7 +182,7 @@ def record_video():
     if camera.is_recording():
         return jsonify(result=False, status_text="Already recording!")
     if camera.record_video():
-        return jsonify(result=True, status_text="Recording video...", id=camevents.recording.id())
+        return jsonify(result=True, status_text="Recording video...", id=camevents.video.id())
     else:
         return jsonify(result=False, status_text="Unable to record video! Check size! 1080p is maximum!")
 

@@ -92,15 +92,15 @@
       <label class="subcatlabel">Threshold <output id="detector-threshold-output" for="detector-threshold">-</output></label>
       <input id="detector-threshold" name="detector-threshold" type="range" min="-2" max="255" step="1" value="127">
 
-      <button class="redbutton" id="record-video-button">
-        <img class="buttonicon" src="{{ url_for('static', filename='icons/record-24.png') }}"/>
-        <span id="record-video-button-text">Start Video Recording</span>
-      </button>
       <button class="redbutton" id="capture-still-image-button">
         <img class="buttonicon" src="{{ url_for('static', filename='icons/record-24.png') }}"/>
         <span id="capture-still-image-button-text">Capture Still Image</span>
       </button>
-       <button class="redbutton" id="capture-sequence-button">
+      <button class="redbutton" id="record-video-button">
+        <img class="buttonicon" src="{{ url_for('static', filename='icons/record-24.png') }}"/>
+        <span id="record-video-button-text">Start Video Recording</span>
+      </button>
+      <button class="redbutton" id="capture-sequence-button">
         <img class="buttonicon" src="{{ url_for('static', filename='icons/record-24.png') }}"/>
         <span id="capture-sequence-button-text">Capture Image Sequences</span>
       </button>
@@ -110,6 +110,10 @@
       </button>
       
       <span id="status" class="status-normal">...</span>
+      
+      <button class="greenbutton" id="sync-time-button">
+        Sync Time
+      </button>
       
     </div>
   </div>
