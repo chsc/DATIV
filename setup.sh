@@ -14,4 +14,5 @@ sudo apt-get install python3-picamera
 
 pip3 install -U flask-cors
 
-./systemd/install_rpimicro.sh
+cd systemd
+./install_rpimicro.sh
