@@ -365,6 +365,10 @@ def get_params():
     get_camera_parameters(data, camera)
     get_det_parameters(data, pdetector)
     return jsonify(data)
+    
+@app.route('/update')
+def update():
+    print(os.system('sshpass -p raspberry git pull primarycamera'))
 
 @app.route('/')
 def index():
