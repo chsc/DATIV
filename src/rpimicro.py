@@ -368,7 +368,11 @@ def get_params():
     
 @app.route('/update')
 def update():
-    print(os.system('sshpass -p raspberry git pull primarycamera'))
+    ret1 = os.system('sshpass -p raspberry git pull primarycamera')
+    ret2 = os.system('echo \'raspberry\' | sudo systemctl restart rpimicro')
+    if ret1 == 0:
+        return jsonify({result: True, return_code:ret1, return_code_2:ret2 status_text: 'Sucessfully Updated!'})
+    return jsonify({result: False, return_code:ret1, return_code_2:ret2 status_text: 'Updated Failed!'})
 
 @app.route('/')
 def index():

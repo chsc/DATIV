@@ -5,6 +5,7 @@ sudo apt update
 sudo apt full-upgrade
 
 echo "Installing prerequisites ..."
+sudo apt-get install sshpass
 sudo apt-get install python3
 sudo apt-get install python3-pip
 sudo apt-get install python3-flask
