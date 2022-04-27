@@ -117,32 +117,35 @@ async function setupButtonHandlers()
    });
    
    document.querySelector("#all-capture-still-image-button").addEventListener ("click", async function () {
-      await setupAllButton("capture_still_image", "Capturing ...");
+      await setupAllButton("capture_still_image", "Sending: Capture still image ...");
    });
+   
    document.querySelector("#all-record-video-button").addEventListener ("click", async function () {
-      await setupAllButton("record_video", "Start recording ...");
+      await setupAllButton("record_video", "Sending: Start recording ...");
    });
    document.querySelector("#all-stop-record-video-button").addEventListener ("click", async function () {
-      await setupAllButton("stop_record_video", "Stop recording ...");
+      await setupAllButton("stop_record_video", "Sending: Stop recording ...");
    });
-   document.querySelector("#all-record-image-sequence-button").addEventListener ("click", async function () {
-      await setupAllButton("record_image_sequence", "Start sequence ...");
+   
+   document.querySelector("#all-capture-image-sequence-button").addEventListener ("click", async function () {
+      await setupAllButton("capture_image_sequence", "Sending: Start image sequence ...");
    });
-   document.querySelector("#all-stop-record-image-sequence-button").addEventListener ("click", async function () {
-      await setupAllButton("stop_record_image_sequnce", "Stop sequence ...");
+   document.querySelector("#all-stop-capture-image-sequence-button").addEventListener ("click", async function () {
+      await setupAllButton("stop_capture_image_sequence", "Sending: Stop image sequence ...");
    });
+   
    document.querySelector("#all-start-detection-button").addEventListener ("click", async function () {
-      await setupAllButton("detect_objects", "Start object detection ...");
+      await setupAllButton("detect_objects", "Sending: Start object detection ...");
    });
    document.querySelector("#all-stop-detection-button").addEventListener ("click", async function () {
-      await setupAllButton("stop_detect_objects", "Stop object detection ...");
+      await setupAllButton("stop_detect_objects", "Sending: Stop object detection ...");
    });
   
    setupButtons("capture-still-image", "capture_still_image");
    setupButtons("record-video", "record_video");
    setupButtons("stop-record-video", "stop_record_video");
-   setupButtons("record-image-sequence", "record_image_sequence");
-   setupButtons("stop-record-image-sequence", "stop_record_image_sequence");
+   setupButtons("capture-image-sequence", "capture_image_sequence");
+   setupButtons("stop-capture-image-sequence", "stop_capture_image_sequence");
    setupButtons("start-detection", "detect_objects");
    setupButtons("stop-detection", "stop_detect_objects");
 }

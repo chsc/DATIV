@@ -154,11 +154,6 @@ def download_meta(ident):
     filename = recorded_files.get_meta_file(ident)
     return send_from_directory(app.config['RECORDING_FOLDER'], filename, as_attachment=True)
 
-@app.route('/player/<ident>')
-def player(ident):
-    rec = recorded_files.get_recording(ident)
-    return render_template('player.html', recording=rec)
-
 @app.route('/delete_recording/<ident>')
 def delete_recording(ident):
     ok = recorded_files.delete_recording(ident)
@@ -175,7 +170,7 @@ def record_video():
     name        = request.args.get('name')
     description = request.args.get('description')
     if not name:
-        name = "Movie"
+        name = "Video"
     if not description:
         description = "(no description provided)"
     camevents.set_name_desc_trigger_info(name, description)
@@ -210,7 +205,7 @@ def capture_image_sequence():
     name        = request.args.get('name')
     description = request.args.get('description')
     if not name:
-        name = "Sequence"
+        name = "ImageSequence"
     if not description:
         description = "(no description provided)"
     camevents.set_name_desc_trigger_info(name, description)
@@ -218,7 +213,7 @@ def capture_image_sequence():
         return jsonify(result=False, status_text="Already recording!")
     camera.capture_image_sequence()
     return jsonify(result = True,
-        status_text = "Recording video...",
+        status_text = "Capturing image sequence...",
         id = camevents.imgseq_capture.id())
 
 @app.route('/stop_capture_image_sequence')
@@ -228,7 +223,7 @@ def stop_capture_image_sequence():
     if camera.is_recording():
         camera.stop_capture_image_sequence()
         return jsonify(result=True,
-            status_text = "Recording stopped!",
+            status_text = "Capturing stopped!",
             id = camevents.imgseq_capture.id(),
             name = camevents.imgseq_capture.meta['name'],
             description = camevents.imgseq_capture.meta['description'],
@@ -243,7 +238,7 @@ def detect_objects():
     name        = request.args.get('name')
     description = request.args.get('description')
     if not name:
-        name = "Sequence"
+        name = "ObjectDetection"
     if not description:
         description = "(no description provided)"
     camevents.set_name_desc_trigger_info(name, description)
@@ -253,7 +248,7 @@ def detect_objects():
         return jsonify(result=False, status_text="Detector not set!")
     camera.detect_objects(pdetector)
     return jsonify(result = True,
-        status_text = "Recording video...",
+        status_text = "Detecting objects...",
         id = camevents.objdet.id())
 
 @app.route('/stop_detect_objects')
@@ -263,7 +258,7 @@ def stop_detect_objects():
     if camera.is_recording():
         camera.stop_detect_objects()
         return jsonify(result = True,
-            status_text = "Recording stopped!",
+            status_text = "Object detection stopped!",
             id = camevents.objdet.id(),
             name = camevents.objdet.meta['name'],
             description = camevents.objdet.meta['description'],
@@ -368,6 +363,7 @@ def get_params():
     
 @app.route('/update')
 def update():
+    #tODO: does not work!!!
     ret1 = os.system('sshpass -p raspberry git pull primarycamera')
     ret2 = os.system('echo \'raspberry\' | sudo systemctl restart rpimicro')
     if ret1 == 0:

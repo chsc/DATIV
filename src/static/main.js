@@ -84,11 +84,6 @@ function addTableEntry(name, id, isVideo, description, dateTime)
    
    cellName.innerHTML = name;
    
-   if(isVideo) {
-      cellIcons.innerHTML = "<a href=\"/player/" + id +  "\"><img src=\"/static/icons/video-24.png\" alt=\"Video Player\"/></a> ";
-   } else {
-      cellIcons.innerHTML = "<a href=\"/player/" + id +  "\"><img src=\"/static/icons/image-24.png\" alt=\"Image View\"/></a> ";
-   }
    cellIcons.innerHTML += "<a href=\"/download/" + id + "\" download><img src=\"/static/icons/download-24.png\" alt=\"Download File\"/></a> ";
    cellIcons.innerHTML += "<a href=\"/download_meta/" + id + "\" download><img src=\"/static/icons/meta-24.png\" alt=\"Download Meta\"/></a> ";
    cellIcons.innerHTML += "<a href=\"#\" onclick=\"deleteTableEntry(this)\" data-id=\"" + id + "\"><img src=\"/static/icons/delete-24.png\" alt=\"Delete File\"/></a>";

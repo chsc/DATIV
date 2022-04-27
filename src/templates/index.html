@@ -130,19 +130,6 @@
         <tr>
           <td>{{ rectable.recordings[item].meta['name'] }}</td>
           <td>
-            <a href="{{ url_for('player', ident=rectable.recordings[item].meta['id']) }}">
-              {% if rectable.recordings[item].is_video() %}
-              <img src="{{ url_for('static', filename='icons/video-24.png') }}" alt="Video Player"/>
-              {% elif rectable.recordings[item].is_still_image() %}
-              <img src="{{ url_for('static', filename='icons/image-24.png') }}" alt="Image View"/>
-              {% elif rectable.recordings[item].is_image_sequence() %}
-              <img src="{{ url_for('static', filename='icons/image-24.png') }}" alt="Image View"/>
-              {% elif rectable.recordings[item].is_objdet() %}
-              <img src="{{ url_for('static', filename='icons/video-24.png') }}" alt="Image View"/>
-              {% else %}
-              View
-              {% endif %}
-            </a> 
             <a href="{{ url_for('download', ident=rectable.recordings[item].meta['id']) }}" download>
               <img src="{{ url_for('static', filename='icons/download-24.png') }}"" alt="Download"/>
             </a>
