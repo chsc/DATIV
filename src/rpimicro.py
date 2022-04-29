@@ -158,10 +158,17 @@ def download_meta(ident):
 def delete_recording(ident):
     ok = recorded_files.delete_recording(ident)
     if ok:
-        return jsonify(result=True, status_text=f"Recording '{ident}' deleted")
+        return jsonify(result=True, status_text=f"Recording '{ident}' deleted!")
     else:
         return jsonify(result=False, status_text=f"Unable to delete recording: '{ident}'")
 
+@app.route('/delete_all_recordings')
+def delete_all_recordings():
+    ok = recorded_files.delete_all_recordings()
+    if ok:
+        return jsonify(result=True, status_text=f"All recordings deleted!")
+    else:
+        return jsonify(result=False, status_text=f"Unable to delete recordings!")
 
 @app.route('/record_video')
 def record_video():

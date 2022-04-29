@@ -16,9 +16,6 @@
         <a href="{{url_for('overview')}}" alt="Overview">Show Overview</a>
     </p>
     
-    <button class="greenbutton" id="sync-time-button">Synchronize Time</button>
-    <button class="greenbutton" id="update-state-button">Update State</button>
-
     <table id="host-table">
         <tbody>
             <tr>
@@ -64,7 +61,14 @@
             </tr>
             {% endfor %}
         </tbody>
-      </table>
+    </table>
+      
+      
+    <button class="greenbutton" id="sync-time-button">Synchronize Time</button>
+    <button class="greenbutton" id="update-state-button">Update State</button>
+    <button class="greenbutton" id="delete-all-recordings-button">Delete All Recordings</button>
+    
+      
     <footer>{{copyright}}</footer>
 </body>
 <script type=text/javascript src="{{url_for('static', filename='camnetwork.js')}}"></script>

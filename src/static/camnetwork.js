@@ -92,10 +92,24 @@ async function setDate() {
    console.log(s)
    const resp = await getServer("get_hosts");
    for(const [ip, host] of Object.entries(resp)) {
-      updateStatusText(ip, "Setting time and date...");
+      updateStatusText(ip, "Sending: Setting time and date...");
       const urls = makeRequest(ip, cameraPort, "set_date");
       var url = new URL(urls);
       url.search = new URLSearchParams({'value': (s)}).toString();
+      fetch(url).then(response => response.json()).then(data => {
+         updateStatusText(ip, data.status_text);
+      }).catch((error) => {
+            updateStatusText(ip, "Unable to reach host!");
+      });
+   }
+}
+
+async function deleteAllRecordings() {
+   const resp = await getServer("get_hosts");
+   for(const [ip, host] of Object.entries(resp)) {
+      updateStatusText(ip, "Sending: Delete all recordings...");
+      const urls = makeRequest(ip, cameraPort, "delete_all_recordings");
+      var url = new URL(urls);
       fetch(url).then(response => response.json()).then(data => {
          updateStatusText(ip, data.status_text);
       }).catch((error) => {
@@ -114,6 +128,11 @@ async function setupButtonHandlers()
    });
    document.querySelector("#update-state-button").addEventListener ("click", async function () {
       updateStatus();
+   });
+   document.querySelector("#delete-all-recordings-button").addEventListener ("click", async function () {
+      if(confirm('Do you really want to delete all recordings?')) {
+         deleteAllRecordings();
+      }
    });
    
    document.querySelector("#all-capture-still-image-button").addEventListener ("click", async function () {

@@ -213,6 +213,13 @@ class Recordings:
         except Exception as inst:
             print(inst)
             return False
+            
+    def delete_all_recordings(self):
+        for _, r in self.recordings.items():
+            os.remove(r.make_json_path())
+            os.remove(r.make_file_path())
+        self.recordings = []
+        return True
 
     def get_file(self, ident):
         try:
