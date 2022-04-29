@@ -15,7 +15,7 @@ CAMERA_SENSOR_MODE   = 4 # 0 for 3280x2464
 #CAMERA_REC_FPS       = 25
 CAMERA_SEQUENCE_FPS  = 0.5
 CAMERA_SETTINGS      = 'camera_settings.json'
-STREAM_SIZE         = (960, 544)
+STREAM_SIZE         = (640, 400)
 #STREAM_SIZE          = (640, 400)
 
 CAMERA_MODULE      = "rpicamera" # or cvcamera
