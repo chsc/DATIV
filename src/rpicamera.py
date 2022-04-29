@@ -245,7 +245,15 @@ class MCamera(Camera):
         self.lock.acquire()
         self.cached_image = True
         filename = self.camevents.image_start_capture(self)
-        self.camera.capture(filename);
+        
+        #self.camera.capture(filename);
+        w, h = self.camera_size
+        w = (w + 31) // 32 * 32
+        h = (h + 15) // 16 * 16
+        output = np.empty((h, w, 3), dtype=np.uint8)
+        self.camera.capture(output, 'rgb')
+        cv2.imwrite(filename, output)
+        
         self.camevents.image_end_capture(self)
         self.cached_image = False
         self.lock.release()

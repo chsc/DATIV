@@ -302,7 +302,7 @@ def recording_state():
 def system_state():
     global status_text
     total, used, free = sysinfo.get_disk_free()
-    temp = sysinfo.get_temperature()
+    temp = round(sysinfo.get_temperature(), 1)
     hostname = sysinfo.get_hostname()
     data = {
         'hostname': hostname,
