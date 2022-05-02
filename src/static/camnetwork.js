@@ -77,10 +77,10 @@ async function setupButtonHandlers() {
    console.log(cameraPort)
    
    document.querySelector("#sync-time-button").addEventListener ("click", async function () {
-      setDate();bradcast("Updating state", "recording_state");
+      setDate();
    });
    document.querySelector("#update-state-button").addEventListener ("click", async function () {
-      
+      broadcast("Updating state", "recording_state");
    });
    document.querySelector("#delete-all-recordings-button").addEventListener ("click", async function () {
       if(confirm('Do you really want to delete all recordings?')) {
