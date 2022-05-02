@@ -21,7 +21,7 @@
             <tr>
                 <th style="width:10%">Host Name</th>
                 <th style="width:10%">IP</th>
-                <th style="width:15%">Status</th>
+                <th style="width:15%">State</th>
                 <th>
                     <button class="greenbutton" id="all-capture-still-image-button">Capture Still Image</button>
                 </th>
@@ -67,6 +67,13 @@
     <button class="greenbutton" id="sync-time-button">Synchronize Time</button>
     <button class="greenbutton" id="update-state-button">Update State</button>
     <button class="greenbutton" id="delete-all-recordings-button">Delete All Recordings</button>
+    
+    <label class="catlabel">Detector</label>
+    <select id="detector-selection">
+        <option value="-">-</option>
+        <option value="threshold">Threshold</option>
+        <option value="difference">Difference</option>
+    </select>
     
       
     <footer>{{copyright}}</footer>

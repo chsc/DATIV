@@ -131,9 +131,9 @@ def set_detector():
     elif v == "-":
         pdetector = None
     else:
-        return jsonify({"result": False , status_text: f"Unable to set detector: {v}"})
+        return jsonify({"result": False , "status_text": f"Unable to set detector: {v}"})
     detectorstr = v
-    return jsonify({"result": True , status_text: f"Detector {v} set."})
+    return jsonify({"result": True , "status_text": f"Detector '{v}' set"})
 
 @app.route('/get_detector')
 def get_detector():

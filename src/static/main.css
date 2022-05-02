@@ -32,9 +32,10 @@ textarea {
 
 select {
   appearance: none;
-  background-image: url(../static/icons/down-24.png);
+  /*background-image: url(../static/icons/down-24.png);*/
   background-position: center right;
   background-repeat: no-repeat;
+  height: 2em;
 }
 
 label.catlabel {
@@ -61,6 +62,7 @@ input {
 button {
   border: none;
   display: inline-block;
+  height: 2em;
 }
 
 button.redbutton {
@@ -74,7 +76,7 @@ button.redbutton-right {
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
   width: 50%;
-  margin: 0px;
+  margin-right: 0px;
 }
 
 button.redbutton:hover {
@@ -108,7 +110,7 @@ button.greenbutton-left {
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
   width: 50%;
-  margin: 0px;
+  margin-left: 0px;
 }
 
 button.greenbutton:hover {
@@ -163,13 +165,12 @@ a {
 
 table {
   width: 100%;
-  border-radius: 4px;
 }
 
 table, th, td {
   border-collapse: collapse;
   text-align: left;
-  padding: 2px;
+  padding: 6px;
 }
 
 tr:nth-child(even) {

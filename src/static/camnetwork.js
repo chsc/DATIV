@@ -34,25 +34,18 @@ async function setupButtons(idprefix, requeststr)
          var ip = node.getAttribute("data-ip");
          span = document.getElementById("status-" + ip);
          const query = makeRequest(ip, cameraPort, requeststr);
-         resp = await getServer(query);
-         if(resp != null && resp.result) {
-            console.log(resp);
-            if(span != null) {
-               span.textContent = resp.status_text;
-            }
-         } else {
-            if(span != null) {
-               span.textContent = "Request '" + requeststr + "' failed!";
-            }
-         }
+         console.log(query)
+         fetch(query).then(response => response.json()).then(data => {
+            updateStatusText(ip, data.status_text);
+         }).catch((error) => {
+            updateStatusText(ip, error.toString());
+         });
       })
    });
 }
 
 async function updateStatus() {
    const resp = await getServer("get_hosts");
-   //const cameraPort = await getServer("get_camera_port")
-   //console.log(resp)
    for(const [ip, host] of Object.entries(resp)) {
       updateStatusText(ip, "Updating state...");
       const query = makeRequest(ip, cameraPort, "recording_state");
@@ -60,7 +53,7 @@ async function updateStatus() {
       fetch(query).then(response => response.json()).then(data => {
          updateStatusText(ip, data.status_text);
       }).catch((error) => {
-         updateStatusText(ip, "Unable to reach host!");
+         updateStatusText(ip, error.toString());
       });
    }
 }
@@ -80,7 +73,7 @@ async function setupAllButton(request, btext) {
       fetch(query).then(response => response.json()).then(data => {
          updateStatusText(ip, data.status_text);
       }).catch((error) => {
-         updateStatusText(ip, "Unable to reach host!");
+         updateStatusText(ip, error.toString());
       });
    }
 }
@@ -99,7 +92,7 @@ async function setDate() {
       fetch(url).then(response => response.json()).then(data => {
          updateStatusText(ip, data.status_text);
       }).catch((error) => {
-            updateStatusText(ip, "Unable to reach host!");
+            updateStatusText(ip, error.toString());
       });
    }
 }
@@ -113,7 +106,7 @@ async function deleteAllRecordings() {
       fetch(url).then(response => response.json()).then(data => {
          updateStatusText(ip, data.status_text);
       }).catch((error) => {
-            updateStatusText(ip, "Unable to reach host!");
+            updateStatusText(ip, error.toString());
       });
    }
 }
@@ -169,7 +162,26 @@ async function setupButtonHandlers()
    setupButtons("stop-detection", "stop_detect_objects");
 }
 
+function setupDetectorControlHandler() {
+   const detectorDropDown = document.querySelector("#detector-selection");
+   detectorDropDown.addEventListener("change", async function() {
+      const resp = await getServer("get_hosts");
+      for(const [ip, host] of Object.entries(resp)) {
+         updateStatusText(ip, "Sending: Setting detector...");
+         const urls = makeRequest(ip, cameraPort, "set_detector");
+         var url = new URL(urls);
+         url.search = new URLSearchParams({'value': this.value}).toString();
+         fetch(url).then(response => response.json()).then(data => {
+            updateStatusText(ip, data.status_text);
+         }).catch((error) => {
+            updateStatusText(ip, error.toString());
+         });
+      }
+   });
+}
+
 document.addEventListener("DOMContentLoaded", function() {
     setupButtonHandlers();
+    setupDetectorControlHandler();
     updateStatus();
 });
