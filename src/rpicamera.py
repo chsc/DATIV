@@ -244,7 +244,6 @@ class MCamera(Camera):
             return
         self.lock.acquire()
         self.cached_image = True
-        self.mode = Mode.IMGSEQ
         filename = self.camevents.image_start_capture(self)
         
         #self.camera.capture(filename);
