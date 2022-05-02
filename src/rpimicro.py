@@ -273,7 +273,6 @@ def stop_detect_objects():
     else:
         return jsonify(result=False, status_text="Not recording!")
 
-
 @app.route('/capture_still_image')
 def capture_still_image():
     global camera
@@ -367,6 +366,12 @@ def get_params():
     get_camera_parameters(data, camera)
     get_det_parameters(data, pdetector)
     return jsonify(data)
+
+@app.route('/reset')
+def reset():
+    global camera
+    camera.load_state(app.config['CAMERA_SETTINGS'])
+    return jsonify({"result": True, "status_text": 'Camera reset'})
     
 @app.route('/update')
 def update():

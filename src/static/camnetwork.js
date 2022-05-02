@@ -1,7 +1,6 @@
 var cameraPort = 80;
 
-async function getServer(endPoint, params)
-{
+async function getServer(endPoint, params) {
    try {
       var query = endPoint
       if(params != null) {
@@ -17,8 +16,7 @@ async function getServer(endPoint, params)
     }
 }
 
-function makeRequest(ip, port, reqstr)
-{
+function makeRequest(ip, port, reqstr) {
    if(port == 80) {
       return "http://" + ip + "/" + reqstr;
    } else {
@@ -26,34 +24,19 @@ function makeRequest(ip, port, reqstr)
    }
 }
 
-async function setupButtons(idprefix, requeststr)
-{
-   var capture = document.querySelectorAll("[id^='" + idprefix + "']");
-   capture.forEach(node => {
-      node.addEventListener("click", async function() {
-         var ip = node.getAttribute("data-ip");
-         span = document.getElementById("status-" + ip);
-         const query = makeRequest(ip, cameraPort, requeststr);
-         console.log(query)
-         fetch(query).then(response => response.json()).then(data => {
-            updateStatusText(ip, data.status_text);
-         }).catch((error) => {
-            updateStatusText(ip, error.toString());
-         });
-      })
-   });
-}
-
-async function updateStatus() {
+async function broadcast(msg, request, params = null) {
    const resp = await getServer("get_hosts");
    for(const [ip, host] of Object.entries(resp)) {
-      updateStatusText(ip, "Updating state...");
-      const query = makeRequest(ip, cameraPort, "recording_state");
-      console.log(query)
-      fetch(query).then(response => response.json()).then(data => {
+      updateStatusText(ip, "Sending: " + msg + "...");
+      const urls = makeRequest(ip, cameraPort, request);
+      var url = new URL(urls);
+      if(params != null) {
+         url.search = new URLSearchParams(params).toString();
+      }
+      fetch(url).then(response => response.json()).then(data => {
          updateStatusText(ip, data.status_text);
       }).catch((error) => {
-         updateStatusText(ip, error.toString());
+            updateStatusText(ip, error.toString());
       });
    }
 }
@@ -65,17 +48,20 @@ function updateStatusText(ip, text) {
    }
 }
 
-async function setupAllButton(request, btext) {
-   resp = await getServer("get_hosts");
-   for(const [ip, host] of Object.entries(resp)) {
-      updateStatusText(ip, btext);
-      const query = makeRequest(ip, cameraPort, request);
-      fetch(query).then(response => response.json()).then(data => {
-         updateStatusText(ip, data.status_text);
-      }).catch((error) => {
-         updateStatusText(ip, error.toString());
-      });
-   }
+async function setupButtons(idprefix, requeststr) {
+   var capture = document.querySelectorAll("[id^='" + idprefix + "']");
+   capture.forEach(node => {
+      node.addEventListener("click", async function() {
+         var ip = node.getAttribute("data-ip");
+         const query = makeRequest(ip, cameraPort, requeststr);
+         console.log(query)
+         fetch(query).then(response => response.json()).then(data => {
+            updateStatusText(ip, data.status_text);
+         }).catch((error) => {
+            updateStatusText(ip, error.toString());
+         });
+      })
+   });
 }
 
 async function setDate() {
@@ -83,74 +69,53 @@ async function setDate() {
    const today = new Date(now);
    const s = today.toISOString();
    console.log(s)
-   const resp = await getServer("get_hosts");
-   for(const [ip, host] of Object.entries(resp)) {
-      updateStatusText(ip, "Sending: Setting time and date...");
-      const urls = makeRequest(ip, cameraPort, "set_date");
-      var url = new URL(urls);
-      url.search = new URLSearchParams({'value': (s)}).toString();
-      fetch(url).then(response => response.json()).then(data => {
-         updateStatusText(ip, data.status_text);
-      }).catch((error) => {
-            updateStatusText(ip, error.toString());
-      });
-   }
+   broadcast("Setting time and date", "set_date", {'value': (s)});
 }
 
-async function deleteAllRecordings() {
-   const resp = await getServer("get_hosts");
-   for(const [ip, host] of Object.entries(resp)) {
-      updateStatusText(ip, "Sending: Delete all recordings...");
-      const urls = makeRequest(ip, cameraPort, "delete_all_recordings");
-      var url = new URL(urls);
-      fetch(url).then(response => response.json()).then(data => {
-         updateStatusText(ip, data.status_text);
-      }).catch((error) => {
-            updateStatusText(ip, error.toString());
-      });
-   }
-}
-
-async function setupButtonHandlers()
-{
+async function setupButtonHandlers() {
    cameraPort = await getServer("get_camera_port");
    console.log(cameraPort)
    
    document.querySelector("#sync-time-button").addEventListener ("click", async function () {
-      setDate();
+      setDate();bradcast("Updating state", "recording_state");
    });
    document.querySelector("#update-state-button").addEventListener ("click", async function () {
-      updateStatus();
+      
    });
    document.querySelector("#delete-all-recordings-button").addEventListener ("click", async function () {
       if(confirm('Do you really want to delete all recordings?')) {
-         deleteAllRecordings();
+         broadcast("Delete all recordings", "delete_all_recordings")
+      }
+   });
+   document.querySelector("#reset-button").addEventListener ("click", async function () {
+      if(confirm('Do you really want to reset all cameras?')) {
+         broadcast("Reseting camera", "reset")
       }
    });
    
    document.querySelector("#all-capture-still-image-button").addEventListener ("click", async function () {
-      await setupAllButton("capture_still_image", "Sending: Capture still image ...");
+      broadcast("Capture still image", "capture_still_image");
    });
    
    document.querySelector("#all-record-video-button").addEventListener ("click", async function () {
-      await setupAllButton("record_video", "Sending: Start recording ...");
+      broadcast("Start recording", "record_video");
    });
    document.querySelector("#all-stop-record-video-button").addEventListener ("click", async function () {
-      await setupAllButton("stop_record_video", "Sending: Stop recording ...");
+      broadcast("Stop recording", "stop_record_video");
    });
    
    document.querySelector("#all-capture-image-sequence-button").addEventListener ("click", async function () {
-      await setupAllButton("capture_image_sequence", "Sending: Start image sequence ...");
+      broadcast("Start image sequence", "capture_image_sequence");
    });
    document.querySelector("#all-stop-capture-image-sequence-button").addEventListener ("click", async function () {
-      await setupAllButton("stop_capture_image_sequence", "Sending: Stop image sequence ...");
+      broadcast("Stop image sequence", "stop_capture_image_sequence");
    });
    
    document.querySelector("#all-start-detection-button").addEventListener ("click", async function () {
-      await setupAllButton("detect_objects", "Sending: Start object detection ...");
+      broadcast("Start object detection", "detect_objects");
    });
    document.querySelector("#all-stop-detection-button").addEventListener ("click", async function () {
-      await setupAllButton("stop_detect_objects", "Sending: Stop object detection ...");
+      broadcast("Stop object detection", "stop_detect_objects");
    });
   
    setupButtons("capture-still-image", "capture_still_image");
@@ -183,5 +148,5 @@ function setupDetectorControlHandler() {
 document.addEventListener("DOMContentLoaded", function() {
     setupButtonHandlers();
     setupDetectorControlHandler();
-    updateStatus();
+    broadcast("Updating state", "recording_state");
 });

@@ -123,8 +123,6 @@ class ObjDetOutput(YuvOutput):
             bx, by, bw, bh, cx, cy, area = dobj;
             self.csvwr.writerow([cnt, t, bx, by, bw, bh, cx, cy, area])
         
-        
-                
 
 class MCamera(Camera):
     def __init__(self, camevents, camera_size, stream_size, seqfps, smode):
