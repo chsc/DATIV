@@ -36,7 +36,7 @@ async function broadcast(msg, request, params = null) {
       fetch(url).then(response => response.json()).then(data => {
          updateStatusText(ip, data.status_text);
       }).catch((error) => {
-            updateStatusText(ip, error.toString());
+         updateStatusText(ip, error.toString());
       });
    }
 }

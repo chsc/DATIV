@@ -218,7 +218,7 @@ class Recordings:
         for _, r in self.recordings.items():
             os.remove(r.make_json_path())
             os.remove(r.make_file_path())
-        self.recordings = []
+        self.recordings = {}
         return True
 
     def get_file(self, ident):
