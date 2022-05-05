@@ -268,7 +268,7 @@ class MCamera(Camera):
     
     
     def detect_objects(self, odet):
-        with self.locK:
+        with self.lock:
             try:
                 if self.is_recording():
                     return False
