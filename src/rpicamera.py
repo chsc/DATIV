@@ -162,137 +162,158 @@ class MCamera(Camera):
     def close(self):
         self.camera.close()
 
-    def camera_thread(self):
-        while self.running:
-            time.sleep(1)
-            self.lock.acquire()
-            if self.mode != Mode.RECORD_OFF:
-                self.camera.wait_recording(0.5)
-                print('wait recording')
-            self.lock.release()
-                
-    def start(self):
-        self.running = True
-        t = Thread(target=self.camera_thread)
-        t.daemon = True
-        t.start()
+    #def _camera_recording_thread(self):
+    #    while self.running:
+    #        with self.lock:
+    #            if self.mode != Mode.RECORD_OFF:
+    #                self.camera.wait_recording(0.5)
+    #                print('wait recording')
+    #        time.sleep(1)
+            
+    #def _start(self):
+    #    self.running = True
+    #    t = Thread(target=self._camera_recording_thread)
+    #    t.daemon = True
+    #    t.start()
 
-    def stop(self):
-        self.running = False
-        
+    #def _stop(self):
+    #    self.running = False
+    
     def set_resolution_and_mode(self, res, mode):
-        self.lock.acquire()
-        self.cached_image = True
-        self.close()
-        time.sleep(0.5)
-        self.camera = picamera.PiCamera(sensor_mode=mode, resolution=res)
-        self.camera_size=res
-        self.cached_image = False
-        self.lock.release()
-        return True
+        with self.lock:
+            try:
+                self.close()
+                time.sleep(0.5)
+                self.camera = picamera.PiCamera(sensor_mode=mode, resolution=res)
+                self.camera_size = res
+                return True
+            except Exception as e:
+                print(str(e))
+                return False
+    
+    def capture_still_image(self):
+        with self.lock:
+            try:
+                if self.is_recording():
+                    return False
+                filename = self.camevents.image_start_capture(self)
+                w, h = self.camera_size
+                w = (w + 31) // 32 * 32
+                h = (h + 15) // 16 * 16
+                output = np.empty((h, w, 3), dtype=np.uint8)
+                self.camera.capture(output, 'rgb')
+                cv2.imwrite(filename, output)
+                self.camevents.image_end_capture(self)
+                return True
+            except Exception as e:
+                print(str(e))
+                return False
         
     def record_video(self):
-        if self.mode != Mode.RECORD_OFF:
-            return
-        self.lock.acquire()
-        self.cached_image = True
-        filename = self.camevents.video_start_recording(self)
-        try:
-            self.camera.start_recording(filename, format='h264', sps_timing=True)
-            self.mode = Mode.RECORD
-        except Exception as e:
-            print(str(e))
-            self.lock.release()
-            return False
-        self.lock.release()
-        return True
-
+        with self.lock:
+            try:
+                if self.is_recording():
+                    return False
+                self.cached_image = True
+                filename = self.camevents.video_start_recording(self)
+                self.camera.start_recording(filename, format='h264', sps_timing=True)
+                self.mode = Mode.RECORD
+                return True
+            except Exception as e:
+                print(str(e))
+                return False
+    
     def stop_recording(self):
-        self.lock.acquire()
-        self.mode = Mode.RECORD_OFF
-        self.camera.stop_recording()
-        self.camevents.video_end_recording(self)
-        self.cached_image = False
-        self.lock.release()
-        return True
-        
+        with self.lock:
+            try:
+                if self.mode != Mode.RECORD:
+                    return False
+                self.camera.stop_recording()
+                self.camevents.video_end_recording(self)
+                self.cached_image = False
+                self.mode = Mode.RECORD_OFF
+                return True
+            except Exception as e:
+                print(str(e))
+                return False
+
     def capture_image_sequence(self):
-        if self.mode != Mode.RECORD_OFF:
-            return
-        self.lock.acquire()
-        self.cached_image = True
-        filename = self.camevents.image_sequence_start_capture(self)
-        yuv_output = ImgSeqOutput(self, self.camera_size, self.seqfps, filename)
-        self.camera.start_recording(yuv_output, format='yuv')
-        self.mode = Mode.IMGSEQ
-        self.lock.release()
+        with self.lock:
+            try:
+                if self.is_recording():
+                    return False
+                self.cached_image = True
+                filename = self.camevents.image_sequence_start_capture(self)
+                yuv_output = ImgSeqOutput(self, self.camera_size, self.seqfps, filename)
+                self.camera.start_recording(yuv_output, format='yuv')
+                self.mode = Mode.IMGSEQ
+                return True
+            except Exception as e:
+                print(str(e))
+                return False
 
     def stop_capture_image_sequence(self):
-        if self.mode == Mode.RECORD_OFF:
-            return
-        self.lock.acquire()
-        self.mode = Mode.RECORD_OFF
-        self.camera.stop_recording()
-        self.camevents.image_sequence_end_capture(self)
-        self.cached_image = False
-        self.lock.release()
-
-    def capture_still_image(self):
-        if self.mode != Mode.RECORD_OFF:
-            return
-        self.lock.acquire()
-        self.cached_image = True
-        filename = self.camevents.image_start_capture(self)
-        
-        #self.camera.capture(filename);
-        w, h = self.camera_size
-        w = (w + 31) // 32 * 32
-        h = (h + 15) // 16 * 16
-        output = np.empty((h, w, 3), dtype=np.uint8)
-        self.camera.capture(output, 'rgb')
-        cv2.imwrite(filename, output)
-        
-        self.camevents.image_end_capture(self)
-        self.cached_image = False
-        self.lock.release()
+        with self.lock:
+            try:
+                if self.mode != Mode.IMGSEQ:
+                    return False
+                self.mode = Mode.RECORD_OFF
+                self.camera.stop_recording()
+                self.camevents.image_sequence_end_capture(self)
+                self.cached_image = False
+                return True
+            except Exception as e:
+                print(str(e))
+                return False
+    
     
     def detect_objects(self, odet):
-        if self.mode != Mode.RECORD_OFF:
-            return
-        self.lock.acquire()
-        self.cached_image = True
-        filename = self.camevents.objdet_start(self)
-        yuv_output = ObjDetOutput(self, odet, self.camera_size, filename)
-        self.camera.start_recording(yuv_output, format='yuv')
-        self.mode = Mode.OBJDET
-        self.lock.release()
-        
+        with self.locK:
+            try:
+                if self.is_recording():
+                    return False
+                self.cached_image = True
+                filename = self.camevents.objdet_start(self)
+                yuv_output = ObjDetOutput(self, odet, self.camera_size, filename)
+                self.camera.start_recording(yuv_output, format='yuv')
+                self.mode = Mode.OBJDET
+                return True
+            except Exception as e:
+                print(str(e))
+                return False
+
     def stop_detect_objects(self):
-        if self.mode == Mode.RECORD_OFF:
-            return
-        self.lock.acquire()
-        self.mode = Mode.RECORD_OFF
-        self.camera.stop_recording()
-        self.camevents.objdet_end(self)
-        self.cached_image = False
-        self.lock.release()
-        
-    def is_recording(self):
-        return self.mode != Mode.RECORD_OFF
+        with self.lock:
+            try:
+                if self.mode != Mode.OBJDET:
+                    return False
+                self.mode = Mode.RECORD_OFF
+                self.camera.stop_recording()
+                self.camevents.objdet_end(self)
+                self.cached_image = False
+                return True
+            except Exception as e:
+                print(str(e))
+                return False
+
 
     def get_stream_image(self):
-        if self.cached_image:
-            return self.stream_image
-        try:
-            (w, h) = self.stream_size
-            image = np.empty((w * h * 3,), dtype=np.uint8)
-            self.lock.acquire()
-            self.camera.capture(image, 'bgr', resize=self.stream_size, use_video_port=True)
-            self.lock.release()
-            self.stream_image = image.reshape((h, w, 3))
-            return self.stream_image
-        except picamera.PiCameraError:
-            return self.stream_image
+        with self.lock:
+            try:
+                if self.cached_image:
+                    return self.stream_image
+                (w, h) = self.stream_size
+                image = np.empty((w * h * 3,), dtype=np.uint8)
+                self.camera.capture(image, 'bgr', resize=self.stream_size, use_video_port=True)
+                self.stream_image = image.reshape((h, w, 3))
+                return self.stream_image
+            except Exception as e:
+                print(str(e))
+                return self.stream_image
+                
+    
+    def is_recording(self):
+        return self.mode != Mode.RECORD_OFF
 
     def get_resolution(self):
         return self.camera.resolution

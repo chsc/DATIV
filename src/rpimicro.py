@@ -170,6 +170,7 @@ def delete_all_recordings():
     else:
         return jsonify(result=False, status_text=f"Unable to delete recordings!")
 
+
 @app.route('/record_video')
 def record_video():
     global camera
@@ -181,19 +182,16 @@ def record_video():
     if not description:
         description = "(no description provided)"
     camevents.set_name_desc_trigger_info(name, description)
-    if camera.is_recording():
-        return jsonify(result=False, status_text="Already recording!")
     if camera.record_video():
-        return jsonify(result=True, status_text="Recording video...", id=camevents.video.id())
+        return jsonify(result=True, status_text = "Recording video...", id = camevents.video.id())
     else:
-        return jsonify(result=False, status_text="Unable to record video! Check size! 1080p is maximum!")
+        return jsonify(result=False, status_text = "Unable to record video! Already recording or wrong size! 1080p is maximum!")
 
 @app.route('/stop_record_video')
 def stop_record_video():
     global camera
     global camevents
-    if camera.is_recording():
-        camera.stop_recording()
+    if camera.stop_recording():
         return jsonify(
             result=True,
             status_text="Recording stopped!",
@@ -202,7 +200,7 @@ def stop_record_video():
             description = camevents.video.meta['description'],
             datetime = camevents.video.meta['datetime'])
     else:
-        return jsonify(result=False, status_text="Not recording!")
+        return jsonify(result = False, status_text = "Unable to stop recording!")
 
 
 @app.route('/capture_image_sequence')
@@ -216,19 +214,18 @@ def capture_image_sequence():
     if not description:
         description = "(no description provided)"
     camevents.set_name_desc_trigger_info(name, description)
-    if camera.is_recording():
-        return jsonify(result=False, status_text="Already recording!")
-    camera.capture_image_sequence()
-    return jsonify(result = True,
-        status_text = "Capturing image sequence...",
-        id = camevents.imgseq_capture.id())
+    if camera.capture_image_sequence():
+        return jsonify(result = True,
+            status_text = "Capturing image sequence...",
+            id = camevents.imgseq_capture.id())
+    else:
+        return jsonify(result=False, status_text="Unable to start capturing! Already recording?")
 
 @app.route('/stop_capture_image_sequence')
 def stop_capture_image_sequence():
     global camera
     global camevents
-    if camera.is_recording():
-        camera.stop_capture_image_sequence()
+    if camera.stop_capture_image_sequence():
         return jsonify(result=True,
             status_text = "Capturing stopped!",
             id = camevents.imgseq_capture.id(),
@@ -236,7 +233,7 @@ def stop_capture_image_sequence():
             description = camevents.imgseq_capture.meta['description'],
             datetime = camevents.imgseq_capture.meta['datetime'])
     else:
-        return jsonify(result=False, status_text="Not recording!")
+        return jsonify(result=False, status_text="Unable to stop capturing!")
 
 @app.route('/detect_objects')
 def detect_objects():
@@ -253,17 +250,18 @@ def detect_objects():
         return jsonify(result=False, status_text="Already recording!")
     if pdetector is None:
         return jsonify(result=False, status_text="Detector not set!")
-    camera.detect_objects(pdetector)
-    return jsonify(result = True,
-        status_text = "Detecting objects...",
-        id = camevents.objdet.id())
+    if camera.detect_objects(pdetector):
+        return jsonify(result = True,
+            status_text = "Detecting objects...",
+            id = camevents.objdet.id())
+    else:
+        return jsonify(result=False, status_text="Unable to start detection! Already recording?")
 
 @app.route('/stop_detect_objects')
 def stop_detect_objects():
     global camera
     global camevents
-    if camera.is_recording():
-        camera.stop_detect_objects()
+    if camera.stop_detect_objects():
         return jsonify(result = True,
             status_text = "Object detection stopped!",
             id = camevents.objdet.id(),
@@ -271,7 +269,7 @@ def stop_detect_objects():
             description = camevents.objdet.meta['description'],
             datetime = camevents.objdet.meta['datetime'])
     else:
-        return jsonify(result=False, status_text="Not recording!")
+        return jsonify(result = False, status_text="Unable to stop recording!")
 
 @app.route('/capture_still_image')
 def capture_still_image():
@@ -284,13 +282,15 @@ def capture_still_image():
     if not description:
         description = "(no description provided)"
     camevents.set_name_desc_trigger_info(name, description)
-    camera.capture_still_image()
-    return jsonify(result=True,
+    if camera.capture_still_image():
+        return jsonify(result=True,
             status_text = "Still image captured!",
             id = camevents.capture.id(),
             name = camevents.capture.meta['name'],
             description = camevents.capture.meta['description'],
             datetime = camevents.capture.meta['datetime'])
+    else:
+        return jsonify(result = False, status_text = "Unable to capture!")
 
 @app.route('/recording_state')
 def recording_state():
@@ -393,9 +393,9 @@ def favicon():
 
 if __name__ == "__main__":
     #register_camera(app)
-    camera.start()
+    #camera.start()
     camera.load_state(app.config['CAMERA_SETTINGS'])
     app.run(host='0.0.0.0') #debug=True)
     camera.save_state(app.config['CAMERA_SETTINGS'])
-    camera.stop()
+    #camera.stop()
 
