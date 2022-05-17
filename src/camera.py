@@ -7,7 +7,7 @@ import numpy as np
 
 class Mode(enum.Enum):
     RECORD_OFF    = 0
-    RECORD        = 1
+    VIDEO         = 1
     IMGSEQ        = 2
     OBJDET        = 3
 
@@ -48,6 +48,7 @@ def get_camera_parameters(data, camera):
     data['ruler_yres'] = camera.get_ruler_yres()
     data['passe_partout_h'] = camera.get_passe_partout_h()
     data['passe_partout_v'] = camera.get_passe_partout_v()
+    data['capture_interval'] = camera.get_capture_interval()
 
 def set_camera_parameters(data, camera):
     camera.set_shutter_speed(data['shutter_speed'])
@@ -60,6 +61,8 @@ def set_camera_parameters(data, camera):
     camera.set_ruler_yres(data['ruler_yres'])
     camera.set_passe_partout_h(data['passe_partout_h'])
     camera.set_passe_partout_v(data['passe_partout_v'])
+    camera.set_capture_interval(data['capture_interval'])
+    
 
 class CameraEvents:
     def video_start_recording(self, camera):

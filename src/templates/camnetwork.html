@@ -62,20 +62,27 @@
             {% endfor %}
         </tbody>
     </table>
-      
-      
-    <button class="greenbutton" id="sync-time-button">Synchronize Time</button>
-    <button class="greenbutton" id="update-state-button">Update State</button>
-    <button class="greenbutton" id="delete-all-recordings-button">Delete All Recordings</button>
-    <button class="greenbutton" id="reset-button">Reset</button>
     
-    <label class="catlabel">Detector</label>
-    <select id="detector-selection">
-        <option value="-">-</option>
-        <option value="threshold">Threshold</option>
-        <option value="difference">Difference</option>
-    </select>
-    
+    <div class="twocol">
+      <div class="leftcol">
+        <input type="text" id="record-name" name="name" placeholder="Recording Name"/>
+        <textarea id="record-description" name="description" placeholder="Description text goes here..."></textarea>
+          
+        <label class="catlabel">Detector</label>
+        <select id="detector-selection">
+            <option value="-">-</option>
+            <option value="threshold">Threshold</option>
+            <option value="difference">Difference</option>
+        </select>
+      </div>
+      <div class="rightcol">
+        <button class="greenbutton" id="sync-time-button">Synchronize Time</button>
+        <button class="greenbutton" id="update-state-button">Update State</button>
+        <button class="greenbutton" id="delete-all-recordings-button">Delete All Recordings</button>
+        <button class="greenbutton" id="reset-button">Reset</button>
+      </div>  
+    </div>
+      
       
     <footer>{{copyright}}</footer>
 </body>

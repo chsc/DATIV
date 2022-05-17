@@ -91,6 +91,10 @@
       </select>
       <label class="subcatlabel">Threshold <output id="detector-threshold-output" for="detector-threshold">-</output></label>
       <input id="detector-threshold" name="detector-threshold" type="range" min="-2" max="255" step="1" value="127">
+      
+      <label class="subcatlabel">Capture Interval <output id="capture-interval-output" for="capture-interval">-</output> s</label>
+      <input id="capture-interval" name="capture-interval" type="range" min="0" max="30" step="0.1" value="2">
+
 
       <button class="redbutton" id="capture-still-image-button">
         <img class="buttonicon" src="{{ url_for('static', filename='icons/record-24.png') }}"/>
@@ -113,6 +117,14 @@
       
       <button class="greenbutton" id="sync-time-button">
         Sync Time
+      </button>
+      
+      <button class="greenbutton" id="delete-all-button">
+        Delete All Recordings
+      </button>
+      
+      <button class="greenbutton" id="reset-button">
+        Reset Camera Settings
       </button>
       
     </div>

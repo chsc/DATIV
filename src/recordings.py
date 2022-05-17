@@ -90,7 +90,8 @@ def new_meta_image_sequence(name, description, camera):
         'ruler_xres': camera.get_ruler_xres(),
         'ruler_yres': camera.get_ruler_yres(),
         'passe_partout_h': camera.get_passe_partout_h(),
-        'passe_partout_v': camera.get_passe_partout_v()
+        'passe_partout_v': camera.get_passe_partout_v(),
+        'capture_intervall': camera.get_capture_interval()
     }
     return meta
 
@@ -114,7 +115,8 @@ def new_meta_objdet(name, description, camera):
         'ruler_xres': camera.get_ruler_xres(),
         'ruler_yres': camera.get_ruler_yres(),
         'passe_partout_h': camera.get_passe_partout_h(),
-        'passe_partout_v': camera.get_passe_partout_v()
+        'passe_partout_v': camera.get_passe_partout_v(),
+        'capture_intervall': camera.get_capture_interval()
     }
     return meta
 

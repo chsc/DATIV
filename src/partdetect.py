@@ -44,13 +44,13 @@ class ParticleDetectorThreshold(detector.Detector):
         for i in range(len(contours)):
             cnt = contours[i]
             area = cv2.contourArea(cnt)
-            if area > self.maxArea or area < self.minArea:
-                cv2.drawContours(contimage, contours, i, (0, 255, 255), 1)
-                continue
-            is_round = detector.is_round(cnt, area, 1.5)
-            if not is_round:
-                cv2.drawContours(contimage, contours, i, (0, 0, 255), 1)
-                continue
+            #if area > self.maxArea or area < self.minArea:
+            #    cv2.drawContours(contimage, contours, i, (0, 255, 255), 1)
+            #    continue
+            #is_round = detector.is_round(cnt, area, 1.5)
+            #if not is_round:
+            #    cv2.drawContours(contimage, contours, i, (0, 0, 255), 1)
+            #    continue
                 
             if genout:
                 cv2.drawContours(contimage, contours, i, (0, 255, 0), 1)

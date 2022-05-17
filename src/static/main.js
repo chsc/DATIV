@@ -33,6 +33,9 @@ const detectorDropDown = document.querySelector("#detector-selection");
 const thresholdSlider = document.querySelector("#detector-threshold");
 const thresholdOutput = document.querySelector("#detector-threshold-output");
 
+const intervalSlider = document.querySelector("#capture-interval");
+const intervalOutput = document.querySelector("#capture-interval-output");
+
 const recordingTable = document.querySelector("#recording-table")
 
 // does not post anything and request a json response
@@ -143,6 +146,7 @@ async function setupStartButtonHandler(buttonid, buttextspan, origtext, recstr, 
          resp = await getServer(recstr, data);
          if(resp.result) {
             setButtonTextRecording(buttextspan, "Stop");
+            setStatusNormal(resp.status_text);
          } else {
             setStatusError(resp.status_text);
          }
@@ -151,6 +155,7 @@ async function setupStartButtonHandler(buttonid, buttextspan, origtext, recstr, 
          if(resp.result) {
             addTableEntry(resp.name, resp.id, true, resp.description, resp.datetime);
             setButtonTextRecording(buttextspan, origtext);
+            setStatusNormal(resp.status_text);
          } else {
             setStatusError(resp.status_text);
          }
@@ -230,11 +235,40 @@ function setupDetectorControlHandler() {
    });
    
    setSliderHandler(thresholdSlider, thresholdOutput, "detector_threshold");
+   setSliderHandler(intervalSlider, intervalOutput, "capture_interval");
 }
 
 function setupSyncTimeButtonHandler() {
    document.querySelector("#sync-time-button").addEventListener ("click", async function () {
       setDate();
+   });
+}
+
+function setupResetButtonHandler() {
+   document.querySelector("#reset-button").addEventListener ("click", async function () {
+      if(confirm('Do you really want to reset all camera settings?')) {
+         resp = await getServer("/reset", null);
+         if(resp.result) {
+            setStatusNormal(resp.status_text);
+            window.location.reload();
+         } else {
+            setStatusError(resp.status_text);
+         }
+      }
+   });
+}
+
+function setupDeleteAllButtonHandler() {
+   document.querySelector("#delete-all-button").addEventListener ("click", async function () {
+      if(confirm('Do you really want to delete all recordings?')) {
+         resp = await getServer("/delete_all_recordings", null);
+         if(resp.result) {
+            setStatusNormal(resp.status_text);
+            window.location.reload();
+         } else {
+            setStatusError(resp.status_text);
+         }
+      }
    });
 }
 
@@ -265,6 +299,10 @@ async function initCameraSettings() {
    thresholdSlider.value = resp.detector_threshold;
    thresholdOutput.value = thresholdSlider.value;
    
+   intervalSlider.value = resp.capture_interval;
+   intervalOutput.value = intervalSlider.value;
+   
+   
    resp = await getServer("get_detector", {});
    detectorDropDown.value = resp.detector;
    
@@ -292,6 +330,8 @@ document.addEventListener("DOMContentLoaded", function() {
    setupCaptureStillImageButtonHandler();
    
    setupSyncTimeButtonHandler();
+   setupResetButtonHandler();
+   setupDeleteAllButtonHandler();
   
    setupCameraSettingControlHandler();
    setupDetectorControlHandler();
@@ -300,5 +340,5 @@ document.addEventListener("DOMContentLoaded", function() {
    
    updateSystemState();
    
-   setInterval(updateSystemState, 2000);
+   setInterval(updateSystemState, 10000);
 });

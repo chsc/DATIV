@@ -328,11 +328,7 @@ def system_state():
 def set_param(param):
     global pdetector
     value = float(request.args.get('value'))
-    if param == "res_width":
-        camera.set_width(int(value))
-    elif param == "res_height":
-        camera.set_height(int(value))
-    elif param == "shutter_speed":
+    if param == "shutter_speed":
         camera.set_shutter_speed(int(value))
     elif param == "iso":
         camera.set_iso(int(value))
@@ -352,12 +348,14 @@ def set_param(param):
         camera.set_passe_partout_h(value)
     elif param == "passe_partout_v":
         camera.set_passe_partout_v(value)
+    elif param == "capture_interval":
+        camera.set_capture_interval(value)
     elif param == "detector_threshold":
         if pdetector is not None:
             pdetector.set_threshold(value)
     else:
-        return jsonify({"result": False, status_text: f"Unknown parameter {param}"})
-    return jsonify({"result": True, status_text: f"Parameter {param} set"})    
+        return jsonify({"result": False, "status_text": f"Unknown parameter {param}"})
+    return jsonify({"result": True, "status_text": f"Parameter {param} set"})    
 
 @app.route('/get_params')
 def get_params():

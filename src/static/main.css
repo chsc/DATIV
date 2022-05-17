@@ -228,6 +228,23 @@ th {
   padding: 0.25em;
 }
 
+.twocol {
+  display: flex;
+  padding: 0em;
+}
+
+.leftcol {
+  flex: 50%;
+  margin: 0.5em;
+}
+
+.rightcol {
+  flex: 50%;
+  margin: 0.5em;
+}
+  
+  
+
 span.status-normal {
   padding: 0.25em;
   font-size: 1.0em;

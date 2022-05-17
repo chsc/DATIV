@@ -24,6 +24,16 @@ function makeRequest(ip, port, reqstr) {
    }
 }
 
+function getNameDesc() {
+   rname = document.querySelector("#record-name").value;
+   rdescription = document.querySelector("#record-description").value;
+   data = {
+      "name" : rname,
+      "description" : rdescription
+   };
+   return data;
+}
+         
 async function broadcast(msg, request, params = null) {
    const resp = await getServer("get_hosts");
    for(const [ip, host] of Object.entries(resp)) {
@@ -48,14 +58,17 @@ function updateStatusText(ip, text) {
    }
 }
 
-async function setupButtons(idprefix, requeststr) {
+async function setupButtons(idprefix, requeststr, sendNameDesc = false) {
    var capture = document.querySelectorAll("[id^='" + idprefix + "']");
    capture.forEach(node => {
       node.addEventListener("click", async function() {
          var ip = node.getAttribute("data-ip");
-         const query = makeRequest(ip, cameraPort, requeststr);
-         console.log(query)
-         fetch(query).then(response => response.json()).then(data => {
+         const urls = makeRequest(ip, cameraPort, requeststr);
+         var url = new URL(urls);
+         if(sendNameDesc) {
+            url.search = new URLSearchParams(getNameDesc()).toString();
+         }
+         fetch(url).then(response => response.json()).then(data => {
             updateStatusText(ip, data.status_text);
          }).catch((error) => {
             updateStatusText(ip, error.toString());
@@ -94,36 +107,36 @@ async function setupButtonHandlers() {
    });
    
    document.querySelector("#all-capture-still-image-button").addEventListener ("click", async function () {
-      broadcast("Capture still image", "capture_still_image");
+      broadcast("Capture still image", "capture_still_image", getNameDesc());
    });
    
    document.querySelector("#all-record-video-button").addEventListener ("click", async function () {
-      broadcast("Start recording", "record_video");
+      broadcast("Start recording", "record_video", getNameDesc());
    });
    document.querySelector("#all-stop-record-video-button").addEventListener ("click", async function () {
       broadcast("Stop recording", "stop_record_video");
    });
    
    document.querySelector("#all-capture-image-sequence-button").addEventListener ("click", async function () {
-      broadcast("Start image sequence", "capture_image_sequence");
+      broadcast("Start image sequence", "capture_image_sequence", getNameDesc());
    });
    document.querySelector("#all-stop-capture-image-sequence-button").addEventListener ("click", async function () {
       broadcast("Stop image sequence", "stop_capture_image_sequence");
    });
    
    document.querySelector("#all-start-detection-button").addEventListener ("click", async function () {
-      broadcast("Start object detection", "detect_objects");
+      broadcast("Start object detection", "detect_objects", getNameDesc());
    });
    document.querySelector("#all-stop-detection-button").addEventListener ("click", async function () {
       broadcast("Stop object detection", "stop_detect_objects");
    });
   
-   setupButtons("capture-still-image", "capture_still_image");
-   setupButtons("record-video", "record_video");
+   setupButtons("capture-still-image", "capture_still_image", true);
+   setupButtons("record-video", "record_video", true);
    setupButtons("stop-record-video", "stop_record_video");
-   setupButtons("capture-image-sequence", "capture_image_sequence");
+   setupButtons("capture-image-sequence", "capture_image_sequence", true);
    setupButtons("stop-capture-image-sequence", "stop_capture_image_sequence");
-   setupButtons("start-detection", "detect_objects");
+   setupButtons("start-detection", "detect_objects", true);
    setupButtons("stop-detection", "stop_detect_objects");
 }
 
