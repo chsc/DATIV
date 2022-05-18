@@ -388,6 +388,34 @@ def index():
 @app.route('/favicon.ico')
 def favicon():
     return send_from_directory('static', 'icons/favicon.ico', mimetype='image/vnd.microsoft.icon')
+    
+@app.route('/user_manual')
+def user_manual():
+    return send_from_directory('static', 'doc/UserManual.pdf')
+    
+@app.route('/upload_firmware', methods=['GET', 'POST'])
+def upload_firmware():
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            return redirect(request.url)
+        file = request.files['file']
+        if file.filename == '':
+            return redirect(request.url)
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], "firmware_upload.tar.gz"))
+        ret = subprocess.run(['./extract_firmware.sh'], cwd=app.config['UPLOAD_FOLDER'], stderr=subprocess.STDOUT)
+        if ret == 0:
+            os._exit(0) # exit app and force restart when run as a service
+        return redirect(request.url)
+    return '''
+    <!doctype html>
+    <title>Upload Firmware File</title>
+    <h1>Upload Firmware File</h1>
+    <form method="POSET" enctype="multipart/form-data">
+      <p><input type="file" name="file" accept=".tar.gz"></p>
+      <p><input type="submit" value="Upload"></p>
+    </form>
+    '''
+
 
 if __name__ == "__main__":
     #register_camera(app)

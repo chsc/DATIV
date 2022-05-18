@@ -1,5 +1,5 @@
 #!/bin/sh
-
+# maybe not needed anymore ???
 # git clone pi@192.168.1.10:/home/pi/rpimicro
 
 git remote add primarycamera pi@192.168.1.10:/home/pi/rpimicro
