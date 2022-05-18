@@ -4,5 +4,6 @@ rm -fR doc/
 rm -fR systemd/
 rm -f *.sh
 rm -f *.md
-#unzip firmware.zip
-tar -xf firmware_upload.tar.gz
+
+tar -zxvf firmware_upload.tar.gz
+rm -f firmware_upload.tar.gz

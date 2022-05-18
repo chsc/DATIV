@@ -5,6 +5,7 @@ import partdetect
 import detector
 import sysinfo
 import requests
+import subprocess
 import os.path
 from flask import Flask, Response, render_template, request, redirect, url_for, jsonify, send_from_directory
 import flask_cors
@@ -401,21 +402,21 @@ def upload_firmware():
         file = request.files['file']
         if file.filename == '':
             return redirect(request.url)
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], "firmware_upload.tar.gz"))
-        ret = subprocess.run(['./extract_firmware.sh'], cwd=app.config['UPLOAD_FOLDER'], stderr=subprocess.STDOUT)
-        if ret == 0:
-            os._exit(0) # exit app and force restart when run as a service
+        folder = ".."
+        file.save(os.path.join(folder, "firmware_upload.tar.gz"))
+        ret = subprocess.run(['./extract_firmware.sh'], cwd=folder, stderr=subprocess.STDOUT)
+        print(ret)
+        os._exit(0) # exit app and force restart when run as a service
         return redirect(request.url)
     return '''
     <!doctype html>
     <title>Upload Firmware File</title>
     <h1>Upload Firmware File</h1>
-    <form method="POSET" enctype="multipart/form-data">
+    <form method="POST" enctype="multipart/form-data">
       <p><input type="file" name="file" accept=".tar.gz"></p>
       <p><input type="submit" value="Upload"></p>
     </form>
     '''
-
 
 if __name__ == "__main__":
     #register_camera(app)
