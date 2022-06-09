@@ -74,6 +74,13 @@
             <option value="threshold">Threshold</option>
             <option value="difference">Difference</option>
         </select>
+        
+        <label class="subcatlabel">Threshold <output id="detector-threshold-output" for="detector-threshold">-</output></label>
+        <input id="detector-threshold" name="detector-threshold" type="range" min="-2" max="255" step="1" value="127">
+    
+        <label class="subcatlabel">Capture Interval <output id="capture-interval-output" for="capture-interval">-</output> s</label>
+        <input id="capture-interval" name="capture-interval" type="range" min="0" max="30" step="0.1" value="2">
+
       </div>
       <div class="rightcol">
         <button class="greenbutton" id="sync-time-button">Synchronize Time</button>

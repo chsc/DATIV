@@ -33,7 +33,8 @@ function getNameDesc() {
    };
    return data;
 }
-         
+
+
 async function broadcast(msg, request, params = null) {
    const resp = await getServer("get_hosts");
    for(const [ip, host] of Object.entries(resp)) {
@@ -74,6 +75,15 @@ async function setupButtons(idprefix, requeststr, sendNameDesc = false) {
             updateStatusText(ip, error.toString());
          });
       })
+   });
+}
+
+function setSliderHandler(sliderId, outputId, paramname) {
+   const slider = document.querySelector(sliderId);
+   const output = document.querySelector(outputId);
+   slider.addEventListener ("input", async function () {
+      broadcast("Setting parameter...", "set_param/" + paramname, {'value': this.value});
+      output.value = this.value;
    });
 }
 
@@ -138,6 +148,9 @@ async function setupButtonHandlers() {
    setupButtons("stop-capture-image-sequence", "stop_capture_image_sequence");
    setupButtons("start-detection", "detect_objects", true);
    setupButtons("stop-detection", "stop_detect_objects");
+   
+   setSliderHandler("#detector-threshold", "#detector-threshold-output", "detector_threshold");
+   setSliderHandler("#capture-interval", "#capture-interval-output", "capture_interval");
 }
 
 function setupDetectorControlHandler() {

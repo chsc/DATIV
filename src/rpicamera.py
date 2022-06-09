@@ -5,6 +5,7 @@ import time
 import csv
 import os
 import picamera
+import particleflow
 import zipfile
 import io
 from threading import Thread, Lock
@@ -64,7 +65,7 @@ class YuvOutput(object):
 
 class ImgSeqOutput(object):
     def __init__(self, fname):
-        self.zipf = zipfile.ZipFile(fname, mode='w', compression=zipfile.ZIP_DEFLATED)
+        self.zipf = zipfile.ZipFile(fname, mode='w', compression = zipfile.ZIP_DEFLATED)
         self.csvstr = io.StringIO()
         self.csvwr = csv.writer(self.csvstr)
         print('ImgSeqOutput::init')
@@ -90,25 +91,44 @@ class ObjDetOutput(object):
         self.zipf = zipfile.ZipFile(fname, mode='w', compression=zipfile.ZIP_DEFLATED)
         self.csvstr = io.StringIO()
         self.csvwr = csv.writer(self.csvstr)
+        self.fcsvstr = io.StringIO()
+        self.fcsvwr = csv.writer(self.fcsvstr)
         self.camera = camera
         self.odet = odet
+        
+        psx = self.camera.get_passe_partout_h()
+        psy = self.camera.get_passe_partout_v()
+        rx = self.camera.get_ruler_xres()
+        ry = self.camera.get_ruler_yres()
+        sx, sy = camera.passe_partout_size(self.camera.get_resolution(), psx, psy, rx, ry)
+        self.volume = particleflow.calc_cuboid_volume(sx, sy)
+        
+        print("volume:", self.volume, "cm³")
         print('ObjDetOutput::init')
         
     def start(self):
         self.csvwr.writerow(['image', 'time', 'cx', 'cy', 'bx', 'by', 'bw', 'bh', 'bws', 'bhs', 'area', 'areas', 'equidiams'])
         self.csvwr.writerow(['[nr]', '[s]', '[px]', '[px]', '[px]', '[px]', '[px]', '[px]', '[µm]', '[µm]', '[px²]', '[µm²]', '[µm]'])
+        
+        self.fcsvwr.writerow(['image', 'time', 'particles', 'particleflow'])
+        self.fcsvwr.writerow(['[nr]', '[s]', '[num]', '[particles/s]'])
     
     def finish(self):
         self.zipf.writestr(f"objects.csv", self.csvstr.getvalue())
+        self.zipf.writestr(f"particleflow.csv", self.fcsvstr.getvalue())
         self.zipf.close()
         print('ObjDetOutput::finish')
         
     def frame(self, ydata, t, cnt):
         print('write frame', t, cnt)
+        
         #r, buf = cv2.imencode('.png', ydata)
         #self.zipf.writestr(f"{cnt}.png", buf)
         
-        _, dobjs = self.odet.detect(ydata, False)
+        psx = self.camera.get_passe_partout_h()
+        psy = self.camera.get_passe_partout_v()
+        
+        _, dobjs = self.odet.detect(ydata, psx, psy, False)
         for dobj in dobjs:
             bx, by, bw, bh, cx, cy, area = dobj
             bws = bw * self.camera.ruler_xres
@@ -116,6 +136,9 @@ class ObjDetOutput(object):
             areas = area * self.camera.ruler_xres * self.camera.ruler_yres
             ediams = equi_diameter(areas)
             self.csvwr.writerow([cnt, round(t, 4), round(cx, 1), round(cy, 1), bx, by, bw, bh, bws, bhs, area, areas, round(ediams, 1)])
+            
+        pflow = particleflow.calc_particle_flow_rate(len(dobjs), self.volume)
+        self.fcsvwr.writerow([cnt, round(t, 4), len(dobjs), pflow])
 
 def generator(yuvoutput, camera):
     yuvoutput.output.start()
@@ -124,7 +147,7 @@ def generator(yuvoutput, camera):
     yuvoutput.output.finish()
 
 class MCamera(Camera):
-    def __init__(self, camevents, camera_size, stream_size, seqfps, smode):
+    def __init__(self, camevents, camera_size, stream_size, smode):
         self.lock = Lock()
         self.frame = None
         self.running = False

@@ -26,6 +26,25 @@ def draw_passe_partout(image, orig_size, ruler_length, ruler_xres, psx, psy):
     image = cv2.line(image, (10, sy - 11), (10, sy - 9), (0, 255, 0), 1)
     image = cv2.line(image, (10 + ruler_len, sy - 11), (10 + ruler_len, sy - 9), (0, 255, 0), 1)
     return image
+    
+def draw_particles_and_flowrate(image, volume, particles, pflow):
+    sy, sx = image.shape[:2]
+    image = cv2.putText(image, f"volume: {volume:.2f} cm^3  particles: {particles}  particle flow: {pflow:.2f} particles/s", (10, 20), cv2.FONT_HERSHEY_PLAIN, 1.0, (255,255,255), 1)
+    return image
+
+def in_passe_partout(image, p, psx, psy):
+    sy, sx = image.shape[:2]
+    x1 = sx / 2 * (psx / 100.0)
+    y1 = sy / 2 * (psy / 100.0)
+    x2 = sx - x1
+    y2 = sy - y1
+    return (x1 < p[0] < x2) and (y1 < p[1] < y2)
+    
+def passe_partout_size(res, psx, psy, ruler_xres, ruler_yres):
+    sy, sx = res
+    rx = sx * (100 - psx) / 100.0
+    ry = sy * (100 - psy) / 100.0
+    return rx * ruler_xres / 1000, ry * ruler_yres / 1000 # mm
 
 def zoom_image(img, zoom):
     ih, iw, c = img.shape
@@ -97,7 +116,7 @@ class Camera:
             data = json.load(f)
             set_camera_parameters(data, self)
             
-def create_camera(modname, camevents, camera_size, stream_size, seqfps, smode):
+def create_camera(modname, camevents, camera_size, stream_size, smode):
     module = __import__(modname)
-    camera = module.MCamera(camevents, camera_size, stream_size, seqfps, smode)
+    camera = module.MCamera(camevents, camera_size, stream_size, smode)
     return camera

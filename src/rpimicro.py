@@ -2,6 +2,7 @@ import time
 import cv2
 import numpy as np
 import partdetect
+import particleflow
 import detector
 import sysinfo
 import requests
@@ -10,7 +11,7 @@ import os.path
 from flask import Flask, Response, render_template, request, redirect, url_for, jsonify, send_from_directory
 import flask_cors
 from detector import get_det_parameters
-from camera import CameraEvents, draw_passe_partout, zoom_image, get_camera_parameters, create_camera
+from camera import CameraEvents, draw_passe_partout, draw_particles_and_flowrate, passe_partout_size, zoom_image, get_camera_parameters, create_camera
 from recordings import Recordings
 
 app = Flask(__name__)
@@ -75,19 +76,34 @@ detectorstr     = "-"
 resmodestr      = f"{app.config['CAMERA_SIZE'][0]}x{app.config['CAMERA_SIZE'][1]},{app.config['CAMERA_SENSOR_MODE']}"
 recorded_files  = Recordings(app.config['RECORDING_FOLDER'])
 camevents       = CamEvents(recorded_files)
-camera          = create_camera(app.config['CAMERA_MODULE'], camevents, app.config['CAMERA_SIZE'], app.config['STREAM_SIZE'], app.config['CAMERA_SEQUENCE_FPS'], app.config['CAMERA_SENSOR_MODE'])
+camera          = create_camera(app.config['CAMERA_MODULE'], camevents, app.config['CAMERA_SIZE'], app.config['STREAM_SIZE'], app.config['CAMERA_SENSOR_MODE'])
 
 def generate_video(camera):
-    video_size = app.config['CAMERA_SIZE']
+    #video_size = app.config['CAMERA_SIZE']
     while True:
         time.sleep(0.05)
         output = camera.get_stream_image()
+        video_size = camera.get_resolution()
         output = cv2.cvtColor(output, cv2.COLOR_BGR2GRAY)
+        parts = []
         if pdetector is not None:
-            output, parts = pdetector.detect(output, True)
+            output, parts = pdetector.detect(output, camera.get_passe_partout_h(), camera.get_passe_partout_v(), True)
         else:
             output = cv2.cvtColor(output, cv2.COLOR_GRAY2BGR)
+            
         output = draw_passe_partout(output, video_size, camera.get_ruler_length(), camera.get_ruler_xres(), camera.get_passe_partout_h(), camera.get_passe_partout_v())
+        
+        psx = camera.get_passe_partout_h()
+        psy = camera.get_passe_partout_v()
+        rx = camera.get_ruler_xres()
+        ry = camera.get_ruler_yres()
+        sx, sy = passe_partout_size(camera.get_resolution(), psx, psy, rx, ry)
+        #print(sx, sy)
+        volume = particleflow.calc_cuboid_volume(sx, sy)
+        #print(volume)
+        pflow = particleflow.calc_particle_flow_rate(len(parts), volume)
+        output = draw_particles_and_flowrate(output, volume, len(parts), pflow)
+        
         output = zoom_image(output, camera.get_zoom())
         ret, buffer = cv2.imencode(".jpeg", output)
         if not ret:
@@ -384,7 +400,7 @@ def update():
 @app.route('/')
 def index():
     global recorded_files
-    return render_template('index.html', title=sysinfo.get_hostname(), rectable=recorded_files)
+    return render_template('index.html', title=sysinfo.get_hostname(), rectable=recorded_files, version=app.config['VERSION'])
 
 @app.route('/favicon.ico')
 def favicon():
@@ -419,10 +435,7 @@ def upload_firmware():
     '''
 
 if __name__ == "__main__":
-    #register_camera(app)
-    #camera.start()
     camera.load_state(app.config['CAMERA_SETTINGS'])
     app.run(host='0.0.0.0') #debug=True)
     camera.save_state(app.config['CAMERA_SETTINGS'])
-    #camera.stop()
 
