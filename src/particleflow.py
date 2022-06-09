@@ -1,13 +1,48 @@
 import math
+import json
 
-breath_in_volume = 500            # cm³
-breath_in_time = 4                # seconds
-inlet_diagonal = 11               # cm
-light_curtain_width = 15          # mm
+tidal_volume = 500            # cm³
+breath_freq  = 15             # breathing frequency in breaths per minute
+inlet_diagonal = 11           # cm
+light_curtain_width = 15      # mm
 
-volumetric_flow_rate = breath_in_volume / breath_in_time  # vol. flow rate is Q
-inlet_area = inlet_diagonal**2 / 4 * math.pi
-flow_speed = volumetric_flow_rate / inlet_area
+volumetric_flow_rate = 0
+inlet_area = 0
+flow_speed = 0
+
+def calc_parameters():
+    global tidal_volume, breath_freq, inlet_diagonal
+    global volumetric_flow_rate, inlet_area, flow_speed
+    volumetric_flow_rate = tidal_volume / ( 60 / breath_freq)  # vol. flow rate is Q
+    inlet_area = inlet_diagonal**2 / 4 * math.pi
+    flow_speed = volumetric_flow_rate / inlet_area
+    
+def set_breath_params(tv, bfreq):
+    global tidal_volume, breath_freq
+    tidal_volume = tv
+    breath_freq = bfreq
+    save()
+    
+def save():
+    global tidal_volume, breath_freq, inlet_diagonal, light_curtain_width
+    data = {
+    "tidal_volume": tidal_volume,
+    "breath_freq": breath_freq,
+    "inlet_diagonal": inlet_diagonal,
+    "light_curtain_width" : light_curtain_width
+    }
+    with open("particle_flow_settings.json", 'w') as f:
+        json.dump(data, f, indent = 4)
+
+def load():
+    global tidal_volume, breath_freq, inlet_diagonal, light_curtain_width
+    with open("particle_flow_settings.json", 'r') as f:
+        data = json.load(f)
+    tidal_volume = data['tidal_volume']
+    breath_freq = data['breath_freq']
+    inlet_diagonal = data['inlet_diagonal']
+    light_curtain_width = data['light_curtain_width']
+    calc_parameters()
 
 def calc_cuboid_volume(w, h):
     v = w * h * light_curtain_width 
@@ -18,18 +53,21 @@ def calc_cylinder_volume(diagonal, d):
     return v / 1000 # convert to cm³
 
 def calc_particle_flow_rate(particles, volume):
-    # particles per volume
-    sigma = particles / volume
+    # particles per volume [p/cm³]
+    n = particles / volume
     # use flow rate to calc particle flow rate
-    return sigma * volumetric_flow_rate
+    return n * volumetric_flow_rate
 
 
 if __name__ == "__main__":
-	print("inlet area:", inlet_area, "cm²")
-	print("flow speed:", flow_speed, "cm/s")
+    #save()
+    load()
+    
+    print("inlet area:", inlet_area, "cm²")
+    print("flow speed:", flow_speed, "cm/s")
 
-	volume = calc_cuboid_volume(85.5, 65, 15)
-	print("volume:", volume, "cm³")
+    volume = calc_cuboid_volume(85.5, 65)
+    print("volume:", volume, "cm³")
 
-	pf = calc_particle_flow_rate(100, volume)
-	print("particle flow rate:", pf, "particles/s")
+    pf = calc_particle_flow_rate(6, volume)
+    print("particle flow rate:", pf, "particles/s")

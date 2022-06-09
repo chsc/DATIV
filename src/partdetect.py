@@ -95,7 +95,7 @@ class ParticleDetectorDifference(detector.Detector):
             
             area = cv2.contourArea(cnt)
             if area > self.maxArea or area < self.minArea:
-                cv2.drawContours(contimage, contours, i, (0, 255, 128), 1)
+                cv2.drawContours(contimage, contours, i, (0, 128, 255), 1)
                 continue
             
             cx, cy = detector.contour_center(cnt)

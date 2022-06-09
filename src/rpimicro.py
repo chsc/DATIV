@@ -370,6 +370,15 @@ def set_param(param):
     elif param == "detector_threshold":
         if pdetector is not None:
             pdetector.set_threshold(value)
+    elif param == "tidal_volume":
+        particleflow.tidal_volume = value
+        particleflow.save()
+    elif param == "breath_freq":
+        particleflow.breath_freq = value
+        particleflow.save()
+    elif param == "light_curtain_width":
+        particleflow.light_curtain_width = value
+        particleflow.save()
     else:
         return jsonify({"result": False, "status_text": f"Unknown parameter {param}"})
     return jsonify({"result": True, "status_text": f"Parameter {param} set"})    
@@ -380,6 +389,9 @@ def get_params():
     data = {}
     get_camera_parameters(data, camera)
     get_det_parameters(data, pdetector)
+    # to particleflow.py
+    data["tidal_volume"] = particleflow.tidal_volume
+    data["breath_freq"] = particleflow.breath_freq
     return jsonify(data)
 
 @app.route('/reset')
@@ -435,6 +447,7 @@ def upload_firmware():
     '''
 
 if __name__ == "__main__":
+    particleflow.load()
     camera.load_state(app.config['CAMERA_SETTINGS'])
     app.run(host='0.0.0.0') #debug=True)
     camera.save_state(app.config['CAMERA_SETTINGS'])
