@@ -8,8 +8,8 @@ class ParticleDetectorThreshold(detector.Detector):
     def __init__(self):
         self.timage = True
         self.threshold = -1
-        self.maxArea = 500
-        self.minArea = 3
+        self.maxArea = 200
+        self.minArea = 4
     
     def set_threshold(self, th):
         self.threshold = th
@@ -64,8 +64,8 @@ class ParticleDetectorDifference(detector.Detector):
         #self.bsub = cv2.createBackgroundSubtractorKNN(2, 40, False)
         self.bsub = cv2.createBackgroundSubtractorMOG2(detectShadows=False)
         self.threshold = 230
-        self.maxArea = 500
-        self.minArea = 3
+        self.maxArea = 200
+        self.minArea = 4
     
     def set_threshold(self, th):
         self.threshold = th

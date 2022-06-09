@@ -9,7 +9,7 @@ import particleflow
 import zipfile
 import io
 from threading import Thread, Lock
-from camera import Camera, CameraEvents, Mode
+from camera import Camera, CameraEvents, Mode, passe_partout_size
 from detector import detect_image, detect_video, transcode, count_frames, equi_diameter
 
 # https://picamera.readthedocs.io/en/release-1.10/index.html
@@ -100,7 +100,7 @@ class ObjDetOutput(object):
         psy = self.camera.get_passe_partout_v()
         rx = self.camera.get_ruler_xres()
         ry = self.camera.get_ruler_yres()
-        sx, sy = camera.passe_partout_size(self.camera.get_resolution(), psx, psy, rx, ry)
+        sx, sy = passe_partout_size(self.camera.get_resolution(), psx, psy, rx, ry)
         self.volume = particleflow.calc_cuboid_volume(sx, sy)
         
         print("volume:", self.volume, "cm³")
@@ -138,7 +138,7 @@ class ObjDetOutput(object):
             self.csvwr.writerow([cnt, round(t, 4), round(cx, 1), round(cy, 1), bx, by, bw, bh, bws, bhs, area, areas, round(ediams, 1)])
             
         pflow = particleflow.calc_particle_flow_rate(len(dobjs), self.volume)
-        self.fcsvwr.writerow([cnt, round(t, 4), len(dobjs), pflow])
+        self.fcsvwr.writerow([cnt, round(t, 4), len(dobjs), round(pflow, 4)])
 
 def generator(yuvoutput, camera):
     yuvoutput.output.start()
