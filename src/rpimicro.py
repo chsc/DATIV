@@ -8,7 +8,7 @@ import sysinfo
 import requests
 import subprocess
 import os.path
-from flask import Flask, Response, render_template, request, redirect, url_for, jsonify, send_from_directory
+from flask import Flask, Response, render_template, request, redirect, url_for, jsonify, send_from_directory, send_file
 import flask_cors
 from detector import get_det_parameters
 from camera import CameraEvents, draw_passe_partout, draw_particles_and_flowrate, passe_partout_size, zoom_image, get_camera_parameters, create_camera
@@ -19,6 +19,11 @@ flask_cors.CORS(app)
 app.config.from_pyfile('config.py')
 
 status_text = "Ready"
+
+def sane_filename(fn):
+    if not fn:
+        return None
+    return ''.join([c for c in fn if c.isalnum()]) # only alphanum!
 
 class CamEvents(CameraEvents):
     def __init__(self, recordings):
@@ -192,8 +197,9 @@ def delete_all_recordings():
 def record_video():
     global camera
     global camevents
-    name        = request.args.get('name')
+    name        = sane_filename(request.args.get('name'))
     description = request.args.get('description')
+    print(name, description)
     if not name:
         name = "Video"
     if not description:
@@ -224,7 +230,7 @@ def stop_record_video():
 def capture_image_sequence():
     global camera
     global camevents
-    name        = request.args.get('name')
+    name        = sane_filename(request.args.get('name'))
     description = request.args.get('description')
     if not name:
         name = "ImageSequence"
@@ -256,7 +262,7 @@ def stop_capture_image_sequence():
 def detect_objects():
     global camera
     global camevents
-    name        = request.args.get('name')
+    name        = sane_filename(request.args.get('name'))
     description = request.args.get('description')
     if not name:
         name = "ObjectDetection"
@@ -292,7 +298,7 @@ def stop_detect_objects():
 def capture_still_image():
     global camera
     global camevents
-    name         = request.args.get('name')
+    name         = sane_filename(request.args.get('name'))
     description  = request.args.get('description')
     if not name:
         name = "Image"
@@ -392,6 +398,7 @@ def get_params():
     # to particleflow.py
     data["tidal_volume"] = particleflow.tidal_volume
     data["breath_freq"] = particleflow.breath_freq
+    data["light_curtain_width"] = particleflow.light_curtain_width
     return jsonify(data)
 
 @app.route('/reset')
@@ -435,7 +442,7 @@ def upload_firmware():
         ret = subprocess.run(['./extract_firmware.sh'], cwd=folder, stderr=subprocess.STDOUT)
         print(ret)
         os._exit(0) # exit app and force restart when run as a service
-        return redirect(request.url)
+        return redirect("/")
     return '''
     <!doctype html>
     <title>Upload Firmware File</title>
@@ -445,6 +452,14 @@ def upload_firmware():
       <p><input type="submit" value="Upload"></p>
     </form>
     '''
+
+@app.route('/download_firmware')
+def download_firmware():
+    folder = ".."
+    ret = subprocess.run(['./create_firmware.sh'], cwd=folder, stderr=subprocess.STDOUT)
+    print(ret)
+    return send_file('../firmware_rpimicro.tar.gz')
+
 
 if __name__ == "__main__":
     particleflow.load()

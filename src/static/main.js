@@ -115,7 +115,13 @@ async function setupCaptureStillImageButtonHandler()
 {
    document.querySelector("#capture-still-image-button").addEventListener ("click", async function () {
       setButtonTextRecording("#capture-still-image-button-text", "Capturing...");
-      resp = await getServer("capture_still_image");
+      rname = document.querySelector("#record-name").value;
+      rdescription = document.querySelector("#record-description").value;
+      data = {
+         "name" : rname,
+         "description" : rdescription
+      };
+      resp = await getServer("capture_still_image", data);
       if(!resp.result) {
          setStatusError(resp.status_text);
       } else {
