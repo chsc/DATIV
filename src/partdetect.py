@@ -7,9 +7,9 @@ import camera
 class ParticleDetectorThreshold(detector.Detector):
     def __init__(self):
         self.timage = True
-        self.threshold = -1
+        self.threshold = 40
         self.maxArea = 200
-        self.minArea = 4
+        self.minArea = 3
     
     def set_threshold(self, th):
         self.threshold = th

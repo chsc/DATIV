@@ -151,6 +151,8 @@ async function setupButtonHandlers() {
    
    setSliderHandler("#detector-threshold", "#detector-threshold-output", "detector_threshold");
    setSliderHandler("#capture-interval", "#capture-interval-output", "capture_interval");
+   setSliderHandler("#iso", "#iso-output", "iso");
+   setSliderHandler("#shutter-speed", "#shutter-speed-output", "shutter_speed");
 }
 
 function setupDetectorControlHandler() {
