@@ -140,6 +140,13 @@ async function setupButtonHandlers() {
    document.querySelector("#all-stop-detection-button").addEventListener ("click", async function () {
       broadcast("Stop object detection", "stop_detect_objects");
    });
+   
+   document.querySelector("#all-measure-particles-button").addEventListener ("click", async function () {
+      broadcast("Measure particles", "measure_particles", getNameDesc());
+   });
+   document.querySelector("#all-stop-measure-particles-button").addEventListener ("click", async function () {
+      broadcast("Stop measure particles", "stop_measure_particles");
+   });
   
    setupButtons("capture-still-image", "capture_still_image", true);
    setupButtons("record-video", "record_video", true);
@@ -148,6 +155,8 @@ async function setupButtonHandlers() {
    setupButtons("stop-capture-image-sequence", "stop_capture_image_sequence");
    setupButtons("start-detection", "detect_objects", true);
    setupButtons("stop-detection", "stop_detect_objects");
+   setupButtons("measure-particles", "measure_particles", true);
+   setupButtons("stop-measure-particles", "stop_measure_particles");
    
    setSliderHandler("#detector-threshold", "#detector-threshold-output", "detector_threshold");
    setSliderHandler("#capture-interval", "#capture-interval-output", "capture_interval");

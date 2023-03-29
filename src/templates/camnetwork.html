@@ -34,6 +34,9 @@
                 <th>    
                     <button class="greenbutton-left" id="all-start-detection-button">Start Detection</button><button class="redbutton-right" id="all-stop-detection-button">Stop</button>
                 </th>
+                <th>    
+                    <button class="greenbutton-left" id="all-measure-particles-button">Measure Particles</button><button class="redbutton-right" id="all-stop-measure-particles-button">Stop</button>
+                </th>
             </tr>
             {% for key in camnetwork.get_hosts() %}
             <tr>
@@ -57,6 +60,9 @@
                 </td>
                 <td>
                     <button class="greenbutton-left" id="start-detection-{{key}}" data-ip="{{key}}">Start Detection</button><button class="redbutton-right" id="stop-detection-{{key}}" data-ip="{{key}}">Stop</button>
+                </td>
+                <td>
+                    <button class="greenbutton-left" id="measure-particles-{{key}}" data-ip="{{key}}">Measure Particles</button><button class="redbutton-right" id="stop-measure-particles-{{key}}" data-ip="{{key}}">Stop</button>
                 </td>
             </tr>
             {% endfor %}

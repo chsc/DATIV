@@ -12,6 +12,7 @@ from flask import Flask, Response, render_template, request, redirect, url_for, 
 import flask_cors
 from detector import get_det_parameters
 from camera import CameraEvents, draw_passe_partout, draw_particles_and_flowrate, passe_partout_size, zoom_image, get_camera_parameters, create_camera
+from pmsensor import PMSensorEvents, create_pmsensor
 from recordings import Recordings
 
 app = Flask(__name__)
@@ -24,6 +25,25 @@ def sane_filename(fn):
     if not fn:
         return None
     return ''.join([c for c in fn if c.isalnum()]) # only alphanum!
+    
+class PMSEvents(PMSensorEvents):
+    def __init__(self, recordings):
+        self.recordings = recordings
+        
+    def set_name_desc_trigger_info(self, name, description):
+        self.name        = name
+        self.description = description
+
+    def start_measuring(self, pmsensor):
+        global status_text
+        self.mespart = self.recordings.measure_particles(self.name, self.description, pmsensor)
+        status_text = "Measure particles ..."
+        return self.mespart.make_file_path()
+
+    def stop_measuring(self, pmsensor):
+        global status_text
+        status_text = "Measure particles ended"
+        self.recordings.stop_measure_particles(self.mespart)
 
 class CamEvents(CameraEvents):
     def __init__(self, recordings):
@@ -82,6 +102,8 @@ resmodestr      = f"{app.config['CAMERA_SIZE'][0]}x{app.config['CAMERA_SIZE'][1]
 recorded_files  = Recordings(app.config['RECORDING_FOLDER'])
 camevents       = CamEvents(recorded_files)
 camera          = create_camera(app.config['CAMERA_MODULE'], camevents, app.config['CAMERA_SIZE'], app.config['STREAM_SIZE'], app.config['CAMERA_SENSOR_MODE'])
+pmsevents       = PMSEvents(recorded_files)
+pmsensor        = create_pmsensor(app.config['PMSENSOR_MODULE'], pmsevents, app.config['PMSENSOR_INTERVAL'], app.config['PMSENSOR_DEVICE'])
 
 def generate_video(camera):
     #video_size = app.config['CAMERA_SIZE']
@@ -326,6 +348,45 @@ def recording_state():
         'status_text': status_text
     }
     return jsonify(data)
+
+
+@app.route('/measure_particles')
+def measure_particles():
+    global pmsensor
+    global pmsevents
+    name         = sane_filename(request.args.get('name'))
+    description  = request.args.get('description')
+    if not name:
+        name = "ParticleMeasurement"
+    if not description:
+        description = "(no description provided)"
+    pmsevents.set_name_desc_trigger_info(name, description)
+    if pmsensor.is_measuring():
+        return jsonify(result=False, status_text="Already measuring!")
+    if pmsensor.start():
+        return jsonify(result=True,
+            status_text = "Measure particles...",
+            id = pmsevents.capture.id(),
+            name = pmsevents.capture.meta['name'],
+            description = pmsevents.capture.meta['description'],
+            datetime = pmsevents.capture.meta['datetime'])
+    else:
+        return jsonify(result = False, status_text = "Unable to measure particles!")
+
+@app.route('/stop_measure_particles')
+def stop_measure_particles():
+    global pmsensor
+    global pmsevents
+    if pmsensor.stop():
+        return jsonify(result = True,
+            status_text = "Particle measurement stopped!",
+            id = pmsevents.objdet.id(),
+            name = pmsevents.objdet.meta['name'],
+            description = pmsevents.objdet.meta['description'],
+            datetime = pmsevents.objdet.meta['datetime'])
+    else:
+        return jsonify(result = False, status_text="Unable to stop measure particles!")
+
 
 @app.route('/system_state')
 def system_state():
