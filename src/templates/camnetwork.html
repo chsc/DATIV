@@ -19,17 +19,17 @@
     <table id="host-table">
         <tbody>
             <tr>
-                <th style="width:10%">Host Name</th>
-                <th style="width:10%">IP</th>
-                <th style="width:15%">State</th>
+                <th style="width:5%">Host Name</th>
+                <th style="width:5%">IP</th>
+                <th style="width:10%">State</th>
                 <th>
-                    <button class="greenbutton" id="all-capture-still-image-button">Capture Still Image</button>
+                    <button class="greenbutton" id="all-capture-still-image-button">Capture Image</button>
                 </th>
                 <th>
                     <button class="greenbutton-left" id="all-record-video-button">Record Video</button><button class="redbutton-right" id="all-stop-record-video-button">Stop</button>
                 </th>
                 <th>
-                    <button class="greenbutton-left" id="all-capture-image-sequence-button">Capture Image Sequence</button><button class="redbutton-right" id="all-stop-capture-image-sequence-button">Stop</button>
+                    <button class="greenbutton-left" id="all-capture-image-sequence-button">Capture Image Seq.</button><button class="redbutton-right" id="all-stop-capture-image-sequence-button">Stop</button>
                 </th>
                 <th>    
                     <button class="greenbutton-left" id="all-start-detection-button">Start Detection</button><button class="redbutton-right" id="all-stop-detection-button">Stop</button>
@@ -50,13 +50,13 @@
                     <span id="status-{{key}}">...</span>
                 </td>
                 <td>
-                    <button class="greenbutton" id="capture-still-image-{{key}}" data-ip="{{key}}">Capture Still Image</button>
+                    <button class="greenbutton" id="capture-still-image-{{key}}" data-ip="{{key}}">Capture Image</button>
                 </td>
                 <td>
                     <button class="greenbutton-left" id="record-video-{{key}}" data-ip="{{key}}">Record Video</button><button class="redbutton-right" id="stop-record-video-{{key}}" data-ip="{{key}}">Stop</button>
                 </td>
                 <td>
-                    <button class="greenbutton-left" id="capture-image-sequence-{{key}}" data-ip="{{key}}">Capture Image Sequence</button><button class="redbutton-right" id="stop-capture-image-sequence-{{key}}" data-ip="{{key}}">Stop</button>
+                    <button class="greenbutton-left" id="capture-image-sequence-{{key}}" data-ip="{{key}}">Capture Image Seq.</button><button class="redbutton-right" id="stop-capture-image-sequence-{{key}}" data-ip="{{key}}">Stop</button>
                 </td>
                 <td>
                     <button class="greenbutton-left" id="start-detection-{{key}}" data-ip="{{key}}">Start Detection</button><button class="redbutton-right" id="stop-detection-{{key}}" data-ip="{{key}}">Stop</button>

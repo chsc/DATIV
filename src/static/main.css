@@ -9,11 +9,11 @@ body {
   margin: 0;
   padding: 0;
   font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+  font-size: 0.8em;
 }
 
 input, textarea, button, select {
-  font-size: 0.8em;
-  font-size: max(16px, 1em);
+  font-size: max(16px, 0.8em);
   font-family: inherit;
   padding: 0.25em;
   background-color: white;
@@ -39,7 +39,7 @@ select {
 }
 
 label.catlabel {
-  font-size: 1.0em;
+  /*font-size: 1.0em;*/
   width: 100%; 
   display:inline-block;
   margin-top: 0.5em;
@@ -47,7 +47,7 @@ label.catlabel {
 }
 
 label.subcatlabel {
-  font-size: 1.0em;
+  /*font-size: 1.0em;*/
   width: 100%; 
   margin-top: 0.25em;
   margin-bottom: 0.0em;
@@ -57,12 +57,14 @@ label.subcatlabel {
 input {
   margin: 1px;
   padding: 0.125em;
+  font-size: 1.0em;
 }
 
 button {
+  font-size: 1.0em;
   border: none;
   display: inline-block;
-  height: 2em;
+  height: 3.0em;
 }
 
 button.redbutton {
@@ -214,12 +216,12 @@ th {
 }
 
 .left-header {
-  font-size: 1.5em;
+  font-size: 1.2em;
   flex: 40%;
 }
 
 .right-header {
-  font-size: 0.75em;
+  font-size: 0.70em;
   flex: 60%;
   text-align: right;
 }
@@ -247,7 +249,7 @@ th {
 
 span.status-normal {
   padding: 0.25em;
-  font-size: 1.0em;
+  font-size: 0.8em;
   color: gray;
   text-align: center;
   width: 100%;
@@ -256,7 +258,7 @@ span.status-normal {
 
 span.status-error {
   padding: 0.25em;
-  font-size: 1.0em;
+  font-size: 0.8em;
   color: coral;
   text-align: center;
   width: 100%;

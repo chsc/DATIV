@@ -179,7 +179,8 @@ class MCamera(Camera):
         print('framerate:', self.get_fps())
         
     def __del__(self):
-        self.close()
+        if hasattr(self, 'camera'):
+            self.camera.close()
     
     def close(self):
         self.camera.close()

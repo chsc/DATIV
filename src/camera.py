@@ -118,5 +118,10 @@ class Camera:
             
 def create_camera(modname, camevents, camera_size, stream_size, smode):
     module = __import__(modname)
-    camera = module.MCamera(camevents, camera_size, stream_size, smode)
-    return camera
+    try:
+        camera = module.MCamera(camevents, camera_size, stream_size, smode)
+        return camera
+    except Exception as e:
+        print('Error initializing camera:', str(e))
+        module = __import__('nullcamera')
+        return module.MCamera(camevents, camera_size, stream_size, smode)
