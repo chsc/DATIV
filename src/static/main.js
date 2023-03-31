@@ -132,31 +132,34 @@ async function setupCaptureStillImageButtonHandler()
    });
 }
 
-async function setupStartButtonHandler(buttonid, buttextspan, origtext, recstr, stopstr)
+async function setupStartButtonHandlerHelper(buttonid, buttextspan, origtext, recstr, stopstr, satestr, activestr, nonactivestr)
 {
-   resp = await getServer("recording_state");
-   if(resp.mode == "playback") {
+   resp = await getServer(satestr);
+   if(resp.mode == nonactivestr) {
       setButtonTextRecording(buttextspan, origtext);
-   } if(resp.mode == "recording") {
+   } if(resp.mode == activestr) {
       setButtonTextRecording(buttextspan, "Stop");
    }
    document.querySelector(buttonid).addEventListener ("click", async function () {
-      resp = await getServer("recording_state");
-      if(resp.mode == "playback") {
+      resp = await getServer(satestr);
+      console.log(resp);
+      if(resp.mode == nonactivestr) {
          rname = document.querySelector("#record-name").value;
          rdescription = document.querySelector("#record-description").value;
          data = {
             "name" : rname,
             "description" : rdescription
          };
+         console.log("getServer", recstr, data);
          resp = await getServer(recstr, data);
+         console.log(resp);
          if(resp.result) {
             setButtonTextRecording(buttextspan, "Stop");
             setStatusNormal(resp.status_text);
          } else {
             setStatusError(resp.status_text);
          }
-      } if(resp.mode == "recording") {
+      } if(resp.mode == activestr) {
          resp = await getServer(stopstr);
          if(resp.result) {
             addTableEntry(resp.name, resp.id, true, resp.description, resp.datetime);
@@ -168,6 +171,16 @@ async function setupStartButtonHandler(buttonid, buttextspan, origtext, recstr, 
       }
       return false;
    });
+}
+
+async function setupStartButtonHandlerCamera(buttonid, buttextspan, origtext, recstr, stopstr)
+{
+   return setupStartButtonHandlerHelper(buttonid, buttextspan, origtext, recstr, stopstr, "recording_state", "recording", "playback")
+}
+
+async function setupStartButtonHandlerPMSensor(buttonid, buttextspan, origtext, recstr, stopstr)
+{
+   return setupStartButtonHandlerHelper(buttonid, buttextspan, origtext, recstr, stopstr, "particle_measurement_state", "measuring", "not_measuring")
 }
 
 async function updateSystemState()
@@ -330,10 +343,10 @@ async function setDate() {
 }
 
 document.addEventListener("DOMContentLoaded", function() { 
-   setupStartButtonHandler("#record-video-button", "#record-video-button-text", "Record Video", "record_video", "stop_record_video")
-   setupStartButtonHandler("#capture-sequence-button", "#capture-sequence-button-text", "Capture Image Sequence", "capture_image_sequence", "stop_capture_image_sequence")
-   setupStartButtonHandler("#detect-objects-button", "#detect-objects-button-text", "Detect Objects", "detect_objects", "stop_detect_objects")
-   setupStartButtonHandler("#measure-particles-button", "#measure-particles-button-text", "Measure Particles", "measure_particles", "stop_measure_particles")
+   setupStartButtonHandlerCamera("#record-video-button", "#record-video-button-text", "Record Video", "record_video", "stop_record_video")
+   setupStartButtonHandlerCamera("#capture-sequence-button", "#capture-sequence-button-text", "Capture Image Sequence", "capture_image_sequence", "stop_capture_image_sequence")
+   setupStartButtonHandlerCamera("#detect-objects-button", "#detect-objects-button-text", "Detect Objects", "detect_objects", "stop_detect_objects")
+   setupStartButtonHandlerPMSensor("#measure-particles-button", "#measure-particles-button-text", "Measure Particles", "measure_particles", "stop_measure_particles")
    setupCaptureStillImageButtonHandler();
    
    setupSyncTimeButtonHandler();

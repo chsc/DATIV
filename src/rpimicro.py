@@ -36,14 +36,14 @@ class PMSEvents(PMSensorEvents):
 
     def start_measuring(self, pmsensor):
         global status_text
-        self.mespart = self.recordings.measure_particles(self.name, self.description, pmsensor)
+        self.mespart = self.recordings.start_particle_measurement(self.name, self.description, pmsensor)
         status_text = "Measure particles ..."
         return self.mespart.make_file_path()
 
-    def stop_measuring(self, pmsensor):
+    def end_measuring(self, pmsensor):
         global status_text
         status_text = "Measure particles ended"
-        self.recordings.stop_measure_particles(self.mespart)
+        self.recordings.end_particle_measurement(self.mespart)
 
 class CamEvents(CameraEvents):
     def __init__(self, recordings):
@@ -214,6 +214,7 @@ def delete_all_recordings():
     else:
         return jsonify(result=False, status_text=f"Unable to delete recordings!")
 
+# Camera commands
 
 @app.route('/record_video')
 def record_video():
@@ -340,15 +341,16 @@ def capture_still_image():
 @app.route('/recording_state')
 def recording_state():
     mode = "playback"
-    print(camera.is_recording())
     if camera.is_recording():
         mode = "recording"
     data = {
         'mode': mode,
         'status_text': status_text
     }
+    print(data)
     return jsonify(data)
 
+# PM Sensor commands
 
 @app.route('/measure_particles')
 def measure_particles():
@@ -366,10 +368,10 @@ def measure_particles():
     if pmsensor.start():
         return jsonify(result=True,
             status_text = "Measure particles...",
-            id = pmsevents.capture.id(),
-            name = pmsevents.capture.meta['name'],
-            description = pmsevents.capture.meta['description'],
-            datetime = pmsevents.capture.meta['datetime'])
+            id = pmsevents.mespart.id(),
+            name = pmsevents.mespart.meta['name'],
+            description = pmsevents.mespart.meta['description'],
+            datetime = pmsevents.mespart.meta['datetime'])
     else:
         return jsonify(result = False, status_text = "Unable to measure particles!")
 
@@ -380,13 +382,25 @@ def stop_measure_particles():
     if pmsensor.stop():
         return jsonify(result = True,
             status_text = "Particle measurement stopped!",
-            id = pmsevents.objdet.id(),
-            name = pmsevents.objdet.meta['name'],
-            description = pmsevents.objdet.meta['description'],
-            datetime = pmsevents.objdet.meta['datetime'])
+            id = pmsevents.mespart.id(),
+            name = pmsevents.mespart.meta['name'],
+            description = pmsevents.mespart.meta['description'],
+            datetime = pmsevents.mespart.meta['datetime'])
     else:
         return jsonify(result = False, status_text="Unable to stop measure particles!")
 
+@app.route('/particle_measurement_state')
+def particle_measurement_state():
+    mode = "not_measuring"
+    if pmsensor.is_measuring():
+        mode = "measuring"
+    data = {
+        'mode': mode,
+        'status_text': status_text
+    }
+    print(data)
+    return jsonify(data)
+    
 
 @app.route('/system_state')
 def system_state():

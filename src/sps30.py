@@ -37,11 +37,15 @@ class MPMSensor(PMSensor):
         self.mode = Mode.MEASURE_OFF
         self.device = device
         try:
-            self.ser = serial.Serial(device, 115200, stopbits=1, parity="N", timeout=2)
+            self.ser = serial.Serial(device, 115200, bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, timeout=2)
+            print("SPS30: product_type:", self.read_product_type())
+            print("SPS30: serial_number:", self.read_serial_number())
+            print("SPS30: firmware_version:", self.read_firmware_version())
+            print("SPS30: status_register:", self.read_status_register())
         except serial.SerialException:
-            print("unable to open serial interface:", device)
+            print("SPS30: unable to open serial interface:", device)
             self.ser = None
-
+        
     def is_measuring(self):
         return self.mode == Mode.MEASURE
 
@@ -55,7 +59,7 @@ class MPMSensor(PMSensor):
             filename = self.pmevents.start_measuring(self)
             #self.zipf = zipfile.ZipFile(filename, mode='w', compression=zipfile.ZIP_DEFLATED)
             #self.csvio = io.StringIO()
-            print('Start...')
+            print('Start measuring...')
             self.csvio = open(filename, 'w', newline='', encoding='utf-8')
             self.csvwr = csv.writer(self.csvio)
             self.csvwr.writerow(['time', 'P1.0', 'P2.5', 'P4.0', 'P10', 'P0.5', 'P1.0', 'P2.5', 'P4.0', 'P10', "size"])
@@ -77,6 +81,7 @@ class MPMSensor(PMSensor):
             return False
         self.lock.acquire()
         try:
+            print('... stop measuring!')
             self.running = False
             self.mthread.join()
             self.stop_measurement()
@@ -92,10 +97,11 @@ class MPMSensor(PMSensor):
         start_time = time.time()
         next_time = start_time
         while self.running:
+            print(f'Wait to measure particles for {self.measure_interval} seconds ...')
             next_time = next_time + self.measure_interval
             time.sleep(next_time - time.time())
             values = self.read_values()
-            print(values)
+            print(f'Measured {len(values)} values!')
             if values is not None:
                 dtime = time.time() - start_time
                 self.csvwr.writerow([dtime] + list(values))
@@ -103,27 +109,30 @@ class MPMSensor(PMSensor):
     def wait_for_bytes(self, bytes_to_read):
         in_bytes = self.ser.in_waiting
         tries = 0
-        while in_bytes < bytes_to_read and tries < 5:
-            time.sleep(0.02)
+        while in_bytes < bytes_to_read and tries < 10:
+            time.sleep(0.1)
             in_bytes = self.ser.in_waiting
             tries = tries + 1
         return in_bytes
 
     def start_measurement(self):
         self.ser.write([0x7E, 0x00, 0x00, 0x02, 0x01, 0x03, 0xF9, 0x7E])
+        self.ser.flush()
 
     def stop_measurement(self):
         self.ser.write([0x7E, 0x00, 0x01, 0x00, 0xFE, 0x7E])
+        self.ser.flush()
         
     def read_values(self):
         self.ser.reset_input_buffer()
         self.ser.write([0x7E, 0x00, 0x03, 0x00, 0xFC, 0x7E])
+        self.ser.flush()
         in_bytes = self.wait_for_bytes(47)
-        #print(in_bytes)
+        #print("r", in_bytes)
         raw_data = self.ser.read(in_bytes)
+        #print("data", raw_data)
         raw_data = reverse_byte_stuffing(raw_data)
-        raw_data = trim_data(raw_data)
-        #print("->", len(raw_data))
+        raw_data = trim_data(raw_data)        
         try:
             data = struct.unpack(">ffffffffff", raw_data)
         except struct.error:
@@ -133,6 +142,7 @@ class MPMSensor(PMSensor):
     def read_product_type(self):
         self.ser.reset_input_buffer()
         self.ser.write([0x7E, 0x00, 0xD0, 0x01, 0x00, 0x2E, 0x7E])
+        self.ser.flush()
         in_bytes = self.wait_for_bytes(16)
         raw_data = self.ser.read(in_bytes)
         raw_data = reverse_byte_stuffing(raw_data)
@@ -144,6 +154,7 @@ class MPMSensor(PMSensor):
     def read_serial_number(self):
         self.ser.reset_input_buffer()
         self.ser.write([0x7E, 0x00, 0xD0, 0x01, 0x03, 0x2B, 0x7E])
+        self.ser.flush()
         in_bytes = self.wait_for_bytes(24)
         raw_data = self.ser.read(in_bytes)
         raw_data = reverse_byte_stuffing(raw_data)
@@ -155,6 +166,7 @@ class MPMSensor(PMSensor):
     def read_firmware_version(self):
         self.ser.reset_input_buffer()
         self.ser.write([0x7E, 0x00, 0xD1, 0x00, 0x2E, 0x7E])
+        self.ser.flush()
         in_bytes = self.wait_for_bytes(14)
         raw_data = self.ser.read(in_bytes)
         raw_data = reverse_byte_stuffing(raw_data)
@@ -167,6 +179,7 @@ class MPMSensor(PMSensor):
     def read_status_register(self):
         self.ser.reset_input_buffer()
         self.ser.write([0x7E, 0x00, 0xD2, 0x01, 0x00, 0x2C, 0x7E])
+        #self.ser.flush()
         in_bytes = self.wait_for_bytes(12)
         raw_data = self.ser.read(in_bytes)
         raw_data = reverse_byte_stuffing(raw_data)
@@ -193,25 +206,20 @@ if __name__ == "__main__":
             pass
 
     evts = SensorEvents()
-    
-    sps = SPS30(evts, 2.0, '/dev/ttyUSB0')
-    
-    print("product_type", sps.read_product_type())
-    print("serial_number", sps.read_serial_number())
-    print("firmware_version", sps.read_firmware_version())
-    print("status_register", sps.read_status_register())
-
+    sps = MPMSensor(evts, 2.0, '/dev/serial0')
+        
     if True:
         sps.start()
-        time.sleep(10)
+        time.sleep(20)
         sps.stop()
     else:
         sps.start_measurement()
         print("start")
-        for i in range(50):
+        for i in range(10):
             print("values", sps.read_values())
             time.sleep(2)
             print("stop")
         sps.stop_measurement()
     
     
+

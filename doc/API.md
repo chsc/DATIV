@@ -1,5 +1,7 @@
 # Camera Remote API
 
+!!! ACHTUNG: NICHT AKTUELL !!!
+
 The camera can be remote controlled by sending HTTP requests:
 
     http://<camera_ip>:5000/<request>

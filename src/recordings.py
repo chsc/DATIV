@@ -10,6 +10,7 @@ IMAGE_FILE_EXT    = ".png"
 VIDEO_FILE_EXT    = ".h264"
 IMAGESEQ_FILE_EXT = ".zip"
 OBJDET_FILE_EXT   = ".zip"
+PARTDET_FILE_EXT  = ".csv"
 
 def build_base_name(name, now):
     return name + "_" + now.strftime("%Y-%m-%d_%H-%M-%S_%f")
@@ -91,7 +92,7 @@ def new_meta_image_sequence(name, description, camera):
         'ruler_yres': camera.get_ruler_yres(),
         'passe_partout_h': camera.get_passe_partout_h(),
         'passe_partout_v': camera.get_passe_partout_v(),
-        'capture_intervall': camera.get_capture_interval()
+        'capture_interval': camera.get_capture_interval()
     }
     return meta
 
@@ -116,7 +117,23 @@ def new_meta_objdet(name, description, camera):
         'ruler_yres': camera.get_ruler_yres(),
         'passe_partout_h': camera.get_passe_partout_h(),
         'passe_partout_v': camera.get_passe_partout_v(),
-        'capture_intervall': camera.get_capture_interval()
+        'capture_interval': camera.get_capture_interval()
+    }
+    return meta
+    
+def new_meta_particle_detection(name, description, pmsensor):
+    dt = datetime.datetime.now()
+    basename = build_base_name(name, dt)
+    metafile = basename + META_FILE_EXT
+    partmesfile = basename + PARTDET_FILE_EXT
+    meta = {
+        'id': basename,
+        'metafile': metafile,
+        'partmesfile': partmesfile,
+        'name': name,
+        'description': description,
+        'datetime': str(dt),
+        'measure_interval': pmsensor.get_measure_interval(),
     }
     return meta
 
@@ -139,6 +156,9 @@ class Recording:
         
     def is_objdet(self):
         return 'objdetfile' in self.meta
+        
+    def is_particle_measurement(self):
+        return 'partmesfile' in self.meta
 
     def get_file_name(self):
         if self.is_video():
@@ -149,9 +169,11 @@ class Recording:
             return self.meta['imageseqfile']
         elif self.is_objdet():
             return self.meta['objdetfile']
+        elif self.is_particle_measurement():
+            return self.meta['partmesfile']            
         else:
             return None
-            
+
     def get_meta_file_name(self):
         return self.meta['metafile']
     
@@ -177,6 +199,7 @@ class Recordings:
             meta = read_meta(mf)
             self.recordings[meta['id']] = Recording(self, meta)
 
+
     def start_recording(self, name, description, camera):
         return Recording(self, new_meta_video(name, description, camera))
 
@@ -187,11 +210,13 @@ class Recordings:
         self.recordings[basename] = recording
         return basename
         
+        
     def start_image_sequence(self, name, description, camera):
         return Recording(self, new_meta_image_sequence(name, description, camera))
 
     def end_image_sequence(self, capture):
         return self.end_recording(capture)
+
 
     def start_capture_still_image(self, name, description, camera):
         return Recording(self, new_meta_image(name, description, camera))
@@ -199,12 +224,21 @@ class Recordings:
     def end_capture_still_image(self, capture):
         return self.end_recording(capture)
         
+        
     def start_objdet(self, name, description, camera):
         return Recording(self, new_meta_objdet(name, description, camera))
     
     def end_objdet(self, capture):
         return self.end_recording(capture)
-
+        
+  
+    def start_particle_measurement(self, name, description, pmsensor):
+        return Recording(self, new_meta_particle_detection(name, description, pmsensor))
+    
+    def end_particle_measurement(self, pmes):
+        return self.end_recording(pmes)      
+    
+    
     def delete_recording(self, ident):
         try:
             recording = self.recordings[ident]

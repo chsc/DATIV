@@ -26,7 +26,7 @@ CAMERA_MODULE       = "rpicamera" # or cvcamera
 
 # Sensor configuration
 
-PMSENSOR_DEVICE     = "/dev/ttyAMA0"
+PMSENSOR_DEVICE     = "/dev/serial0"
 PMSENSOR_INTERVAL   = 2.0
 
 PMSENSOR_MODULE     = "sps30"

@@ -60,11 +60,11 @@ For Pi Zeros `usb0` for the ethernet emulation!
 
 ## Connect via SSH
 
-    ssh -X pi@raspberrypi.local
+    ssh -X pi@192.168.1.10
 
 ## Web
 
-    http://raspberrypi.local:5000
+    http://192.168.1.10:5000
 
 # Network of 10 Cameras
 
@@ -78,8 +78,8 @@ For Pi Zeros `usb0` for the ethernet emulation!
 | camera03       | RPi Zero, v2 Camera    | 192.168.1.13 | 192.168.2.13 |
 | camera04       | RPi Zero, v2 Camera    | 192.168.1.14 | 192.168.2.14 |
 | camera05       | RPi 3 Type A+          | 192.168.1.15 | 192.168.2.15 |
-| camera06       | -                      | 192.168.1.16 | 192.168.2.16 |
-| camera07       | -                      | 192.168.1.17 | 192.168.2.17 |
-| camera08       | -                      | 192.168.1.18 | 192.168.2.18 |
-| camera09       | -                      | 192.168.1.19 | 192.168.2.19 |
-
+| camera06       | - BPi                  | 192.168.1.16 | 192.168.2.16 |
+| camera07       | - BPi                  | 192.168.1.17 | 192.168.2.17 |
+| camera08       | - BPi                  | 192.168.1.18 | 192.168.2.18 |
+| camera09       | - BPi                  | 192.168.1.19 | 192.168.2.19 |
+| camera10       | - RPi 4 (von Tom)      | 192.168.1.19 | 192.168.2.19 |
