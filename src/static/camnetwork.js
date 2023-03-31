@@ -162,6 +162,8 @@ async function setupButtonHandlers() {
    setSliderHandler("#capture-interval", "#capture-interval-output", "capture_interval");
    setSliderHandler("#iso", "#iso-output", "iso");
    setSliderHandler("#shutter-speed", "#shutter-speed-output", "shutter_speed");
+   
+   setSliderHandler("#pms-interval", "#pms-interval-output", "pms_interval");
 }
 
 function setupDetectorControlHandler() {

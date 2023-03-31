@@ -10,6 +10,8 @@ const rulerXResInput   = document.querySelector("#ruler-xres");
 const rulerYResInput   = document.querySelector("#ruler-yres");
 const rulerLengthInput = document.querySelector("#ruler-length");
 
+const pmsIntervalInput = document.querySelector("#pms-interval");
+
 const passePartoutHSlider  = document.querySelector("#passe-partout-h");
 const passePartoutHOutput  = document.querySelector("#passe-partout-h-output");
 const passePartoutVSlider  = document.querySelector("#passe-partout-v");
@@ -228,6 +230,8 @@ function setupCameraSettingControlHandler() {
    setSpinHandler(rulerXResInput, "ruler_xres");
    setSpinHandler(rulerYResInput, "ruler_yres");
    setSpinHandler(rulerLengthInput, "ruler_length");
+   
+   setSpinHandler(pmsIntervalInput, "pms_interval")
 
    setSliderHandler(passePartoutHSlider, passePartoutHOutput, "passe_partout_h");
    setSliderHandler(passePartoutVSlider, passePartoutVOutput, "passe_partout_v");

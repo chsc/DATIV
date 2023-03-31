@@ -74,6 +74,10 @@
       <label class="subcatlabel">Vertical <output id="passe-partout-v-output" for="passe-partout-v">-</output> %</label>
       <input id="passe-partout-v" name="passe-partout-v" type="range" min="0" max="100" step="1" value="25">
       
+      <label class="catlabel">Particle Sensor</label>
+      <label class="subcatlabel">Measure Interval (seconds)</label>
+      <input type="number" id="pms-interval" name="name" min="1" max="100" step="1" value="3"/>      
+      
     </div>
     <div class="video">
       <img src="{{ url_for('video_stream') }}" class="stream" alt="Camera Stream"/>

@@ -460,6 +460,8 @@ def set_param(param):
     elif param == "light_curtain_width":
         particleflow.light_curtain_width = value
         particleflow.save()
+    elif param == "pms_interval":
+        pmsensor.set_measure_interval(value)
     else:
         return jsonify({"result": False, "status_text": f"Unknown parameter {param}"})
     return jsonify({"result": True, "status_text": f"Parameter {param} set"})    
@@ -474,6 +476,8 @@ def get_params():
     data["tidal_volume"] = particleflow.tidal_volume
     data["breath_freq"] = particleflow.breath_freq
     data["light_curtain_width"] = particleflow.light_curtain_width
+    # pms
+    data["pms_interval"] = pmsensor.get_measure_interval()
     return jsonify(data)
 
 @app.route('/reset')
