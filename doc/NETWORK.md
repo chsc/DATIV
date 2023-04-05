@@ -78,8 +78,8 @@ For Pi Zeros `usb0` for the ethernet emulation!
 | camera03       | RPi Zero, v2 Camera    | 192.168.1.13 | 192.168.2.13 |
 | camera04       | RPi Zero, v2 Camera    | 192.168.1.14 | 192.168.2.14 |
 | camera05       | RPi 3 Type A+          | 192.168.1.15 | 192.168.2.15 |
-| camera06       | - BPi                  | 192.168.1.16 | 192.168.2.16 |
-| camera07       | - BPi                  | 192.168.1.17 | 192.168.2.17 |
-| camera08       | - BPi                  | 192.168.1.18 | 192.168.2.18 |
-| camera09       | - BPi                  | 192.168.1.19 | 192.168.2.19 |
-| camera10       | - RPi 4 (von Tom)      | 192.168.1.19 | 192.168.2.19 |
+| camera06       | BPi M2 Zero            | 192.168.1.16 | 192.168.2.16 |
+| camera07       | BPi M2 Zero            | 192.168.1.17 | 192.168.2.17 |
+| camera08       | BPi M2 Zero            | 192.168.1.18 | 192.168.2.18 |
+| camera09       | BPi M2 Zero            | 192.168.1.19 | 192.168.2.19 |
+| camera10       | RPi 4 (von Tom)        | 192.168.1.20 | 192.168.2.20 |
