@@ -543,6 +543,8 @@ def download_firmware():
 if __name__ == "__main__":
     particleflow.load()
     camera.load_state(app.config['CAMERA_SETTINGS'])
+    pmsensor.load_state(app.config['PMSENSOR_SETTINGS'])
     app.run(host='0.0.0.0') #debug=True)
     camera.save_state(app.config['CAMERA_SETTINGS'])
+    pmsensor.save_state(app.config['PMSENSOR_SETTINGS'])
 

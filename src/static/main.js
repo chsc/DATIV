@@ -301,6 +301,7 @@ async function initCameraSettings() {
    rulerLengthInput.value  = resp.ruler_length;
    rulerXResInput.value    = resp.ruler_xres;
    rulerYResInput.value    = resp.ruler_yres;
+   pmsIntervalInput.value  = resp.pms_interval;
 
    passePartoutHSlider.value = resp.passe_partout_h;
    passePartoutVSlider.value = resp.passe_partout_v;

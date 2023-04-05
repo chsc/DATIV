@@ -26,6 +26,8 @@ CAMERA_MODULE       = "rpicamera" # or cvcamera
 
 # Sensor configuration
 
+PMSENSOR_SETTINGS   = 'pmsensor_settings.json'
+
 PMSENSOR_DEVICE     = "/dev/serial0"
 PMSENSOR_INTERVAL   = 2.0
 
