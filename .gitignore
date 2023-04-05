@@ -11,3 +11,4 @@ data/*.csv
 data/*.txt
 src/camera_settings.json
 **/__pycache__
+firmware_rpimicro.tar.gz

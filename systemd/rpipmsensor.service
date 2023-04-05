@@ -1,0 +1,12 @@
+[Unit]
+Description=RPi PM Sesnor Web Service
+After=network.target
+
+[Service]
+User=pi
+WorkingDirectory=/home/pi/rpimicro/src
+ExecStart=/usr/bin/python3 rpipmsensor.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

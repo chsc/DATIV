@@ -5,7 +5,12 @@ import shlex
 
 def get_temperature():
     with open( "/sys/class/thermal/thermal_zone0/temp", "r" ) as input:
-        temperature = float( input.readline() ) / 1000.0
+        temperature = float(input.readline()) / 1000.0
+    return temperature
+    
+def get_temperature_bpi():
+    with open( "/sys/class/thermal/thermal_zone0/temp", "r" ) as input:
+        temperature = float(input.readline())
     return temperature
 
 def get_disk_free():
@@ -20,9 +25,10 @@ def get_hostname():
 #    return netifaces.ifaddresses(adapter)[netifaces.AF_INET][0]['addr']
 
 def set_time(time):
-    return subprocess.call(shlex.split(f'sudo date -s "{time}"')) == 0
+    return subprocess.call(shlex.split('sudo date -s "%s"' % time)) == 0
 
 
 if __name__ == "__main__":
-    print(get_ip('eth0'))
     print(get_hostname())
+    print(get_temperature())
+    print(get_disk_free())

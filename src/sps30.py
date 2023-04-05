@@ -42,10 +42,11 @@ class MPMSensor(PMSensor):
             print("SPS30: serial_number:", self.read_serial_number())
             print("SPS30: firmware_version:", self.read_firmware_version())
             print("SPS30: status_register:", self.read_status_register())
-        except serial.SerialException:
+        except Exception as e:
             print("SPS30: unable to open serial interface:", device)
+            print(e)
             self.ser = None
-        
+
     def is_measuring(self):
         return self.mode == Mode.MEASURE
 
@@ -97,11 +98,11 @@ class MPMSensor(PMSensor):
         start_time = time.time()
         next_time = start_time
         while self.running:
-            print(f'Wait to measure particles for {self.measure_interval} seconds ...')
+            print('Wait to measure particles for %s seconds ...' % self.measure_interval)
             next_time = next_time + self.measure_interval
             time.sleep(next_time - time.time())
             values = self.read_values()
-            print(f'Measured {len(values)} values!')
+            print('Measured %s values!' % len(values))
             if values is not None:
                 dtime = time.time() - start_time
                 self.csvwr.writerow([dtime] + list(values))
@@ -172,8 +173,8 @@ class MPMSensor(PMSensor):
         raw_data = reverse_byte_stuffing(raw_data)
         raw_data = trim_data(raw_data)
         data = struct.unpack(">bbbbbbb", raw_data)
-        firmware_major: int = data[0]
-        firmware_minor: int = data[1]
+        firmware_major = int(data[0])
+        firmware_minor = int(data[1])
         return firmware_major, firmware_minor
     
     def read_status_register(self):
@@ -206,8 +207,9 @@ if __name__ == "__main__":
             pass
 
     evts = SensorEvents()
-    sps = MPMSensor(evts, 2.0, '/dev/serial0')
-        
+    #sps = MPMSensor(evts, 2.0, '/dev/serial0')
+    sps = MPMSensor(evts, 2.0, '/dev/ttyS3')
+    
     if True:
         sps.start()
         time.sleep(20)

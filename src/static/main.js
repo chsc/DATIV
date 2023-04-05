@@ -55,6 +55,7 @@ async function getServer(endPoint, params)
     } catch (error) {
       console.log(error);
     }
+    return {}
 }
 
 function setStatusNormal(status)
@@ -115,64 +116,72 @@ async function deleteTableEntry(row)
 
 async function setupCaptureStillImageButtonHandler()
 {
-   document.querySelector("#capture-still-image-button").addEventListener ("click", async function () {
-      setButtonTextRecording("#capture-still-image-button-text", "Capturing...");
-      rname = document.querySelector("#record-name").value;
-      rdescription = document.querySelector("#record-description").value;
-      data = {
-         "name" : rname,
-         "description" : rdescription
-      };
-      resp = await getServer("capture_still_image", data);
-      if(!resp.result) {
-         setStatusError(resp.status_text);
-      } else {
-         addTableEntry(resp.name, resp.id, false, resp.description, resp.datetime);
-      }
-      setButtonTextRecording("#capture-still-image-button-text", "Capture Still Image");
-      setStatusNormal(resp.status_text);
-   });
+   try {
+	   document.querySelector("#capture-still-image-button").addEventListener ("click", async function () {
+		  setButtonTextRecording("#capture-still-image-button-text", "Capturing...");
+		  rname = document.querySelector("#record-name").value;
+		  rdescription = document.querySelector("#record-description").value;
+		  data = {
+			 "name" : rname,
+			 "description" : rdescription
+		  };
+		  resp = await getServer("capture_still_image", data);
+		  if(!resp.result) {
+			 setStatusError(resp.status_text);
+		  } else {
+			 addTableEntry(resp.name, resp.id, false, resp.description, resp.datetime);
+		  }
+		  setButtonTextRecording("#capture-still-image-button-text", "Capture Still Image");
+		  setStatusNormal(resp.status_text);
+	   });
+   } catch(e) {
+	   console.log(e);
+   }
 }
 
 async function setupStartButtonHandlerHelper(buttonid, buttextspan, origtext, recstr, stopstr, satestr, activestr, nonactivestr)
 {
-   resp = await getServer(satestr);
-   if(resp.mode == nonactivestr) {
-      setButtonTextRecording(buttextspan, origtext);
-   } if(resp.mode == activestr) {
-      setButtonTextRecording(buttextspan, "Stop");
+   try {
+	   resp = await getServer(satestr);
+	   if(resp.mode == nonactivestr) {
+		  setButtonTextRecording(buttextspan, origtext);
+	   } if(resp.mode == activestr) {
+		  setButtonTextRecording(buttextspan, "Stop");
+	   }
+	   document.querySelector(buttonid).addEventListener ("click", async function () {
+		  resp = await getServer(satestr);
+		  console.log(resp);
+		  if(resp.mode == nonactivestr) {
+			 rname = document.querySelector("#record-name").value;
+			 rdescription = document.querySelector("#record-description").value;
+			 data = {
+				"name" : rname,
+				"description" : rdescription
+			 };
+			 console.log("getServer", recstr, data);
+			 resp = await getServer(recstr, data);
+			 console.log(resp);
+			 if(resp.result) {
+				setButtonTextRecording(buttextspan, "Stop");
+				setStatusNormal(resp.status_text);
+			 } else {
+				setStatusError(resp.status_text);
+			 }
+		  } if(resp.mode == activestr) {
+			 resp = await getServer(stopstr);
+			 if(resp.result) {
+				addTableEntry(resp.name, resp.id, true, resp.description, resp.datetime);
+				setButtonTextRecording(buttextspan, origtext);
+				setStatusNormal(resp.status_text);
+			 } else {
+				setStatusError(resp.status_text);
+			 }
+		  }
+		  return false;
+	   });
+   } catch(e) {
+	   console.log(e);
    }
-   document.querySelector(buttonid).addEventListener ("click", async function () {
-      resp = await getServer(satestr);
-      console.log(resp);
-      if(resp.mode == nonactivestr) {
-         rname = document.querySelector("#record-name").value;
-         rdescription = document.querySelector("#record-description").value;
-         data = {
-            "name" : rname,
-            "description" : rdescription
-         };
-         console.log("getServer", recstr, data);
-         resp = await getServer(recstr, data);
-         console.log(resp);
-         if(resp.result) {
-            setButtonTextRecording(buttextspan, "Stop");
-            setStatusNormal(resp.status_text);
-         } else {
-            setStatusError(resp.status_text);
-         }
-      } if(resp.mode == activestr) {
-         resp = await getServer(stopstr);
-         if(resp.result) {
-            addTableEntry(resp.name, resp.id, true, resp.description, resp.datetime);
-            setButtonTextRecording(buttextspan, origtext);
-            setStatusNormal(resp.status_text);
-         } else {
-            setStatusError(resp.status_text);
-         }
-      }
-      return false;
-   });
 }
 
 async function setupStartButtonHandlerCamera(buttonid, buttextspan, origtext, recstr, stopstr)
@@ -189,24 +198,28 @@ async function updateSystemState()
 {
    resp = await getServer("/system_state", null);
 
+   try {
    document.querySelector("#temperature").textContent = resp.temperature;
-
    stateDiskTotal.textContent = resp.disk.total;
    stateDiskUsed.textContent  = resp.disk.used;
    stateDiskFree.textContent  = resp.disk.free;
    document.querySelector("#percent_used").textContent = Math.round((resp.disk.used / resp.disk.total) * 100);
+   } catch(e) { console.log(e); }
 }
 
 function setSpinHandler(input, paramname) {
+   try {
    input.addEventListener("input", async function() {
       resp = await getServer("set_param/" + paramname, {'value': this.value});
       if(!resp.result) {
          setStatusError(resp.status_text);
       }
    });
+   } catch(e) { console.log(e); }
 }
 
 function setSliderHandler(input, output, paramname) {
+   try {
    input.addEventListener ("input", async function () {
       resp = await getServer("set_param/" + paramname, {'value': this.value});
       if(resp.result) {
@@ -215,9 +228,11 @@ function setSliderHandler(input, output, paramname) {
          setStatusError(resp.status_text);
       }
    });
+   } catch(e) { console.log(e); }
 }
 
-function setupCameraSettingControlHandler() {   
+function setupCameraSettingControlHandler() {
+   try {
    resolutionDropDown.addEventListener("change", async function() {
       resp = await getServer("set_resolution_and_mode", {'value': this.value});
       if(resp.result) {
@@ -226,6 +241,7 @@ function setupCameraSettingControlHandler() {
          setStatusError(resp.status_text);
       }
    });
+   } catch(e) { console.log(e); }
    
    setSpinHandler(rulerXResInput, "ruler_xres");
    setSpinHandler(rulerYResInput, "ruler_yres");
@@ -245,6 +261,7 @@ function setupCameraSettingControlHandler() {
 }
 
 function setupDetectorControlHandler() {
+   try {
    detectorDropDown.addEventListener("change", async function() {
       resp = await getServer("set_detector", {'value': this.value});
       if(resp.result) {
@@ -256,18 +273,22 @@ function setupDetectorControlHandler() {
          setStatusError(resp.status_text);
       }
    });
+   } catch(e) { console.log(e); }
    
    setSliderHandler(thresholdSlider, thresholdOutput, "detector_threshold");
    setSliderHandler(intervalSlider, intervalOutput, "capture_interval");
 }
 
 function setupSyncTimeButtonHandler() {
+   try {
    document.querySelector("#sync-time-button").addEventListener ("click", async function () {
       setDate();
    });
+   } catch(e) { console.log(e); }
 }
 
 function setupResetButtonHandler() {
+   try {
    document.querySelector("#reset-button").addEventListener ("click", async function () {
       if(confirm('Do you really want to reset all camera settings?')) {
          resp = await getServer("/reset", null);
@@ -279,9 +300,11 @@ function setupResetButtonHandler() {
          }
       }
    });
+   } catch(e) { console.log(e); }
 }
 
 function setupDeleteAllButtonHandler() {
+   try {
    document.querySelector("#delete-all-button").addEventListener ("click", async function () {
       if(confirm('Do you really want to delete all recordings?')) {
          resp = await getServer("/delete_all_recordings", null);
@@ -293,21 +316,26 @@ function setupDeleteAllButtonHandler() {
          }
       }
    });
+   } catch(e) { console.log(e); }
 }
 
 async function initCameraSettings() {
    let resp = await getServer("get_params", {});
 
+   try {
    rulerLengthInput.value  = resp.ruler_length;
    rulerXResInput.value    = resp.ruler_xres;
    rulerYResInput.value    = resp.ruler_yres;
-   pmsIntervalInput.value  = resp.pms_interval;
-
+   } catch(e) { console.log(e); }
+   
+   try {
    passePartoutHSlider.value = resp.passe_partout_h;
    passePartoutVSlider.value = resp.passe_partout_v;
    passePartoutHOutput.value = passePartoutHSlider.value;
    passePartoutVOutput.value = passePartoutVSlider.value;
+   } catch(e) { console.log(e); }
 
+   try {
    shutterSlider.value = resp.shutter_speed
    isoSlider.value     = resp.iso;
    brighSlider.value   = resp.brightness;
@@ -319,19 +347,30 @@ async function initCameraSettings() {
    brighOutput.value   = brighSlider.value;
    contrOutput.value   = contrSlider.value;
    zoomOutput.value    = zoomSlider.value;
+   } catch(e) { console.log(e); }
    
+   try {
    thresholdSlider.value = resp.detector_threshold;
    thresholdOutput.value = thresholdSlider.value;
    
    intervalSlider.value = resp.capture_interval;
    intervalOutput.value = intervalSlider.value;
+   } catch(e) { console.log(e); }   
    
+   try {
+   pmsIntervalInput.value  = resp.pms_interval;
+   } catch(e) { console.log(e); }
    
+   try {
    resp = await getServer("get_detector", {});
    detectorDropDown.value = resp.detector;
+   } catch(e) { console.log(e); }
    
+   try {
    resp = await getServer("get_resolution_and_mode", {});
    resolutionDropDown.value = resp.resmode;
+   } catch(e) { console.log(e); }
+   
 }
 
 async function setDate() {

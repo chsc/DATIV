@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+ <head>
+  <title>{{ title }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='main.css') }}">
+ </head>
+ <body>
+  <header>
+    <div class="header">
+      <div class="left-header">
+        {{ title }}
+      </div>
+      <div class="right-header">
+        System Temperature: <span id="temperature"></span> °C <br/>
+        Total: <span id="total"></span> MiB Used: <span id="used"></span> MiB Free: <span id="free"></span> MiB (<span id="percent_used"></span> % full)<br/>
+      </div>
+    </div>
+  </header>
+  <div class="view">
+    <div class="controls">
+      <label class="catlabel">Info</label>
+      <input type="text" id="record-name" name="name" placeholder="Recording Name"/>
+      <textarea id="record-description" name="description" placeholder="Description text goes here..."></textarea>
+            
+      <button class="redbutton" id="measure-particles-button">
+        <img class="buttonicon" src="{{ url_for('static', filename='icons/record-24.png') }}"/>
+        <span id="measure-particles-button-text">Measure Particles</span>
+      </button>
+      
+      <label class="catlabel">Particle Sensor</label>
+      <label class="subcatlabel">Measure Interval (seconds)</label>
+      <input type="number" id="pms-interval" name="name" min="1" max="100" step="1" value="2"/>  
+      
+      <span id="status" class="status-normal">...</span>
+      
+      <button class="greenbutton" id="sync-time-button">
+        Sync Time
+      </button>
+      
+      <button class="greenbutton" id="delete-all-button">
+        Delete All Recordings
+      </button>     
+      
+      <!--<p><a href="user_manual">User Manual</a></p>-->
+    </div>
+  </div>
+  <div class="tablearea">
+    <table id="recording-table">
+      <tbody>
+        <tr>
+          <th>Name</th>
+          <th></th>
+          <th>Description</th>
+          <th>Date/Time</th>
+        </tr>
+        {% for item in rectable.recordings %}
+        <tr>
+          <td>{{ rectable.recordings[item].meta['name'] }}</td>
+          <td>
+            <a href="{{ url_for('download', ident=rectable.recordings[item].meta['id']) }}" download>
+              <img src="{{ url_for('static', filename='icons/download-24.png') }}"" alt="Download"/>
+            </a>
+            <a href="{{ url_for('download_meta', ident=rectable.recordings[item].meta['id']) }}" download>
+              <img src="{{ url_for('static', filename='icons/meta-24.png') }}"" alt="Download"/>
+            </a>
+            <a href="#" onclick="deleteTableEntry(this)" data-id="{{rectable.recordings[item].id()}}">
+              <img src="{{ url_for('static', filename='icons/delete-24.png') }}"" alt="Delete"/>
+            </a>
+          </td>
+          <td>{{ rectable.recordings[item].meta['description'] }}</td>
+          <td>{{ rectable.recordings[item].meta['datetime'] }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <footer> rpipmsensor - v{{version}} - <a href="upload_firmware">Upload new firmware...</a> </footer>
+  </body>
+  <script type=text/javascript src="{{ url_for('static', filename='main.js') }}"></script>
+</html>

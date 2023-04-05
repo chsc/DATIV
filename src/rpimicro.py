@@ -486,14 +486,14 @@ def reset():
     camera.load_state(app.config['CAMERA_SETTINGS'])
     return jsonify({"result": True, "status_text": 'Camera reset'})
     
-@app.route('/update')
-def update():
-    #tODO: does not work!!!
-    ret1 = os.system('sshpass -p raspberry git pull primarycamera')
-    ret2 = os.system('echo \'raspberry\' | sudo systemctl restart rpimicro')
-    if ret1 == 0:
-        return jsonify({"result": True, "return_code":ret1, "return_code_2":ret2, "status_text": 'Sucessfully Updated!'})
-    return jsonify({"result": False, "return_code":ret1, "return_code_2":ret2, "status_text": 'Updated Failed!'})
+#@app.route('/update')
+#def update():
+#    #tODO: does not work!!!
+#    ret1 = os.system('sshpass -p raspberry git pull primarycamera')
+#    ret2 = os.system('echo \'raspberry\' | sudo systemctl restart rpimicro')
+#    if ret1 == 0:
+#        return jsonify({"result": True, "return_code":ret1, "return_code_2":ret2, "status_text": 'Sucessfully Updated!'})
+#    return jsonify({"result": False, "return_code":ret1, "return_code_2":ret2, "status_text": 'Updated Failed!'})
 
 @app.route('/')
 def index():
@@ -537,7 +537,7 @@ def download_firmware():
     folder = ".."
     ret = subprocess.run(['./create_firmware.sh'], cwd=folder, stderr=subprocess.STDOUT)
     print(ret)
-    return send_file('../firmware_rpimicro.tar.gz')
+    return send_file('../firmware_rpimicro.tar.gz', as_attachment=True)
 
 
 if __name__ == "__main__":

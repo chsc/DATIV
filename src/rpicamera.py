@@ -166,7 +166,7 @@ class MCamera(Camera):
         self.passe_partout_h = 25
         self.passe_partout_v = 25
         self.zoom = 100
-        self.capture_intervall = 1.0
+        self.capture_interval = 1.0
         
         # Pi Camera
         self.camera = picamera.PiCamera(resolution=camera_size, sensor_mode=smode)
