@@ -42,10 +42,11 @@ class MPMSensor(PMSensor):
             print("SPS30: serial_number:", self.read_serial_number())
             print("SPS30: firmware_version:", self.read_firmware_version())
             print("SPS30: status_register:", self.read_status_register())
-        except serial.SerialException:
+        except Exception as e:
             print("SPS30: unable to open serial interface:", device)
+            print(e)
             self.ser = None
-        
+
     def is_measuring(self):
         return self.mode == Mode.MEASURE
 
