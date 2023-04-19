@@ -1,5 +1,5 @@
 [Unit]
-Description=RPi PM Sesnor Web Service
+Description=RPi PM Sensor Web Service
 After=network.target
 
 [Service]
