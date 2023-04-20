@@ -47,12 +47,12 @@ For the Pi Zero use `NETGEAR94` for the SSID!
 ### Ethernet and WLAN IP addresses
 
     interface eth0
-    static ip_address=192.168.1.10/16
+    static ip_address=192.168.2.10/16
     static routers=192.168.1.1
     static domain_name_servers=8.8.8.8
 
     interface wlan0
-    static ip_address=192.168.2.10/16
+    static ip_address=192.168.1.10/16
     static routers=192.168.1.1
     static domain_name_servers=8.8.8.8
 
@@ -68,18 +68,18 @@ For Pi Zeros `usb0` for the ethernet emulation!
 
 # Network of 10 Cameras
 
-| Camera/Type    | Description            | WLAN IP      | LAN IP       |
-| -------------- | ---------------------- | ------------ | ------------ |
-| Router         | Netgear Nighthak X6    | 192.168.1.1  | 192.168.1.1  |
-| Master         | PC                     | 192.168.1.2  | 192.168.2.2  |
-| camera00       | RPi 4, v2 Camera       | 192.168.1.10 | 192.168.2.10 |
-| camera01       | RPi 4, v2 Camera       | 192.168.1.11 | 192.168.2.11 |
-| camera02       | RPi Zero, v2 Camera    | 192.168.1.12 | 192.168.2.12 |
-| camera03       | RPi Zero, v2 Camera    | 192.168.1.13 | 192.168.2.13 |
-| camera04       | RPi Zero, v2 Camera    | 192.168.1.14 | 192.168.2.14 |
-| camera05       | RPi 3 Type A+          | 192.168.1.15 | 192.168.2.15 |
-| camera06       | BPi M2 Zero            | 192.168.1.16 | 192.168.2.16 |
-| camera07       | BPi M2 Zero            | 192.168.1.17 | 192.168.2.17 |
-| camera08       | BPi M2 Zero            | 192.168.1.18 | 192.168.2.18 |
-| camera09       | BPi M2 Zero            | 192.168.1.19 | 192.168.2.19 |
-| camera10       | RPi 4 (von Tom)        | 192.168.1.20 | 192.168.2.20 |
+| Camera/Type    | Description              | WLAN IP      | LAN IP       |
+| -------------- | ------------------------ | ------------ | ------------ |
+| Router         | Netgear Nighthak X6      | 192.168.1.1  | 192.168.1.1  |
+| Master         | PC                       | 192.168.1.2  | 192.168.2.2  |
+| camera00       | RPi 4, v2 Camera         | 192.168.1.10 | 192.168.2.10 |
+| camera01       | RPi 4, v2 Camera         | 192.168.1.11 | 192.168.2.11 |
+| camera02       | RPi Zero, v2 Camera      | 192.168.1.12 | 192.168.2.12 |
+| camera03       | RPi Zero, v2 Camera      | 192.168.1.13 | 192.168.2.13 |
+| camera04       | RPi Zero, v2 Camera      | 192.168.1.14 | 192.168.2.14 |
+| camera05       | RPi 3 Type A+, v2 Camera | 192.168.1.15 | 192.168.2.15 |
+| camera06       | BPi M2 Zero, no Camera   | 192.168.1.16 | 192.168.2.16 |
+| camera07       | BPi M2 Zero, no Camera   | 192.168.1.17 | 192.168.2.17 |
+| camera08       | BPi M2 Zero, no Camera   | 192.168.1.18 | 192.168.2.18 |
+| camera09       | BPi M2 Zero, no Camera   | 192.168.1.19 | 192.168.2.19 |
+| camera10       | RPi 4 (von Tom), no Cam  | 192.168.1.20 | 192.168.2.20 |
