@@ -31,6 +31,7 @@ You also need to install the following additional software packages:
 * **Flask** Web Framework
 * **OpenCV** for Python
 * **Pi Camera** Python Modules
+* **PySerial** package for UART connections
 
 Open the command line to install the required software packages:
 
@@ -42,6 +43,7 @@ Open the command line to install the required software packages:
 
     pip3 install -U flask-cors
     pip3 install -U netifaces
+    pip3 install -U pyserial
 
 Now, start and install the service using systemd (works only if repsitory is cloned to /home/pi/rpimicro):
 
