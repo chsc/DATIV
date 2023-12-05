@@ -1,8 +1,12 @@
-# Portable RPI Microscope
+# DATIV-Dynamic Aerosol Transport for Indoor Ventilation with Smart Array of Particulate MAtter Sensors (SAPMAS)
 
 ## Web Interface
 
-![WebInterface](/doc/web_interface.png)
+Camera interface:
+![WebInterface PM Sensor](/doc/web_interface_camera.png)
+
+PM sensor Interface:
+![WebInterface Camera](/doc/web_interface_pmsensor.png)
 
 ## License
 
