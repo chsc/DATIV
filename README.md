@@ -2,11 +2,11 @@
 
 ## Web Interface
 
-### Camera interface
+### Camera Web Interface
 
 ![WebInterface PM Sensor](/doc/web_interface_camera.png)
 
-### PM sensor Interface
+### PM Sensor Web Interface
 
 ![WebInterface Camera](/doc/web_interface_pmsensor.png)
 
