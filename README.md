@@ -8,7 +8,7 @@
 
 Licensed under the **Apache License, Version 2.0** (the "License");
 
-Please have a look at ![Apache-2.0 License](LICENSE) for more information.
+Please have a look at [Apache-2.0 License](LICENSE) for more information.
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
