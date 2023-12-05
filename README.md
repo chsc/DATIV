@@ -16,6 +16,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
+## Authors and how to contribute
+
+* [Authors](AUTHORS.md)
+* [How to contribute](CONTRIBUTE.md)
+
 ## User Manual
 
 The user manual can be found here: [User Manual](doc/UserManual.pdf)
