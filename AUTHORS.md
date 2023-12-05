@@ -1,8 +1,8 @@
 # Authors
 
-Please keep the list updated!
+Please keep this list updated!
 
-For more information on how to contribute to the project see: [CONTRIBUTE](CONTRIBUTE.md)
+For more information on how to contribute to the project see: [CONTRIBUTING](CONTRIBUTING.md)
 
 ## Original Authors
 

@@ -19,7 +19,7 @@ limitations under the License.
 ## Authors and how to contribute
 
 * [Authors](AUTHORS.md)
-* [How to contribute](CONTRIBUTE.md)
+* [How to contribute](CONTRIBUTING.md)
 
 ## User Manual
 
