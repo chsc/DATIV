@@ -6,7 +6,7 @@
 
 ## License
 
-Licensed under the **Apache License, Version 2.0** (the "License");
+Licensed under the **Apache License, Version 2.0**.
 
 Please have a look at [Apache-2.0 License](LICENSE) for more information.
 
