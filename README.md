@@ -2,10 +2,12 @@
 
 ## Web Interface
 
-Camera interface:
+### Camera interface
+
 ![WebInterface PM Sensor](/doc/web_interface_camera.png)
 
-PM sensor Interface:
+### PM sensor Interface
+
 ![WebInterface Camera](/doc/web_interface_pmsensor.png)
 
 ## License
