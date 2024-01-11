@@ -5,10 +5,11 @@
             "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf"
         }
     ],
-    "title": "DATIV-Dynamic Aerosol Transport for Indoor Ventilation",
+    "title": "DATIV-Dynamic Aerosol Transport for Indoor Ventilation with Smart Array of Particulate MAtter Sensors (SAPMAS)",
     "access_right": "open",
     "upload_type": "software",
     "license": "Apache-2.0",
     "pub_id": "38035",
-    "description": "Repository for the DATIV (Dynamic Aerosol Transport for Indoor Ventilation) source."
+    "description": "DATIV is an open source, low cost, distributed, portable sensor system which incorporates cameras and particulate matter sensors (PMS).
+This system can employ multiple sensors simultaneously and can be remotely operated using a web based GUI."
 }
