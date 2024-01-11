@@ -1,0 +1,14 @@
+{
+    "creators": [
+        {
+            "name": "Schunk, Christoph",
+            "affiliation": "Helmholtz-Zentrum Dresden-Rossendorf"
+        }
+    ],
+    "title": "DATIV-Dynamic Aerosol Transport for Indoor Ventilation",
+    "access_right": "open",
+    "upload_type": "software",
+    "license": "Apache-2.0",
+    "pub_id": "38035",
+    "description": "Repository for the DATIV (Dynamic Aerosol Transport for Indoor Ventilation) source."
+}
